@@ -20,11 +20,12 @@ class FakeOcc:
 
     def __init__(self, media: Path, fail: tuple[str, ...] = ()):
         self.media, self.fail, self.history, self.n = media, fail, [], 0
+        self.tracks, self.timeline = 1, []      # motion-graphic items: occ's add returns no itemId
 
     def check(self):
         pass
 
-    def run(self, label, args, tool_args=None, timeout=300):
+    def run(self, label, args, tool_args=None, timeout=300, read=False):
         self.n += 1
         ok = not any(label.startswith(f) for f in self.fail)
         data = None
@@ -41,8 +42,20 @@ class FakeOcc:
                 data = {"applied": True, "ops": [{"result": {"ok": True, "imported": [
                     {"id": "logo-asset", "name": Path(tool_args["path"]).name, "kind": "image"}]}}]}
             elif "edit_track" in args:
+                self.tracks += 1
                 data = {"applied": True, "ops": [{"result": {"ok": True, "created": [
-                    {"id": "track_v2", "alias": "V2"}]}}]}
+                    {"id": f"track_v{self.tracks}", "alias": f"V{self.tracks}"}]}}]}
+            elif "edit_item" in args and tool_args.get("adds", [{}])[0].get("type") == "motion-graphic":
+                add = tool_args["adds"][0]
+                self.timeline.append({"id": f"mg{self.n}", "kind": "motion-graphic", "trackId": add["track"],
+                                      "startFrame": add["fromFrame"], "durationInFrames": 90})
+                data = {"applied": True, "ops": [{"result": {"ok": True, "results": [
+                    {"ok": True, "kind": "motion-graphic", "templateId": add["assetId"]}]}}]}
+            elif "read_timeline" in args:
+                data = {"applied": False, "ops": [{"result": {"items": list(self.timeline)}}]}
+            elif "remove_item" in args:
+                self.timeline = [i for i in self.timeline if i["id"] != tool_args["itemId"]]
+                data = {"applied": True, "ops": [{"result": {"ok": True}}]}
             elif args[0] == "render":
                 Path(args[args.index("--out") + 1]).write_bytes(b"\0" * 2048)
                 data = {"frames": 1}

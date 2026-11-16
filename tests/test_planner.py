@@ -24,7 +24,27 @@ FX = {"assetId": "builtin:fx-glitch", "kind": "effect",
 TR = {"assetId": "builtin:tr-flash", "kind": "transition",
       "params": [{"key": "durationInFrames", "type": "integer", "default": None, "min": 1, "max": None,
                   "editable": True}]}
-CATALOGUE = {"items": [LUT, FX, TR]}
+def _tpl(key, w, h, vi_ok, params, category="social-shorts"):
+    return {"assetId": f"library:motion-graphic:{key}", "id": key, "kind": "template", "name": key,
+            "category": category, "width": w, "height": h, "durationInFrames": 90, "vi_ok": vi_ok,
+            "vi_status": "ok" if vi_ok else "fail_vietnamese", "params": params}
+
+
+def _p(key, typ, default):
+    return {"key": key, "type": typ, "default": default, "editable": True}
+
+
+# real ids and fields from catalogue.json (social-shorts); positions come from overlays.PLACEMENT
+KEYPOP = _tpl("ss-keyword-pop", 1080, 1920, True, [
+    _p("keyword", "text", "关键是坚持"), _p("subText", "text", "每天进步一点点"),
+    _p("accentColor", "color", "#ff4d6d"), _p("textColor", "color", "#ffffff"), _p("fontSize", "number", 96)])
+BIGCAP = _tpl("ss-big-caption", 1080, 1920, True, [         # full-width bar at the bottom
+    _p("caption", "text", "先讲结论"), _p("bgColor", "color", "rgba(0,0,0,0.72)"),
+    _p("textColor", "color", "#ffffff"), _p("accentColor", "color", "#38bdf8")])
+NOTVI = _tpl("ss-not-vi", 1080, 1920, False, [_p("title", "text", "x")])
+LOOSE = _tpl("vertical-unknown", 1080, 1920, True, [_p("title", "text", "x")], category="koubo-scenes")
+WIDE = _tpl("wide-title", 1920, 1080, True, [_p("title", "text", "x")], category="text-effects")
+CATALOGUE = {"items": [LUT, FX, TR, KEYPOP, BIGCAP, NOTVI, LOOSE, WIDE]}
 
 
 def write_config(tmp: Path, media: Path, **brief) -> Path:

@@ -6,6 +6,7 @@ Relative paths are resolved against the directory that holds config.yaml.
 from __future__ import annotations
 
 import os
+import re
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -50,6 +51,8 @@ class OccConfig:
 LOGO_POSITIONS = ("top-left", "top-right", "bottom-left", "bottom-right")
 LOGO_MODES = ("always", "end")
 LOGO_END_SECONDS = 3.0
+COLOR_ROLES = ("accent", "ink", "on_accent")
+_HEX = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
 
 
 @dataclass
@@ -64,6 +67,7 @@ class Brand:
     logo_opacity: float = 0.85
     logo_margin: float = 0.04
     logo_mode: str = "always"
+    colors: dict[str, str] = field(default_factory=dict)   # role -> "#RRGGBB" (COLOR_ROLES), only those set
 
     @property
     def has_text(self) -> bool:
@@ -198,7 +202,7 @@ def _brand(base: Path, raw) -> Brand:
     if not isinstance(raw, dict):
         raise UserError("brand trong config.yaml phải là một bảng khoá: giá trị (xem README, mục Brand).")
     text = {k: str(raw.get(k) or "").strip() for k in ("name", "tagline", "context")}
-    b = Brand(**text)
+    b = Brand(**text, colors=_colors(raw.get("colors")))
     if not raw.get("logo"):
         return b
     b.logo = _rel(base, raw["logo"])
@@ -224,3 +228,29 @@ def _brand(base: Path, raw) -> Brand:
     b.logo_opacity = _num(raw, "logo_opacity", b.logo_opacity, 0.05, 1.0)
     b.logo_margin = _num(raw, "logo_margin", b.logo_margin, 0.0, 0.25)
     return b
+
+
+def _colors(raw) -> dict[str, str]:
+    """brand.colors: {accent, ink, on_accent} as #RGB or #RRGGBB. Returned as upper-case #RRGGBB."""
+    if not raw:
+        return {}
+    if not isinstance(raw, dict):
+        raise UserError("brand.colors trong config.yaml phải là một bảng khoá: giá trị, ví dụ "
+                        "accent: \"#ED1C24\" (xem README, mục Text overlays).")
+    unknown = set(raw) - set(COLOR_ROLES)
+    if unknown:
+        raise UserError(f"brand.colors có khoá không hỗ trợ: {', '.join(sorted(map(str, unknown)))}. "
+                        f"Chỉ dùng: {', '.join(COLOR_ROLES)}.")
+    out = {}
+    for role in COLOR_ROLES:
+        if role not in raw:
+            continue
+        v = "" if raw[role] is None else str(raw[role]).strip()   # None: `accent: #ED1C24` unquoted
+        if not _HEX.fullmatch(v):
+            raise UserError(f"brand.colors.{role} = {raw[role]!r} không phải mã màu hex hợp lệ. "
+                            "Dùng dạng \"#RRGGBB\" (ví dụ \"#ED1C24\") và đặt trong dấu ngoặc kép, "
+                            "vì YAML coi phần sau dấu # là chú thích.")
+        if len(v) == 4:
+            v = "#" + "".join(c * 2 for c in v[1:])
+        out[role] = v.upper()
+    return out

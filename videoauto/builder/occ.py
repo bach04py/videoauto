@@ -66,7 +66,9 @@ class Occ:
         self.cfg.data_dir.mkdir(parents=True, exist_ok=True)
 
     def run(self, label: str, args: list[str], tool_args: dict | None = None,
-            timeout: int = 300) -> OccResult:
+            timeout: int = 300, read: bool = False) -> OccResult:
+        """read=True for read-only tools (read_timeline): they report applied=false and no
+        "ok" key, which is success for a read; only an "error" in the result fails it."""
         argv = [*args, "--json"]
         t0 = time.monotonic()
         with tempfile.TemporaryDirectory(prefix="videoauto_occ_") as tmp:
@@ -94,7 +96,10 @@ class Occ:
         ok = proc.returncode == 0 and data is not None
         if ok and tool_args is not None:
             r = (data.get("ops") or [{}])[0].get("result") or {}
-            ok = bool(data.get("applied", True)) and r.get("ok", True) is not False
+            if read:
+                ok = "error" not in r
+            else:
+                ok = bool(data.get("applied", True)) and r.get("ok", True) is not False
             if not ok:
                 err = json.dumps(r, ensure_ascii=False)[:400]
         if not ok and not err:

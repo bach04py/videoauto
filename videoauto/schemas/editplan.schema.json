@@ -66,6 +66,21 @@
         "out": { "type": "number", "minimum": 0 }
       }
     },
+    "overlays": {
+      "description": "Text overlays from vi_ok catalogue templates, on one track above V1 and below the logo. Timeline seconds; never overlapping.",
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["template", "at", "duration", "fields"],
+        "properties": {
+          "template": { "type": "string", "minLength": 1 },
+          "at": { "type": "number", "minimum": 0 },
+          "duration": { "type": "number", "exclusiveMinimum": 0 },
+          "fields": { "description": "Every text field of the template; text comes verbatim from text_lines (shortened to 22 characters at most).", "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      }
+    },
+    "text_lines": { "description": "The TEXT lines of the user script: the only text overlays may show.", "type": "array", "items": { "type": "string" } },
     "script": { "type": "string" },
     "script_source": { "description": "user = followed config script_file; planner = written by the model", "enum": ["user", "planner"] },
     "warnings": { "type": "array", "items": { "type": "string" } },

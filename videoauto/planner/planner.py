@@ -14,6 +14,7 @@ from ..brief import ProjectConfig
 from ..cache import sha256_of
 from ..errors import PlanValidationError, UserError
 from ..vision.base import ProviderTransient, VisionProvider
+from . import overlays as ov
 from .catalogue import Catalogue
 from .validate import REJECTING, cut_times, schema_errors, validate_plan
 
@@ -81,7 +82,7 @@ def _base_plan(brief, material: Material, calls: int) -> dict:
         "version": 1,
         "target": {"duration": brief.duration, "aspect": brief.aspect, "fps": brief.fps},
         "confidence": 0.0, "tier": "reject", "clips": [], "transitions": [],
-        "fades": {"in": 0, "out": 0}, "script": "", "warnings": [],
+        "fades": {"in": 0, "out": 0}, "overlays": [], "script": "", "warnings": [],
         "sources": {f: {"sha256": ix["sha256"], "duration": ix["duration"],
                         "orientation": ix["orientation"]} for f, ix in material.indexes.items()},
         "model_calls": calls,
@@ -158,6 +159,8 @@ def build_prompt(cfg: ProjectConfig, material: Material, cat: Catalogue) -> str:
         trans_rule = ("5. Transitions are optional, at most one per cut, but NONE in the last "
                       "3 s: a logo overlay is\n   shown there and the renderer would hide it under a transition.")
 
+    overlay_block, overlay_rule = _overlay_prompt(cfg, cat, ov.script_text_lines(script))
+
     return f"""You are planning a short video edit from raw footage. Only the text index below is
 available; you cannot see the footage. Reply with ONE JSON object and nothing else.
 
@@ -185,17 +188,69 @@ LUTS
 {chr(10).join(luts)}
 TRANSITIONS (durations in frames, at {b.fps} fps; keep them under half of the shorter neighbouring clip)
   {trans}
-
+{overlay_block}
 REPLY FORMAT
 {{"clips": [{{"src": "<file>", "shot": "s01", "in": 0.0, "out": 3.5}}],
  "look": {{"id": "<lut id>", "params": {{"intensity": 0.8}}}},
  "transitions": [{{"after_clip": 1, "id": "<transition id>", "frames": 8}}],
- "fades": {{"in": 0.5, "out": 0.8}},
+ "fades": {{"in": 0.5, "out": 0.8}},{overlay_rule}
  "confidence": 0.0-1.0,
  {script_rule}
  "warnings": ["<Vietnamese, optional>"]}}
 "after_clip": N puts the transition on the cut between clip N and clip N+1 (1-based).
 """
+
+
+def overlay_templates(cfg: ProjectConfig, cat: Catalogue) -> list[dict]:
+    """Templates the validator would accept for this brief and logo: vi_ok, right orientation,
+    and (with a logo) a known position outside the logo's corner. Preferred group first,
+    the default (keyword pop) at the very top."""
+    brand = cfg.brand
+    out = []
+    for it in cat.of_kind("template"):
+        if it.get("vi_ok") is not True or ov.orientation(it) not in (None, cfg.brief.orientation):
+            continue
+        if not ov.text_params(it):
+            continue
+        if brand.logo is not None:
+            c = ov.corners(it["assetId"])
+            if c is None or (brand.logo_mode == "always" and brand.logo_position in c):
+                continue
+        out.append(it)
+    return sorted(out, key=lambda it: (it["assetId"] != ov.DEFAULT_TEMPLATE,
+                                       it.get("category") != ov.PREFERRED_GROUP, it["assetId"]))
+
+
+def _overlay_prompt(cfg: ProjectConfig, cat: Catalogue, lines: list[str]) -> tuple[str, str]:
+    if not lines:
+        return "", ""
+    tpls = overlay_templates(cfg, cat)
+    if not tpls:
+        return "", ""
+    rows = []
+    for it in tpls[:20]:
+        where = ov.zone(it["assetId"]) or "position unknown"
+        rows.append(f"  {it['assetId']} | {it['name']} | {where} | text fields: {', '.join(ov.text_params(it))}"
+                    f" | {it.get('description', '')[:60]}")
+    logo = cfg.brand
+    logo_note = (f"- The logo is in the {logo.logo_position} corner; the templates listed already avoid it "
+                 "(prefer centre or upper-third ones).\n" if logo.logo is not None else "")
+    block = f"""
+TEXT OVERLAYS (the user script asks for on-screen text with TEXT: lines)
+- One overlay per TEXT line, on that line's beat. A beat without a TEXT line gets NO overlay.
+- Copy the TEXT line EXACTLY into the template's first text field: same words, accents and capitals.
+  Do not translate, shorten, rephrase or add text, even if it is long; leave every other text field "".
+- "at"/"duration" are timeline seconds of YOUR edit (where that beat's clips land), 1.5-3 s each,
+  inside the video, and overlays must never overlap in time.
+- Use only the templates below. For a short punchy line use the first one (keyword pop, centred).
+  Colours are filled from the brand automatically; do not set them.
+{logo_note}TEXT lines in the script: {" / ".join(lines)}
+TEMPLATES (id | name | position | text fields | description)
+{chr(10).join(rows)}
+"""
+    rule = ('\n "overlays": [{"template": "<template id>", "at": 0.0, "duration": 2.5, '
+            '"fields": {"keyword": "<TEXT line, verbatim>", "subText": ""}}],')
+    return block, rule
 
 
 def parse_reply(text: str) -> dict | None:
@@ -263,6 +318,8 @@ def assemble(reply: dict, cfg: ProjectConfig, material: Material, cat: Catalogue
     plan["confidence"] = min(1.0, max(0.0, conf if conf is not None else 0.0))
     plan["script"] = reply.get("script") if isinstance(reply.get("script"), str) else ""
     warn.extend(f"model: {w}" for w in reply.get("warnings") or [] if isinstance(w, str))
+    plan["text_lines"] = ov.script_text_lines(cfg.script_text())
+    plan["overlays"] = _overlays_from_reply(reply.get("overlays"), warn)
     plan["tier"] = "full"                           # provisional; decided below
     if cfg.script_text():
         plan["script_source"] = "user"
@@ -302,6 +359,23 @@ def assemble(reply: dict, cfg: ProjectConfig, material: Material, cat: Catalogue
     if plan["confidence"] < MIN_CONFIDENCE_FULL or dropped or total < 0.8 * b.duration:
         plan["tier"] = "basic"
     return plan
+
+
+def _overlays_from_reply(raw, warn: list[str]) -> list[dict]:
+    """Shape check only; the rules themselves live in validate.validate_overlays."""
+    out = []
+    for n, o in enumerate(raw if isinstance(raw, list) else [], 1):
+        at = _num(o.get("at")) if isinstance(o, dict) else None
+        dur = _num(o.get("duration")) if isinstance(o, dict) else None
+        fields = o.get("fields") if isinstance(o, dict) else None
+        if (not isinstance(o, dict) or not isinstance(o.get("template"), str) or at is None
+                or dur is None or at < 0 or dur <= 0 or not isinstance(fields, dict)):
+            warn.append(f"bỏ overlay {n}: thiếu template/at/duration/fields")
+            continue
+        out.append({"template": o["template"], "at": round(at, 4), "duration": round(dur, 4),
+                    "fields": {str(k): v if isinstance(v, str) else str(v) for k, v in fields.items()
+                               if v is not None}})
+    return out
 
 
 def _beat_warnings(beats) -> list[str]:

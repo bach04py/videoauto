@@ -22,13 +22,18 @@ thông tin thương hiệu và logo (`brand`) đều đặt sẵn trong `config.
   nhỏ nên đặt `logo_scale` khoảng 0.30–0.35 cho khung dọc 9:16.
 - **Kịch bản**: nếu có `script_file`, công cụ làm theo kịch bản đó; cảnh nào footage không có sẽ được
   cảnh báo rõ, không bịa.
+- **Chữ trên hình**: mỗi dòng `TEXT: …` trong kịch bản thành một câu chữ nhảy lên giữa khung, đúng
+  nguyên văn, màu theo `brand.colors`. Không có dòng TEXT thì không có chữ; công cụ không tự đặt chữ.
+  Mỗi trường chữ tối đa 22 ký tự: dài hơn sẽ bị rút gọn theo từ, có cảnh báo
+  (ví dụ "HOÀNG GIA GYM & FITNESS" thành "HOÀNG GIA GYM"). Chỉ dùng template đã qua kiểm tra font
+  tiếng Việt, và chữ không bao giờ nằm ở góc có logo.
 
 Cần cài: Python 3.12, Node 24, ffmpeg, Claude Code CLI (đã đăng nhập), và một bản OpenChatCut đặt
 **cạnh** thư mục videoauto, đã chạy `npm install` và đã tạo `catalogue.json`. Làm theo đúng thứ tự
 các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ sai nhất). Mọi thông báo lỗi của công cụ
 đều bằng tiếng Việt và nói rõ cần làm gì; xem mục **Troubleshooting**.
 
-Chưa làm được: chữ/phụ đề, nhạc nền, theo dõi thư mục tự động; phần nhận giọng nói chưa được kiểm thử.
+Chưa làm được: phụ đề theo lời nói, nhạc nền, theo dõi thư mục tự động; phần nhận giọng nói chưa được kiểm thử.
 Chỉ mới chạy thử trên Windows 11.
 
 ---
@@ -47,8 +52,8 @@ python -m videoauto.run
 
 With `footage_dir` (and optionally `script_file` and `brand`) set in `config.yaml`, that is the
 whole command. The output is a crude first cut: picked and ordered shots, one LUT, a fade in and
-out, an optional logo, sometimes a transition. It is not a finished edit with titles or music
-(see **What this does not do yet**).
+out, an optional logo, text overlays for the lines your script asks for, sometimes a transition.
+It is not a finished edit with subtitles or music (see **What this does not do yet**).
 It has been developed and run on **Windows 11 only**. The macOS/Linux commands below are the
 standard ones for each tool but have not been tested with videoauto.
 
@@ -216,6 +221,10 @@ brand:
   logo_opacity: 0.85                 # 0.05-1
   logo_margin: 0.04                  # distance from the edges, fraction of frame width (0-0.25)
   logo_mode: always                  # always | end  (end = last 3 seconds only)
+  colors:                            # optional; fills the colour fields of text overlays (README)
+    accent: "#ED1C24"                # Hoàng Gia red. Keep the quotes: YAML reads # as a comment
+    ink: "#1A1A1A"                   # near-black: cards and bars behind text
+    on_accent: "#FFFFFF"             # text
 
 catalogue: catalogue.json     # generated from OpenChatCut (README step 2)
 min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
@@ -231,8 +240,9 @@ openchatcut:
 ```
 
 Every setting is checked before any work starts (`kiểm tra môi trường…`): a missing logo file, a
-`logo_scale` outside 0.05–0.5, an unknown `logo_position` or `logo_mode`, a missing `footage_dir`
-each stop the run in the first second with a Vietnamese message, e.g.
+`logo_scale` outside 0.05–0.5, an unknown `logo_position` or `logo_mode`, a brand colour that is not
+`#RGB`/`#RRGGBB`, a missing `footage_dir` each stop the run in the first second with a Vietnamese
+message, e.g.
 `Lỗi: brand.logo_scale = 0.6 không hợp lệ: phải là số trong khoảng 0.05–0.5.`
 
 The example brand, logo and script are not part of this repository: put your own logo at
@@ -298,6 +308,108 @@ dropped silently (a reply without that report is itself flagged). Any such warni
 tier `basic`. `plan.json` records `"script_source": "user"`. When the file is absent or empty, the
 planner writes the script as before (`"script_source": "planner"`).
 
+### Text overlays (`TEXT:` lines and `brand.colors`)
+
+A beat in the script gets on-screen text only when the script names it with a `TEXT:` line, at the
+start of a line or of a `|` column:
+
+```
+0-3s   | Cận cảnh bàn tay đeo dây quấn nắm chặt tay cầm máy tập.
+       | TEXT: KHÔNG GIAN SỐNG ĐỘNG
+
+3-6s   | Toàn cảnh khu máy tập, thấy được độ rộng và ánh sáng.
+       | TEXT: MÔI TRƯỜNG SANG TRỌNG
+```
+
+The planner places one overlay per TEXT line on its beat and records it in `plan.json`:
+
+```json
+"overlays": [{"template": "library:motion-graphic:ss-keyword-pop", "at": 0.3, "duration": 2.5,
+              "fields": {"keyword": "KHÔNG GIAN SỐNG ĐỘNG", "subText": ""}}],
+"text_lines": ["KHÔNG GIAN SỐNG ĐỘNG", "MÔI TRƯỜNG SANG TRỌNG", "..."]
+```
+
+The rules are enforced in `videoauto/planner/validate.py`, not only asked for in the prompt. Each
+broken rule drops that overlay with a Vietnamese warning (the plan tier drops to `basic`):
+
+- **Vietnamese-safe templates only.** A template needs `"vi_ok": true` in `catalogue.json` (136 of
+  235 pass OpenChatCut's Vietnamese font audit), and its orientation must match the target (no 16:9
+  template on a 9:16 video). For 9:16 the planner is offered the `social-shorts` group, with
+  `竖屏·重点词弹出` (keyword pop, `ss-keyword-pop`) first as the default for a short line.
+- **Script text only, verbatim.** Every non-empty text field must equal one of the script's TEXT
+  lines (compared after Unicode NFC normalisation, so a decomposed `ộ` still matches), and each line
+  is used once. Text the script did not ask for is dropped; a script without TEXT lines gets no
+  overlays at all. Text fields the plan leaves out are set to `""`: the templates ship Chinese
+  sample text (`subText` of keyword pop is `每天进步一点点`), which would otherwise be rendered.
+- **22 characters per field.** In the font audit, longer text overflowed its box. A longer line is
+  cut at a word boundary, a dangling `&`/`-`/`,` is dropped, and a warning names both versions:
+  `chữ "HOÀNG GIA GYM & FITNESS" dài 23 ký tự (tối đa 22), rút gọn thành "HOÀNG GIA GYM" để không bị
+  cắt`. Shorten the TEXT line in the script yourself if you want different words.
+- **No overlap.** Overlays never overlap in time; they are clamped to the video and are at least 1 s.
+- **Not in the logo's corner.** Where a template draws is fixed in its code, so videoauto keeps a
+  table of positions (`PLACEMENT` in `videoauto/planner/overlays.py`, read from
+  `assets/templates/social-shorts-templates.json`). Seven templates are centred (`ss-keyword-pop`,
+  quote card, step list, big number, cover title, checklist, before/after); `ss-chapter` is a top
+  bar; `ss-episode-badge` is top-left; `ss-price-tag` and `ss-note-sticker` are upper right;
+  `ss-big-caption`, `ss-cta-follow` and `ss-name-bar` are bottom bars (both bottom corners);
+  `ss-social-actions` is bottom-right. An overlay that reaches the logo's corner while the logo is
+  showing is dropped. A template that is not in the table has an unknown position and is refused
+  whenever a logo is showing. With the logo bottom-right, the planner is only offered templates that
+  are centred or in the upper part of the frame.
+- **No transition under an overlay.** OpenChatCut paints transitions over overlays as it does over
+  the logo, so a transition whose window overlaps an overlay is dropped.
+
+**Brand colours.** `brand.colors` has three roles, each `"#RGB"` or `"#RRGGBB"`, quoted: `accent`
+(brand colour), `ink` (dark surface behind text) and `on_accent` (text colour). A bad value stops
+the run at load: `Lỗi: brand.colors.accent = 'red' không phải mã màu hex hợp lệ. …`. The builder
+fills a template's colour fields by **exact field name**:
+
+| Role | Template fields filled |
+|---|---|
+| `accent` | `accentColor`, `accentColor1`, `highlightColor`, `brandColor`, `themeColor`, `accentLineColor`, `badgeColor` |
+| `ink` | `bgColor`, `backgroundColor`, `cardColor`, `cardBgColor`, `cardBackgroundColor`, `panelColor`, `boxColor`, `badgeBgColor`, `inkColor` |
+| `on_accent` | `textColor`, `titleColor`, `nameColor`, `headerTextColor` |
+
+Every other colour field keeps the template's default (e.g. `paperColor`, `gradientColor`,
+`primaryColor`, whose meaning differs between templates). Surfaces get `ink` and text gets
+`on_accent`, so light text stays on a dark surface and contrast survives the swap. When the default
+was translucent, the alpha is kept: `rgba(0,0,0,0.72)` becomes `rgba(26,26,26,0.72)` and
+`#0f172aee` becomes `#1A1A1AEE`. For keyword pop that means `accentColor` (text outline, glow and
+underline bar) = `#ED1C24` and `textColor` = `#FFFFFF`. Without `brand.colors`, templates keep their
+own colours.
+
+**How it is built** (probed against `occ` before writing the code): `edit_track create` makes one
+video track for all overlays. It is created **before** the logo track, because `occ` stacks a new
+track on top, so the order is V1 < overlays < logo. Then, per overlay:
+1. `edit_item` `adds:[{type:"motion-graphic", assetId, track, fromFrame}]`. A motion-graphic add
+   accepts no duration and, unlike video and image adds, returns **no itemId**;
+2. `read_timeline` finds the new item (motion-graphic on that track at that frame);
+3. `edit_item` `updates:[{type:"motion-graphic", itemId, durationInFrames}]`;
+4. `update_item_props` `{itemId, props}` with every text field plus the brand colours.
+
+The add copies the template's Chinese sample props into the item. If step 3 or 4 fails, the item is
+removed again (`remove_item`), so sample text never reaches the render. A failed overlay is skipped
+and recorded under `"overlays"` in `final.mp4.build.json` and in the warnings. It is never fatal and
+does not count towards `max_fail_ratio`.
+
+**Verified on the real footage** (the 17-clip gym shoot, `scripts/buoi-tap.txt` with five TEXT
+lines). One frame was extracted from the middle of each overlay at 1080x1920:
+- all five lines were placed on their beats; the fifth was shortened to `HOÀNG GIA GYM` with the
+  warning above;
+- every diacritic renders: Ô Ố Ộ Ồ Ư Ơ Ọ Ế Ị Ỉ Đ Ở Ử À, no boxes and no clipped stacked accents.
+  Long lines wrap onto two centred lines;
+- the text block keeps at least 96 px from every frame edge (`HOÀNG GIA GYM`, the widest line) and
+  ends 600–660 px above the logo;
+- outline, glow and bar are `#ED1C24` and the fill is `#FFFFFF`, as set in `brand.colors`.
+
+The run took 225 s: indexing 3 s (cache), planning 23 s, building 199 s with 40 `occ` commands and
+0 failures. Each overlay costs 4 commands, about 7 s.
+
+Two things this run showed that are not fixed:
+- Keyword pop sets no font family, so it renders in a **serif fallback face**, not a heavy sans.
+- White text with a thin outline is **hard to read over bright backgrounds** (a window, a lit
+  ceiling). Choose calm, darker shots for TEXT beats if you can.
+
 The model provider is configured separately and defaults to the Claude CLI; nothing to do if
 `claude auth status` shows you are logged in. To use an OpenAI-compatible endpoint instead, create
 `videoauto.toml`:
@@ -342,7 +454,7 @@ What appears in `output/`:
 |---|---|
 | `final.mp4` | the video (1080x1920 H.264 for 9:16) |
 | `final.mp4.build.json` | every `occ` command with its arguments, result and time; warnings |
-| `plan.json` | the EditPlan: clips (source in/out), LUT, transitions, fades, the planner's script and warnings |
+| `plan.json` | the EditPlan: clips (source in/out), LUT, transitions, fades, text overlays, the planner's script and warnings |
 | `index/<sha256>.json` | one index per source file (shots, captions, sharpness, motion, flags) |
 | `index/frames/` | the keyframes the captions were made from |
 
@@ -438,9 +550,11 @@ plays in a normal video player.
 
 ## What this does not do yet
 
-- No titles, captions or motion-graphics templates. The only overlay is the logo, and while it is
-  on screen there are no transitions (see **Logo overlay**).
-- The brand tagline is not written on screen; it only steers the planner.
+- No subtitles from speech. On-screen text comes only from `TEXT:` lines in your script, through
+  the 15 social-shorts templates whose position is known (see **Text overlays**). While the logo or
+  an overlay is on screen there are no transitions.
+- The brand tagline is not written on screen unless you put it in a `TEXT:` line.
+- Overlay templates keep their own font: keyword pop falls back to a serif face.
 - No music: files in `music/` are analysed (BPM, beats) but never placed in the edit; the output
   carries the source clips' own sound.
 - No folder watcher: you run the command yourself.
@@ -470,9 +584,11 @@ plays in a normal video player.
   Invalid parts are dropped with a warning, never passed on. Brand text and the user script go
   into this prompt only. Schema: `videoauto/schemas/editplan.schema.json`.
 - **M3 build** (`videoauto/builder/`): `occ project new` → `import_folder` → one `edit_item` per clip
-  → `manage_effects` (LUT) → `edit_item` transitions → fades → logo (`import_asset`, `edit_track`,
-  `edit_item` image + transform) → `occ render`, all with one
-  `OPENCHATCUT_DATA_DIR`. A failed item is skipped and recorded; the build aborts above 30% failures.
+  → `manage_effects` (LUT) → `edit_item` transitions → fades → text overlays (`edit_track`, then per
+  overlay `edit_item` motion-graphic, `read_timeline`, `edit_item` duration, `update_item_props`)
+  → logo (`import_asset`, `edit_track`, `edit_item` image + transform) → `occ render`, all with one
+  `OPENCHATCUT_DATA_DIR`. A failed item is skipped and recorded; the build aborts above 30% failures
+  (overlays are skipped and recorded but never abort).
 
 ## License
 

@@ -25,7 +25,16 @@ def _validator() -> Draft202012Validator:
 def errors(index: Any) -> list[str]:
     errs = [f"{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}"
             for e in _validator().iter_errors(index)]
-    if errs or not isinstance(index, dict) or index.get("kind") != "video":
+    if errs or not isinstance(index, dict):
+        return errs
+    if index.get("kind") == "music":
+        b = index["beats"]
+        if any(x >= y for x, y in zip(b, b[1:])):
+            errs.append("beats: not strictly increasing")
+        if b and b[-1] > index["duration"] + 0.5:
+            errs.append("beats: beat after end of file")
+        if (index["bpm"] is None) != (not b):
+            errs.append("bpm and beats disagree (bpm null iff no beats)")
         return errs
     shots = index["shots"]
     if shots and shots[0]["start"] != 0:

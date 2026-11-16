@@ -36,8 +36,25 @@ A black shot whose keyframe is truly blank gets a local caption and no model cel
 title card with text is still captioned.
 | caption (VI), subjects, shot_size | vision provider, batched 3x3 contact sheets | **yes** |
 
-Music files (anything under a `music/` folder) get duration, BPM, beats and an RMS energy curve
-from librosa. Music never triggers a model call.
+Music files (any audio or video file under a `music/` folder) get duration, BPM, beat times
+(librosa `beat_track`) and an RMS energy curve (0–1, every 0.1 s). Music never triggers a model
+call. When there's no steady pulse (silence, ambient), `bpm` is `null` and `beats` is empty.
+If a file with identical bytes was already indexed as the other kind in the same `--out`, that
+file fails with a clear message. It is never served the wrong cached index.
+
+### Install
+
+```
+py -3.12 -m venv .venv
+.venv\Scripts\activate
+pip install -e .[music,dev]     # or just -e . for video only (no librosa / numba / scipy)
+winget install Gyan.FFmpeg      # full build: drawtext is needed for contact sheets
+```
+
+**Windows Smart App Control.** It blocks `numpy/random/_sfc64.pyd` from numpy 2.5.x, which
+librosa imports through scipy/numba. The `music` extra caps numpy below 2.3 (2.2.6 loads fine).
+Nobody needs to turn Smart App Control off. The video path doesn't use `numpy.random` and works
+on current numpy.
 
 ### Vision provider
 

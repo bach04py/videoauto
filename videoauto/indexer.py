@@ -113,7 +113,16 @@ class Indexer:
 
     def _index_one(self, src: Source) -> None:
         sha = sha256_of(src.path)
-        if self.cache.get(sha) is not None:
+        cached = self.cache.get(sha)
+        existing = cached or self.pending.get(sha)
+        if existing is not None and existing["kind"] != src.kind:
+            other = "video" if existing["kind"] == "video" else "nhạc"
+            raise UserError(
+                f"'{src.path.name}' có nội dung giống hệt '{existing['file']}' đã được lập chỉ mục dạng "
+                f"{other} trong cache này. Một tệp không thể vừa là video vừa là nhạc trong cùng thư mục "
+                "--out: dùng thư mục --out khác, hoặc bỏ bản sao ra khỏi music/."
+            )
+        if cached is not None:
             self.report.cache_hits += 1
             log.info("cache: TRÚNG %s (%s…) — bỏ qua, 0 lượt gọi model", src.path.name, sha[:12])
             return

@@ -114,7 +114,7 @@
       "properties": {
         "schema_version": true, "file": true, "sha256": true, "duration": true,
         "kind": { "const": "music" },
-        "bpm": { "type": "number", "exclusiveMinimum": 0 },
+        "bpm": { "description": "null when no steady pulse is detected (then beats is empty).", "type": ["number", "null"], "exclusiveMinimum": 0 },
         "beats": { "type": "array", "items": { "$ref": "#/$defs/seconds" } },
         "energy": {
           "description": "RMS energy curve, normalised 0-1, sampled every hop_seconds.",

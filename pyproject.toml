@@ -7,13 +7,15 @@ dependencies = [
     "scenedetect>=0.7",
     "opencv-python>=4.9",
     "numpy>=1.26",
-    "librosa>=0.10",
-    "soundfile>=0.12",
     "jsonschema>=4.20",
     "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
+# Music analysis (BPM, beats). numpy is capped because Windows Smart App Control blocks
+# numpy 2.5.x's numpy/random/_sfc64.pyd (imported by librosa via scipy/numba);
+# numpy 2.2.6 loads. Video indexing does not need librosa or the cap.
+music = ["librosa>=0.10", "numpy>=2.0,<2.3"]
 dev = ["pytest>=8"]
 
 [build-system]

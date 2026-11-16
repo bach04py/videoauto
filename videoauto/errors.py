@@ -39,3 +39,13 @@ class IndexValidationError(Exception):
     """An index failed schema validation. This is a bug in videoauto, never a warning."""
 
     exit_code = 4
+
+
+class PlanValidationError(IndexValidationError):
+    """An EditPlan we produced failed its schema. A bug in videoauto, never a warning."""
+
+
+class BuildAborted(UserError):
+    """Too many occ commands failed (or a step every later step depends on failed)."""
+
+    exit_code = 6

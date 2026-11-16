@@ -33,8 +33,17 @@ class OpenAICompatibleProvider(VisionProvider):
         return "The attached image"
 
     def describe(self, image: Path, prompt: str) -> str:
-        self.check()
         b64 = base64.b64encode(image.read_bytes()).decode()
+        return self._post([
+            {"type": "text", "text": prompt},
+            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
+        ])
+
+    def complete(self, prompt: str) -> str:
+        return self._post(prompt)
+
+    def _post(self, content) -> str:
+        self.check()
         headers = {}
         key = os.environ.get(self.key_env)
         if key:
@@ -42,10 +51,7 @@ class OpenAICompatibleProvider(VisionProvider):
         body = {
             "model": self.model,
             "temperature": 0.2,
-            "messages": [{"role": "user", "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
-            ]}],
+            "messages": [{"role": "user", "content": content}],
         }
         try:
             r = httpx.post(f"{self.base_url}/chat/completions", json=body, headers=headers,

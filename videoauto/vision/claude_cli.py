@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from ..errors import ProviderUnavailable
@@ -32,15 +33,22 @@ class ClaudeCLIProvider(VisionProvider):
         return f"The image file {image.name} in the current directory (open it with the Read tool)"
 
     def describe(self, image: Path, prompt: str) -> str:
+        return self._run(["--tools", "Read", "--allowedTools", "Read"], prompt, image.parent)
+
+    def complete(self, prompt: str) -> str:
+        # no tools at all; run in an empty dir so no project CLAUDE.md is picked up
+        with tempfile.TemporaryDirectory(prefix="videoauto_plan_") as d:
+            return self._run(["--tools", ""], prompt, Path(d))
+
+    def _run(self, tool_flags: list[str], prompt: str, cwd: Path) -> str:
         if self._exe is None:
             self.check()
-        cmd = [self._exe, "-p", "--output-format", "json",
-               "--tools", "Read", "--allowedTools", "Read",
+        cmd = [self._exe, "-p", "--output-format", "json", *tool_flags,
                "--strict-mcp-config", "--no-session-persistence", "--disable-slash-commands"]
         if self.model:
             cmd += ["--model", self.model]
         try:
-            proc = subprocess.run(cmd, input=prompt, cwd=image.parent, capture_output=True,
+            proc = subprocess.run(cmd, input=prompt, cwd=cwd, capture_output=True,
                                   text=True, encoding="utf-8", errors="replace", timeout=self.timeout)
         except subprocess.TimeoutExpired:
             raise ProviderTransient(f"claude timed out after {self.timeout}s") from None

@@ -66,3 +66,22 @@ class FakeProvider(VisionProvider):
         return json.dumps([{"cell": c, "caption": f"Cảnh thử {c}, máy quay đứng yên",
                             "subjects": ["thing"], "shot_size": "medium"} for c in cells],
                           ensure_ascii=False)
+
+    def complete(self, prompt: str) -> str:
+        """Text call (planner). `reply` is returned verbatim; script entries can override."""
+        self.calls += 1
+        self.prompts.append(prompt)
+        action = self.script.get(self.calls)
+        if isinstance(action, Exception):
+            raise action
+        if isinstance(action, str):
+            return action
+        return self.reply if isinstance(self.reply, str) else json.dumps(self.reply, ensure_ascii=False)
+
+    reply: object = "{}"
+
+    @property
+    def prompts(self) -> list[str]:
+        if not hasattr(self, "_prompts"):
+            self._prompts = []
+        return self._prompts

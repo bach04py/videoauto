@@ -93,6 +93,87 @@ floor, or a ratio under 2× `blur_relative`. It also writes:
 - `calibrate_blur_flagged_NN.jpg` and `calibrate_blur_near_NN.jpg`, contact sheets whose cell
   labels match the `#` column
 
+## M2: planner, M3: builder (thin vertical slice)
+
+```
+python -m videoauto.index tests/fixtures --out output/index      # M1
+python -m videoauto.plan  output/index   --out output/plan.json  # M2: ONE model call
+python -m videoauto.build output/plan.json --out output/final.mp4 # M3: drives `occ`
+```
+
+`config.yaml` (cwd, or `--config`) holds:
+- the brief: `duration`, `aspect`, `fps`, `platform`, `notes`
+- `media_dir`: the footage folder that was indexed
+- `catalogue`: a copy of OpenChatCut's `catalogue.json`, not committed
+- `openchatcut`: `repo`, `data_dir`, `node`, `resolution`, `timeout`, `max_fail_ratio`
+
+The vision provider still comes from `videoauto.toml`.
+
+**Planner** (`videoauto/planner/`)
+- It reads every valid video index. When `media_dir` is set, it keeps only indexes whose file
+  is there with the same sha256.
+- It rejects locally, with **no model call**, when the usable footage (shots without
+  black/frozen) is under `min_material_ratio` (0.6) × the target duration.
+- Otherwise it makes **one** call through the same provider interface as M1. This is a text-only
+  call: the Claude CLI runs with `--tools ""`. The prompt lists each usable shot with its
+  sharpness and its rank. The rules are:
+  - prefer the sharper shot when choosing between similar options;
+  - prefer the target orientation;
+  - one LUT for the whole piece;
+  - a fade in and a fade out;
+  - transitions are optional;
+  - reply `{"reject": "…"}` instead of inventing a plan.
+- A malformed reply is not retried. It becomes a `reject` plan.
+- It writes an **EditPlan** (`videoauto/schemas/editplan.schema.json`). The spec's shape gains
+  four fields:
+  - `fades {in,out}` (seconds)
+  - `sources` (file → sha256, duration, orientation, so the builder can check the media)
+  - `reason` (required when the tier is `reject`)
+  - `model_calls`
+
+  Effect `params` are positional, in the catalogue's param order.
+
+**Hard validation** (`planner/validate.py`, run by both M2 and M3). Each invalid part is dropped
+with a Vietnamese warning and never passed on. It checks that:
+- every effect and transition id exists in the catalogue with the right kind;
+- every parameter is inside its published range;
+- `in`/`out` are inside the source, and each clip is at least 0.5 s;
+- no clip touches a black or frozen shot (M2 only);
+- no two clips reuse the same source seconds;
+- there is at most one LUT per clip;
+- each transition sits exactly on a cut, with at most one per cut, and is no longer than half
+  of either neighbouring clip;
+- each fade is at most 2 s and at most half of its clip.
+
+If no clips survive, the tier becomes `reject`.
+
+**Tier:**
+- `reject` when there is no usable plan;
+- `basic` when confidence is below 0.6, anything was dropped, or the total is under 80% of the target;
+- `full` otherwise.
+
+**Builder** (`videoauto/builder/`)
+- It runs `node --import tsx cli/main.ts … --json` inside the OpenChatCut repo, with **one**
+  `OPENCHATCUT_DATA_DIR` for every call. Tool arguments go through `--args @file.json`. It never
+  imports OpenChatCut code.
+- The sequence is:
+  1. `project new` (size and fps from the target)
+  2. `import_folder media_dir`
+  3. one `edit_item` add per clip. `fromFrame` is cumulative; `sourceStartFrame` and
+     `sourceDurationInFrames` are in timeline frames. The add rejects `srcInFrame`, but stores
+     these values as `srcInFrame` and `durationInFrames`.
+  4. one `manage_effects add` per clip effect
+  5. one `edit_item` transition per cut
+  6. `edit_item` updates for `fadeInSeconds` / `fadeOutSeconds`
+  7. `render`
+- Every command and its result goes to the log and to `<out>.build.json`.
+- If an item command fails, that item is skipped and recorded. Its dependants are skipped too:
+  later clips pack left, and transitions next to a missing clip are dropped.
+- The run aborts once failures exceed `max_fail_ratio` (30%) of the item commands.
+- A failure in `project new`, `import_folder` or `render` is fatal.
+
+Exit codes: plan `5` = reject; build `6` = aborted, `2` = a reject plan or bad input.
+
 ### Install
 
 ```
@@ -167,7 +248,10 @@ Exit codes: 0 ok, 1 some files failed, 2 user error (missing ffmpeg/claude, bad 
 
 ```
 videoauto/
-  index.py              CLI entry (python -m videoauto.index)
+  index.py plan.py build.py   CLI entries (python -m videoauto.index / .plan / .build)
+  planner/  catalogue.py validate.py planner.py    M2
+  builder/  occ.py builder.py                      M3 (occ subprocess only)
+  brief.py              config.yaml loader
   indexer.py            orchestration, cross-file batching, cache writes
   probe.py crop.py frames.py speech.py audio.py keyframes.py quality.py
   vision/base.py claude_cli.py openai_compat.py contact_sheet.py captioner.py

@@ -29,6 +29,10 @@ class VisionProvider(ABC):
         """Send one image + prompt, return the model's raw text reply.
         Raises LimitReached, ProviderUnavailable or ProviderTransient."""
 
+    @abstractmethod
+    def complete(self, prompt: str) -> str:
+        """Text-only request (no image, no tools), return the raw text reply. Same errors."""
+
 
 _LIMIT = re.compile(r"usage limit|limit reached|hit your limit|rate.?limit|too many requests|\b429\b"
                     r"|quota|out of (extra )?usage", re.I)

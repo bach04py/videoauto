@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://videoauto.local/schemas/editplan.schema.json",
+  "title": "videoauto EditPlan (M2 output, M3 input)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "target", "confidence", "tier", "clips", "transitions", "fades", "script", "warnings", "sources"],
+  "properties": {
+    "version": { "const": 1 },
+    "target": {
+      "type": "object", "additionalProperties": false,
+      "required": ["duration", "aspect", "fps"],
+      "properties": {
+        "duration": { "type": "number", "exclusiveMinimum": 0 },
+        "aspect": { "enum": ["9:16", "16:9", "1:1", "4:5", "4:3", "3:4"] },
+        "fps": { "enum": [24, 25, 30, 50, 60] }
+      }
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "tier": { "enum": ["full", "basic", "reject"] },
+    "reason": { "description": "Vietnamese. Required when tier is reject.", "type": "string", "minLength": 1 },
+    "clips": {
+      "description": "Placed back to back on V1 in this order. in/out are SOURCE seconds.",
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["src", "in", "out", "track", "effects"],
+        "properties": {
+          "src": { "type": "string", "minLength": 1 },
+          "shot": { "type": "string", "pattern": "^s[0-9]{2,}$" },
+          "in": { "type": "number", "minimum": 0 },
+          "out": { "type": "number", "exclusiveMinimum": 0 },
+          "track": { "const": "V1" },
+          "effects": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["id", "params"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "params": { "description": "Positional, in the catalogue's param order; trailing params keep their defaults.", "type": "array", "items": { "type": "number" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["at", "id", "frames"],
+        "properties": {
+          "at": { "description": "Timeline seconds of the cut it sits on.", "type": "number", "exclusiveMinimum": 0 },
+          "id": { "type": "string", "minLength": 1 },
+          "frames": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "fades": {
+      "description": "Fade in on the first clip and out on the last, in seconds (0 = none).",
+      "type": "object", "additionalProperties": false,
+      "required": ["in", "out"],
+      "properties": {
+        "in": { "type": "number", "minimum": 0 },
+        "out": { "type": "number", "minimum": 0 }
+      }
+    },
+    "script": { "type": "string" },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "sources": {
+      "description": "Source files the plan may use, from the M1 indexes. The builder checks sha256 before importing.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false,
+        "required": ["sha256", "duration"],
+        "properties": {
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "duration": { "type": "number", "exclusiveMinimum": 0 },
+          "orientation": { "enum": ["vertical", "horizontal", "square"] }
+        }
+      }
+    },
+    "model_calls": { "type": "integer", "minimum": 0 }
+  },
+  "if": { "properties": { "tier": { "const": "reject" } } },
+  "then": { "required": ["reason"] }
+}

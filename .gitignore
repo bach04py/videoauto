@@ -6,3 +6,8 @@ __pycache__/
 *.egg-info/
 # test videos are third-party media: provide locally (see tests/conftest.py)
 tests/fixtures/*.mp4
+catalogue.json
+.occ-data/
+output/
+plan.json
+*.tmp

@@ -1,0 +1,20 @@
+# videoauto M2/M3 config. Relative paths are relative to this file.
+
+brief:
+  duration: 15          # seconds
+  aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
+  fps: 30
+  platform: tiktok
+  notes: ""             # optional free text for the planner
+
+media_dir: tests/fixtures     # the raw footage folder that was indexed (M3 imports it)
+catalogue: catalogue.json     # copied from the OpenChatCut repo root (not committed)
+min_material_ratio: 0.6       # reject when usable footage < 0.6 x brief.duration
+
+openchatcut:
+  repo: ../OpenChatCut        # checkout with node_modules installed (npm install)
+  data_dir: .occ-data         # OPENCHATCUT_DATA_DIR used for EVERY occ call
+  # node: C:/path/to/node.exe # default: node on PATH, else the fnm version from the repo's .nvmrc
+  resolution: 1080p
+  timeout: 1800               # seconds, for occ render
+  max_fail_ratio: 0.30        # abort the build when more item commands fail than this

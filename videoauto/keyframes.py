@@ -17,6 +17,14 @@ def keyframe_times(start: float, end: float, second_after: float) -> list[float]
     return [round(t, 3) for t in times]
 
 
+def for_shot(path: Path, span, kcfg: dict, fdir: Path, crop: Crop | None) -> tuple[list[float], list[Path]]:
+    """Keyframe times for a shot and their extracted images (<fdir>/<shot id>_<n>.jpg)."""
+    times = keyframe_times(span.start, span.end, kcfg["second_frame_after"])
+    paths = [extract(path, t, fdir / f"{span.id}_{i}.jpg", kcfg["max_side"], crop)
+             for i, t in enumerate(times)]
+    return times, paths
+
+
 def extract(path: Path, t: float, out: Path, max_side: int, crop: Crop | None = None) -> Path:
     out.parent.mkdir(parents=True, exist_ok=True)
     scale = vf(crop, f"scale='if(gt(iw,ih),min({max_side},iw),-2)':"

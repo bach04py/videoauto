@@ -163,22 +163,13 @@ class Indexer:
         # orientation of the actual picture (inside any bars), for the caption prompt
         cw, ch = (crop.w, crop.h) if crop else (pr.width, pr.height)
         picture = "square" if cw == ch else ("vertical" if ch > cw else "horizontal")
-        bounds = [0, *fa.cuts, fa.n_frames]
-        end_time = min(pr.duration, fa.n_frames / fa.fps)
         q = c["quality"]
         shots, jobs = [], []
         fdir = self.cache.frames_dir(sha)
-        for n in range(len(bounds) - 1):
-            sid = f"s{n + 1:02d}"
-            f0, f1 = bounds[n], bounds[n + 1]
-            start = round(f0 / fa.fps, 3)
-            end = round(end_time if n == len(bounds) - 2 else f1 / fa.fps, 3)
-            if end <= start:
-                continue
+        for span in frames.shot_spans(fa, pr.duration):
+            sid, f0, f1, start, end = span.id, span.f0, span.f1, span.start, span.end
             samples = [s for s in fa.samples if f0 <= s.frame_a and s.frame_b < f1]
-            times = keyframes.keyframe_times(start, end, c["keyframes"]["second_frame_after"])
-            kpaths = [keyframes.extract(path, t, fdir / f"{sid}_{i}.jpg", c["keyframes"]["max_side"], crop)
-                      for i, t in enumerate(times)]
+            times, kpaths = keyframes.for_shot(path, span, c["keyframes"], fdir, crop)
             sharp = max(quality.sharpness(p) for p in kpaths)
 
             flags = []
@@ -188,7 +179,7 @@ class Indexer:
                 flags.append("frozen")
             if quality.coverage(det.silent, start, end) >= q["silent_cover"]:
                 flags.append("silent")
-            if sharp < q["blur_threshold"] and "black" not in flags:
+            if quality.is_blurry(sharp, q["blur_threshold"], "black" in flags):
                 flags.append("blurry")
 
             seg = [{"start": s.start, "end": s.end, "text": s.text}
@@ -205,14 +196,6 @@ class Indexer:
             else:
                 jobs.append(ShotJob((sha, sid), kpaths, camera, picture))
             shots.append(shot)
-        # re-number in case a zero-length shot was dropped
-        for i, s in enumerate(shots, 1):
-            if s["id"] != f"s{i:02d}":
-                old = s["id"]
-                s["id"] = f"s{i:02d}"
-                for j in jobs:
-                    if j.key == (sha, old):
-                        j.key = (sha, s["id"])
 
         index = {
             "schema_version": SCHEMA_VERSION, "file": path.name, "sha256": sha, "kind": "video",

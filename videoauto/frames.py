@@ -122,6 +122,28 @@ def analyse(path: Path, pr: Probe, crop: Crop | None, threshold: float, min_scen
     return FrameAnalysis(pr.fps, i, cuts, samples)
 
 
+@dataclass(frozen=True)
+class ShotSpan:
+    id: str        # s01, s02, ... numbered after empty spans are dropped
+    f0: int        # first frame
+    f1: int        # one past the last frame
+    start: float
+    end: float
+
+
+def shot_spans(fa: FrameAnalysis, duration: float) -> list[ShotSpan]:
+    bounds = [0, *fa.cuts, fa.n_frames]
+    end_time = min(duration, fa.n_frames / fa.fps)
+    spans: list[ShotSpan] = []
+    for n in range(len(bounds) - 1):
+        f0, f1 = bounds[n], bounds[n + 1]
+        start = round(f0 / fa.fps, 3)
+        end = round(end_time if n == len(bounds) - 2 else f1 / fa.fps, 3)
+        if end > start:
+            spans.append(ShotSpan(f"s{len(spans) + 1:02d}", f0, f1, start, end))
+    return spans
+
+
 def motion_level(samples: list[MotionSample]) -> float:
     """0-1. Mean grey-level change between samples (~6/s), squashed: 1 - exp(-d/10)."""
     if not samples:

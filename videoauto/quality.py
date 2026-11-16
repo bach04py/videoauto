@@ -57,6 +57,11 @@ def coverage(intervals: list[Interval], start: float, end: float) -> float:
     return min(1.0, covered / (end - start))
 
 
+def is_blurry(score: float, threshold: float, black: bool) -> bool:
+    """Single rule used by indexing and --calibrate-blur. Black shots are never 'blurry'."""
+    return score < threshold and not black
+
+
 def is_blank(image_path: Path) -> bool:
     """Uniform dark frame (no title text, no detail): safe to caption locally."""
     img = cv2.imdecode(np.fromfile(str(image_path), np.uint8), cv2.IMREAD_GRAYSCALE)

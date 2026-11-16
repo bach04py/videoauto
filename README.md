@@ -42,6 +42,21 @@ call. When there's no steady pulse (silence, ambient), `bpm` is `null` and `beat
 If a file with identical bytes was already indexed as the other kind in the same `--out`, that
 file fails with a clear message. It is never served the wrong cached index.
 
+### Calibrating the blur threshold
+
+```
+python -m videoauto.index <folder> --out .index/ --calibrate-blur
+```
+
+This runs local analysis only, with no model calls, no Whisper and no index written. It uses
+the same shots, keyframes, sharpness metric and blur rule as indexing. It prints every shot
+sorted by sharpness (score, flagged?, near the threshold?, keyframe path) and writes:
+- `calibrate_blur.tsv`, the full table
+- `calibrate_blur_flagged_NN.jpg` and `calibrate_blur_near_NN.jpg`, contact sheets whose cell
+  labels match the `#` column
+
+Change the threshold with `[quality] blur_threshold` in `videoauto.toml`.
+
 ### Install
 
 ```

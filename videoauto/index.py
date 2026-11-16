@@ -33,6 +33,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=Path(".index"), help="thư mục cache (mặc định .index/)")
     ap.add_argument("--config", type=Path, default=None, help="tệp videoauto.toml")
     ap.add_argument("--provider", choices=["claude", "openai-compatible"], default=None)
+    ap.add_argument("--calibrate-blur", action="store_true",
+                    help="chỉ phân tích cục bộ (không gọi model): in bảng độ nét từng shot + contact sheet")
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--debug", action="store_true", help="hiện traceback đầy đủ khi lỗi")
     args = ap.parse_args(argv)
@@ -45,6 +47,11 @@ def main(argv: list[str] | None = None) -> int:
             cfg["vision"]["provider"] = args.provider
         check_ffmpeg()
         sources = collect(args.target, args.out)
+        if args.calibrate_blur:
+            from .calibrate import calibrate_blur, print_report
+            rows, sheets, failed = calibrate_blur(cfg, sources, args.out)
+            print_report(rows, sheets, cfg["quality"]["blur_threshold"], args.out)
+            return 1 if failed else 0
         report = Indexer(cfg, args.out).run(sources)
     except UserError as e:
         if args.debug:

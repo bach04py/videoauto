@@ -27,10 +27,14 @@ def _font() -> str:
     return "font='Sans'" if sys.platform != "win32" else "font='Arial'"
 
 
-def build(images: list[Path], out: Path) -> Path:
-    """Compose up to 9 images into one sheet; cell i (1-based) holds images[i-1]."""
+def build(images: list[Path], out: Path, labels: list[str] | None = None) -> Path:
+    """Compose up to 9 images into one sheet; cell i (1-based) holds images[i-1].
+    Cells are labelled 1..n unless `labels` (digits only: drawtext-safe) is given."""
     if not 1 <= len(images) <= CELLS:
         raise ValueError(f"contact sheet needs 1..{CELLS} images, got {len(images)}")
+    labels = labels or [str(i + 1) for i in range(len(images))]
+    if len(labels) != len(images) or not all(lbl.isdigit() for lbl in labels):
+        raise ValueError("labels must be digit strings, one per image")
     args = ["ffmpeg", "-v", "error", "-y"]
     for img in images:
         args += ["-i", str(img)]
@@ -42,7 +46,7 @@ def build(images: list[Path], out: Path) -> Path:
         chain = (f"[{i}:v]scale={CELL}:{CELL}:force_original_aspect_ratio=decrease,"
                  f"pad={CELL}:{CELL}:(ow-iw)/2:(oh-ih)/2:color=0x101010,setsar=1,format=rgb24")
         if i < len(images):
-            chain += (f",drawtext={font}:text='{i + 1}':x=10:y=6:fontsize=64:"
+            chain += (f",drawtext={font}:text='{labels[i]}':x=10:y=6:fontsize=64:"
                       "fontcolor=yellow:borderw=4:bordercolor=black")
         parts.append(chain + f",trim=end_frame=1,setpts=PTS-STARTPTS[c{i}]")
     concat = "".join(f"[c{i}]" for i in range(CELLS))

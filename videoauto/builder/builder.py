@@ -72,13 +72,14 @@ class Builder:
         the per-command report before telling the user."""
         t0 = time.monotonic()
         rep = BuildReport(output=out.resolve())
+        first = len(self.occ.history)       # one Occ serves many builds in the watcher: report only ours
         try:
             self._build(plan, rep)
         except UserError as e:
             rep.error = e
         finally:
             rep.seconds = time.monotonic() - t0
-            rep.commands = [r.record() for r in self.occ.history]
+            rep.commands = [r.record() for r in self.occ.history[first:]]
         return rep
 
     # ------------------------------------------------------------------

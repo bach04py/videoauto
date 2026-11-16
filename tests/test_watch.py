@@ -390,6 +390,9 @@ def test_same_script_name_twice_never_overwrites_the_earlier_video(ws, cached_in
     for x in watch.OUTPUT_SUFFIXES:
         assert (out / f"tap-nguc{x}").stat().st_mtime_ns == first[x]       # untouched
         assert (out / f"tap-nguc-2{x}").exists()                             # its own set
+    reports = [json.loads((out / f"{s}.mp4.build.json").read_text(encoding="utf-8"))
+               for s in ("tap-nguc", "tap-nguc-2")]
+    assert len(reports[0]["commands"]) == len(reports[1]["commands"]) == len(r.occ.history) // 2
     plan2 = json.loads((out / "tap-nguc-2.plan.json").read_text(encoding="utf-8"))
     assert plan2["script_source"] == "user"
     assert (ws["work"] / "done" / "tap-nguc-2.txt").read_text(encoding="utf-8") == "lần hai\n"

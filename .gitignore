@@ -1,0 +1,8 @@
+.venv/
+.index/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+# test videos are third-party media: provide locally (see tests/conftest.py)
+tests/fixtures/*.mp4

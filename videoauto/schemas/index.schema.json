@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://videoauto.local/schemas/index.schema.json",
+  "title": "videoauto source index",
+  "description": "One index per source file, cached at .index/<sha256>.json. kind=video or kind=music.",
+  "type": "object",
+  "required": ["schema_version", "file", "sha256", "kind", "duration"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "file": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "kind": { "enum": ["video", "music"] },
+    "duration": { "type": "number", "exclusiveMinimum": 0 }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/video" },
+    { "$ref": "#/$defs/music" }
+  ],
+
+  "$defs": {
+    "seconds": { "type": "number", "minimum": 0 },
+
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end", "text"],
+      "properties": {
+        "start": { "$ref": "#/$defs/seconds" },
+        "end": { "$ref": "#/$defs/seconds" },
+        "text": { "type": "string" }
+      }
+    },
+
+    "shot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "start", "end", "keyframes", "caption", "subjects", "shot_size", "camera", "motion", "transcript", "flags"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^s[0-9]{2,}$" },
+        "start": { "$ref": "#/$defs/seconds" },
+        "end": { "$ref": "#/$defs/seconds" },
+        "keyframes": {
+          "description": "Timestamps (s) of extracted keyframes: 1, or 2 when the shot is longer than 8 s.",
+          "type": "array", "minItems": 1, "maxItems": 2,
+          "items": { "$ref": "#/$defs/seconds" }
+        },
+        "caption": {
+          "description": "Vietnamese: what happens, shot size, camera movement. null only when captioning failed (then flags contains caption_failed).",
+          "type": ["string", "null"], "minLength": 1
+        },
+        "subjects": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "shot_size": {
+          "enum": ["extreme_close_up", "close_up", "medium", "wide", "extreme_wide", null]
+        },
+        "camera": {
+          "enum": ["static", "pan", "tilt", "zoom", "tracking", "handheld", null]
+        },
+        "motion": { "type": "number", "minimum": 0, "maximum": 1 },
+        "transcript": {
+          "description": "Speech segments overlapping this shot (absolute times), or null when none.",
+          "type": ["array", "null"],
+          "items": { "$ref": "#/$defs/segment" }
+        },
+        "flags": {
+          "type": "array", "uniqueItems": true,
+          "items": { "enum": ["black", "frozen", "silent", "blurry", "caption_failed"] }
+        }
+      },
+      "if": { "properties": { "caption": { "type": "null" } } },
+      "then": { "properties": { "flags": { "contains": { "const": "caption_failed" } } } }
+    },
+
+    "video": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "file", "sha256", "kind", "duration", "fps", "width", "height", "orientation", "has_speech", "shots", "audio", "quality"],
+      "properties": {
+        "schema_version": true, "file": true, "sha256": true, "duration": true,
+        "kind": { "const": "video" },
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "orientation": { "enum": ["vertical", "horizontal", "square"] },
+        "has_speech": { "type": "boolean" },
+        "shots": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/shot" } },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["has_audio", "has_music", "bpm", "peak_times"],
+          "properties": {
+            "has_audio": { "type": "boolean" },
+            "has_music": { "description": "null until a music detector exists (not in M1).", "type": ["boolean", "null"] },
+            "bpm": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+            "peak_times": { "type": "array", "items": { "$ref": "#/$defs/seconds" } }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["usable_shots", "rejected", "notes"],
+          "properties": {
+            "usable_shots": { "type": "integer", "minimum": 0 },
+            "rejected": { "type": "integer", "minimum": 0 },
+            "notes": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+
+    "music": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "file", "sha256", "kind", "duration", "bpm", "beats", "energy"],
+      "properties": {
+        "schema_version": true, "file": true, "sha256": true, "duration": true,
+        "kind": { "const": "music" },
+        "bpm": { "type": "number", "exclusiveMinimum": 0 },
+        "beats": { "type": "array", "items": { "$ref": "#/$defs/seconds" } },
+        "energy": {
+          "description": "RMS energy curve, normalised 0-1, sampled every hop_seconds.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hop_seconds", "values"],
+          "properties": {
+            "hop_seconds": { "type": "number", "exclusiveMinimum": 0 },
+            "values": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 } }
+          }
+        }
+      }
+    }
+  }
+}

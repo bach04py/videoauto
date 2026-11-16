@@ -31,20 +31,25 @@ def main(argv: list[str] | None = None, occ=None) -> int:
         plan = load_plan(args.plan)
         log.info("dựng %s → %s (data dir OpenChatCut: %s)", args.plan, args.out, pcfg.occ.data_dir)
         rep = Builder(pcfg, occ).build(plan, args.out)
-        report = args.out.with_name(args.out.name + ".build.json")
-        report.parent.mkdir(parents=True, exist_ok=True)
-        report.write_text(json.dumps(rep.to_json(), ensure_ascii=False, indent=2), encoding="utf-8")
-        for w in rep.warnings:
-            log.warning("cảnh báo: %s", w)
-        log.info("─" * 60)
-        log.info("occ: %d lệnh (%d lệnh item, %d lỗi); thời gian %.1fs; báo cáo %s",
-                 len(rep.commands), rep.attempted, rep.failed, rep.seconds, report)
-        if rep.error:
-            raise rep.error
-        log.info("đã xuất %s (%.1f MB)", rep.output, rep.output.stat().st_size / 1e6)
+        finish_build(rep, args.out)
         return 0
 
     return guarded(run, args.debug)
+
+
+def finish_build(rep, out: Path) -> Path:
+    """Write <out>.build.json, log a summary, raise the build's error if it had one."""
+    report = out.with_name(out.name + ".build.json")
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(json.dumps(rep.to_json(), ensure_ascii=False, indent=2), encoding="utf-8")
+    for w in rep.warnings:
+        log.warning("cảnh báo: %s", w)
+    log.info("occ: %d lệnh (%d lệnh item, %d lỗi); thời gian %.1fs; báo cáo %s",
+             len(rep.commands), rep.attempted, rep.failed, rep.seconds, report)
+    if rep.error:
+        raise rep.error
+    log.info("đã xuất %s (%.1f MB)", rep.output, rep.output.stat().st_size / 1e6)
+    return report
 
 
 if __name__ == "__main__":

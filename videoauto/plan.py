@@ -40,26 +40,31 @@ def main(argv: list[str] | None = None, provider=None) -> int:
         if args.provider:
             vcfg["vision"]["provider"] = args.provider
         plan = make_plan(pcfg, args.index_dir, provider or make_provider(vcfg["vision"]))
-        tmp = args.out.with_name(args.out.name + ".tmp")
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        tmp.write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
-        os.replace(tmp, args.out)
-
-        total = sum(c["out"] - c["in"] for c in plan["clips"])
-        for w in plan["warnings"]:
-            log.warning("cảnh báo: %s", w)
-        log.info("─" * 60)
-        log.info("kế hoạch: tier %s, %d clip, %.1fs / mục tiêu %gs, %d chuyển cảnh, độ tin cậy %.2f",
-                 plan["tier"], len(plan["clips"]), total, plan["target"]["duration"],
-                 len(plan["transitions"]), plan["confidence"])
-        log.info("model: %d lượt gọi; thời gian %.1fs; đã ghi %s", plan["model_calls"],
-                 time.monotonic() - t0, args.out)
+        save_plan(plan, args.out)
+        log_plan(plan, args.out, time.monotonic() - t0)
         if plan["tier"] == "reject":
             print(f"Từ chối: {plan['reason']}", file=sys.stderr)
             return EXIT_REJECT
         return 0
 
     return guarded(run, args.debug)
+
+
+def save_plan(plan: dict, out: Path) -> None:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_name(out.name + ".tmp")
+    tmp.write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, out)
+
+
+def log_plan(plan: dict, out: Path, seconds: float) -> None:
+    total = sum(c["out"] - c["in"] for c in plan["clips"])
+    for w in plan["warnings"]:
+        log.warning("cảnh báo: %s", w)
+    log.info("kế hoạch: tier %s, %d clip, %.1fs / mục tiêu %gs, %d chuyển cảnh, độ tin cậy %.2f",
+             plan["tier"], len(plan["clips"]), total, plan["target"]["duration"],
+             len(plan["transitions"]), plan["confidence"])
+    log.info("model: %d lượt gọi; thời gian %.1fs; đã ghi %s", plan["model_calls"], seconds, out)
 
 
 if __name__ == "__main__":

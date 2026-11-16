@@ -48,6 +48,25 @@ def test_gym_index_is_valid_and_sensible(gym_index):
     assert gym_index["quality"]["usable_shots"] == 1
 
 
+def test_cut_just_before_eof_is_dropped():
+    """Regression: a Sony clip had a cut at frame 628/630; the 2-frame tail shot's keyframe
+    lay past the last decodable frame and the whole file failed."""
+    from videoauto.frames import keep_cuts
+    assert keep_cuts([300, 628], 630, 15) == [300]
+    assert keep_cuts([300, 615], 630, 15) == [300, 615]       # a full-length last shot stays
+    assert keep_cuts([0, 300, 630], 630, 15) == [300]
+
+
+def test_real_sony_clip_with_tail_cut_indexes(cfg, tmp_path):
+    """Runs only where the real clip exists (camera footage is not committed)."""
+    from conftest import FIXTURES
+    clip = FIXTURES / "C0140.MP4"
+    if not clip.exists():
+        pytest.skip("tests/fixtures/C0140.MP4 not present")
+    _, rep = run(cfg, clip, tmp_path / "idx", FakeProvider())
+    assert rep.failed == [] and len(rep.written) == 1
+
+
 def test_blur_metric_separates_sharp_from_blurred(gym, tmp_path):
     import cv2
     import numpy as np

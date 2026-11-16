@@ -68,7 +68,7 @@ def classify(provider: str, text: str) -> Exception | None:
     if _AUTH.search(text):
         return ProviderUnavailable(
             f"Không có quyền truy cập {provider}: {text.strip()[:160]}. "
-            + ("Chạy `claude` trong terminal rồi gõ /login để đăng nhập."
+            + ("Đăng nhập bằng lệnh: claude auth login (kiểm tra: claude auth status)."
                if provider == "Claude" else "Kiểm tra API key và base_url trong videoauto.toml.")
         )
     return None

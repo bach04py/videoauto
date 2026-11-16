@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import sys
 from functools import lru_cache
 from pathlib import Path
 
 from .errors import ToolMissing, UnreadableFile
 
-_INSTALL_HINT = "Cài bằng lệnh: winget install Gyan.FFmpeg, rồi mở terminal mới và chạy lại."
+_INSTALL_HINT = "Cài bằng lệnh: " + {
+    "win32": "winget install Gyan.FFmpeg",
+    "darwin": "brew install ffmpeg",
+}.get(sys.platform, "sudo apt install ffmpeg") + ", rồi mở terminal mới và chạy lại."
 
 
 @lru_cache(maxsize=None)

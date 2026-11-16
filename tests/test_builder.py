@@ -100,6 +100,7 @@ def test_build_runs_the_sequence(setup):
     assert (tr["outgoingItemId"], tr["incomingItemId"], tr["durationInFrames"]) == ("item3", "item4", 6)
     assert occ.history[9].tool_args["updates"][0] == {"type": "video", "itemId": "item3", "fadeInSeconds": 0.5}
     assert occ.history[10].tool_args["updates"][0]["itemId"] == "item5"
+    assert occ.history[11].argv[-2:] == ["--bitrate", "10000000"]       # default 10 Mbps
 
 
 def test_one_failed_item_is_skipped_and_recorded(setup):

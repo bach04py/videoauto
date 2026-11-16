@@ -49,3 +49,9 @@ class BuildAborted(UserError):
     """Too many occ commands failed (or a step every later step depends on failed)."""
 
     exit_code = 6
+
+
+class PlanRejected(UserError):
+    """The planner returned tier 'reject' (not enough or unsuitable footage)."""
+
+    exit_code = 5

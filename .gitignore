@@ -5,7 +5,12 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 # test videos are third-party media: provide locally (see tests/conftest.py)
-tests/fixtures/*.mp4
+# footage never goes in the repo (camera files are often upper-case .MP4)
+tests/fixtures/
+*.[mM][pP]4
+*.[mM][oO][vV]
+*.[mM][kK][vV]
+*.[mM][tT][sS]
 catalogue.json
 .occ-data/
 output/

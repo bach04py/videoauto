@@ -16,5 +16,6 @@ openchatcut:
   data_dir: .occ-data         # OPENCHATCUT_DATA_DIR used for EVERY occ call
   # node: C:/path/to/node.exe # default: node on PATH, else the fnm version from the repo's .nvmrc
   resolution: 1080p
+  video_bitrate_mbps: 10      # H.264 target; 8-12 suits 1080x1920 social video
   timeout: 1800               # seconds, for occ render
   max_fail_ratio: 0.30        # abort the build when more item commands fail than this

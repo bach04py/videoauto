@@ -1,261 +1,369 @@
 # videoauto
 
-Turns raw footage and music into text indexes, so a later stage can plan an edit from text alone.
-This project is separate from OpenChatCut and never imports it. Later milestones will call the
-`occ` CLI as a subprocess.
+## Tiếng Việt (tóm tắt)
 
-## M1: indexer
-
-```
-python -m videoauto.index <file|folder> --out .index/
-```
-
-Each source file gets one JSON index at `.index/<sha256>.json`. The format is defined in
-[`videoauto/schemas/index.schema.json`](videoauto/schemas/index.schema.json). Every index is validated
-against it before it is written. A validation failure raises an error and nothing is written.
-A cached index from an older `schema_version` fails validation on read, so that file is indexed
-again. Version 2 added per-shot `sharpness`, and with it `blurry` stopped excluding shots.
-
-### Pipeline per video (local steps first, model calls last)
-
-| Step | Tool | Model call? |
-|---|---|---|
-| sha256 → cache lookup (a hit is logged and the file is skipped) | hashlib | no |
-| duration, fps, width, height, orientation | ffprobe | no |
-| letterbox/pillarbox bars: all video analysis below runs on the picture area only | ffmpeg `cropdetect` | no |
-| shot boundaries | PySceneDetect `ContentDetector` (frames from an ffmpeg pipe, so any codec works, incl. AV1) | no |
-| speech detection (VAD) → transcript only if speech | faster-whisper: Silero VAD gate, then `medium` on CPU / `large-v3` on CUDA (`whisper.model`, default `auto`) | local model, not billed |
-| keyframes: 1 per shot, plus a 2nd for shots > 8 s | ffmpeg | no |
-| motion 0–1 (`1 - exp(-d/10)`, d = mean grey change at ~6 samples/s) | OpenCV | no |
-| camera movement: 3x3 tile phase correlation, fit translation + zoom, trust only samples where the tiles agree | OpenCV | no |
-| flags black / frozen / silent | ffmpeg `blackdetect` / `freezedetect` / `silencedetect` | no |
-| `sharpness` per shot + `blurry` flag (rule below) | OpenCV variance of Laplacian on keyframes | no |
-| audio peaks (loudest RMS moments, ≥ 1 s apart) | numpy | no |
-
-`audio.has_music` and `audio.bpm` are `null` for video in M1 (there's no music detector yet).
-`camera` never takes the value `tracking`, because this method can't tell it apart from a pan.
-A black shot whose keyframe is truly blank gets a local caption and no model cell. A black
-title card with text is still captioned.
-| caption (VI), subjects, shot_size | vision provider, batched 3x3 contact sheets | **yes** |
-
-Music files (any audio or video file under a `music/` folder) get duration, BPM, beat times
-(librosa `beat_track`) and an RMS energy curve (0–1, every 0.1 s). Music never triggers a model
-call. When there's no steady pulse (silence, ambient), `bpm` is `null` and `beats` is empty.
-If a file with identical bytes was already indexed as the other kind in the same `--out`, that
-file fails with a clear message. It is never served the wrong cached index.
-
-### Sharpness and the `blurry` flag
-
-Every shot carries `sharpness`: the variance of the Laplacian of the sharpest 3x3 tile, taken on
-the shot's sharpest keyframe resized to 480 px wide. Higher means sharper. It exists for
-**ranking**: when M2 has a choice between shots, it prefers the sharper one. The score depends
-heavily on content (texture, light), so it compares well only between similar shots, and best
-within one file.
-
-`blurry` is a flag, **never a gate**. `quality.usable_shots` and `quality.rejected` count only
-`black` and `frozen`. A blurry shot is still captioned and still usable, and its quality note
-says so. The flag marks only clearly unusable blur. The exact rule, applied per file in
-`quality.blur_verdicts`, is the same for indexing and `--calibrate-blur`:
-
-> A shot that is not `black` gets `blurry` when **either**
-> 1. **absolute**: `sharpness < blur_threshold` (default **35**), or
-> 2. **relative**: the same file has at least `blur_relative_min_others` (default **2**) *other*
->    non-black shots, and `sharpness < blur_relative × median(sharpness of those other shots)`
->    (default **0.25**, i.e. under a quarter of the file's typical shot).
->
-> Black shots are never flagged and are left out of every other shot's median.
-
-Why both: the relative rule alone flags nothing when every shot in a file is blurred, so the
-floor catches that. The floor alone misfires on plain content (night, fog, sky, bare walls),
-so it stays low and the relative rule catches softness that is visible only next to the
-file's other shots, which share camera, lens and light. With 0 or 1 other shot there's no
-meaningful reference, so only the floor applies.
-
-Where 0.25 comes from (two fixtures only, so treat it as a starting point): within one
-continuous take, real frames went down to about 0.45× the clip median. Synthetic defocus of
-radius 2 px or more dropped the same frames to about 0.10–0.20×.
-
-All three values live in `[quality]` in `videoauto.toml`: `blur_threshold`, `blur_relative`
-and `blur_relative_min_others`.
-
-### Calibrating the blur rule
+**videoauto** biến một thư mục video thô thành một video ngắn hoàn chỉnh (mặc định 15 giây, dọc 9:16)
+chỉ bằng một lệnh. Công cụ phân tích từng clip (cắt cảnh, độ nét, chuyển động, mô tả cảnh bằng
+Claude), lập kế hoạch dựng bằng **một** lượt gọi model, rồi dựng và xuất MP4 bằng
+[OpenChatCut](https://github.com/0xsline/OpenChatCut). Đây là bản thử nghiệm sớm: kết quả còn thô.
 
 ```
-python -m videoauto.index <folder> --out .index/ --calibrate-blur
+python -m videoauto.run D:\quay\buoi-tap --out output\
 ```
 
-This runs local analysis only, with no model calls, no Whisper and no index written. It uses
-the same shots, keyframes, sharpness metric and blur rule as indexing. It prints every shot
-sorted by sharpness: score, ratio to the median of the file's other shots (`/tệp`), flagged and
-why (`abs` / `rel`), near a boundary, and keyframe path. "Near" means within 0.67–1.5× of the
-floor, or a ratio under 2× `blur_relative`. It also writes:
-- `calibrate_blur.tsv`, the full table, including `file_median_others`, `ratio` and `reason`
-- `calibrate_blur_flagged_NN.jpg` and `calibrate_blur_near_NN.jpg`, contact sheets whose cell
-  labels match the `#` column
+Cần cài: Python 3.12, Node 24, ffmpeg, Claude Code CLI (đã đăng nhập), và một bản OpenChatCut đặt
+**cạnh** thư mục videoauto, đã chạy `npm install` và đã tạo `catalogue.json`. Làm theo đúng thứ tự
+các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ sai nhất). Mọi thông báo lỗi của công cụ
+đều bằng tiếng Việt và nói rõ cần làm gì; xem mục **Troubleshooting**.
 
-## M2: planner, M3: builder (thin vertical slice)
+Chưa làm được: chữ/overlay, nhạc nền, theo dõi thư mục tự động; phần nhận giọng nói chưa được kiểm thử.
+Chỉ mới chạy thử trên Windows 11.
 
-```
-python -m videoauto.index tests/fixtures --out output/index      # M1
-python -m videoauto.plan  output/index   --out output/plan.json  # M2: ONE model call
-python -m videoauto.build output/plan.json --out output/final.mp4 # M3: drives `occ`
-```
+---
 
-`config.yaml` (cwd, or `--config`) holds:
-- the brief: `duration`, `aspect`, `fps`, `platform`, `notes`
-- `media_dir`: the footage folder that was indexed
-- `catalogue`: a copy of OpenChatCut's `catalogue.json`, not committed
-- `openchatcut`: `repo`, `data_dir`, `node`, `resolution`, `timeout`, `max_fail_ratio`
+## What this does
 
-The vision provider still comes from `videoauto.toml`.
-
-**Planner** (`videoauto/planner/`)
-- It reads every valid video index. When `media_dir` is set, it keeps only indexes whose file
-  is there with the same sha256.
-- It rejects locally, with **no model call**, when the usable footage (shots without
-  black/frozen) is under `min_material_ratio` (0.6) × the target duration.
-- Otherwise it makes **one** call through the same provider interface as M1. This is a text-only
-  call: the Claude CLI runs with `--tools ""`. The prompt lists each usable shot with its
-  sharpness and its rank. The rules are:
-  - prefer the sharper shot when choosing between similar options;
-  - prefer the target orientation;
-  - one LUT for the whole piece;
-  - a fade in and a fade out;
-  - transitions are optional;
-  - reply `{"reject": "…"}` instead of inventing a plan.
-- A malformed reply is not retried. It becomes a `reject` plan.
-- It writes an **EditPlan** (`videoauto/schemas/editplan.schema.json`). The spec's shape gains
-  four fields:
-  - `fades {in,out}` (seconds)
-  - `sources` (file → sha256, duration, orientation, so the builder can check the media)
-  - `reason` (required when the tier is `reject`)
-  - `model_calls`
-
-  Effect `params` are positional, in the catalogue's param order.
-
-**Hard validation** (`planner/validate.py`, run by both M2 and M3). Each invalid part is dropped
-with a Vietnamese warning and never passed on. It checks that:
-- every effect and transition id exists in the catalogue with the right kind;
-- every parameter is inside its published range;
-- `in`/`out` are inside the source, and each clip is at least 0.5 s;
-- no clip touches a black or frozen shot (M2 only);
-- no two clips reuse the same source seconds;
-- there is at most one LUT per clip;
-- each transition sits exactly on a cut, with at most one per cut, and is no longer than half
-  of either neighbouring clip;
-- each fade is at most 2 s and at most half of its clip.
-
-If no clips survive, the tier becomes `reject`.
-
-**Tier:**
-- `reject` when there is no usable plan;
-- `basic` when confidence is below 0.6, anything was dropped, or the total is under 80% of the target;
-- `full` otherwise.
-
-**Builder** (`videoauto/builder/`)
-- It runs `node --import tsx cli/main.ts … --json` inside the OpenChatCut repo, with **one**
-  `OPENCHATCUT_DATA_DIR` for every call. Tool arguments go through `--args @file.json`. It never
-  imports OpenChatCut code.
-- The sequence is:
-  1. `project new` (size and fps from the target)
-  2. `import_folder media_dir`
-  3. one `edit_item` add per clip. `fromFrame` is cumulative; `sourceStartFrame` and
-     `sourceDurationInFrames` are in timeline frames. The add rejects `srcInFrame`, but stores
-     these values as `srcInFrame` and `durationInFrames`.
-  4. one `manage_effects add` per clip effect
-  5. one `edit_item` transition per cut
-  6. `edit_item` updates for `fadeInSeconds` / `fadeOutSeconds`
-  7. `render`
-- Every command and its result goes to the log and to `<out>.build.json`.
-- If an item command fails, that item is skipped and recorded. Its dependants are skipped too:
-  later clips pack left, and transitions next to a missing clip are dropped.
-- The run aborts once failures exceed `max_fail_ratio` (30%) of the item commands.
-- A failure in `project new`, `import_folder` or `render` is fatal.
-
-Exit codes: plan `5` = reject; build `6` = aborted, `2` = a reject plan or bad input.
-
-### Install
+videoauto turns a folder of raw video clips into one finished short video, with no clicks.
+It indexes every clip locally (shots, sharpness, motion, quality flags) and captions the shots with
+Claude, asks a model **once** for an edit plan (which shots, in what order, one colour look, fades),
+validates that plan hard, and then drives the [OpenChatCut](https://github.com/0xsline/OpenChatCut)
+`occ` command line to assemble and render the MP4.
 
 ```
+python -m videoauto.run path/to/footage --out output/
+```
+
+The output is a crude first cut: picked and ordered shots, one LUT, a fade in and out, sometimes a
+transition. It is not a finished edit with titles or music (see **What this does not do yet**).
+It has been developed and run on **Windows 11 only**. The macOS/Linux commands below are the
+standard ones for each tool but have not been tested with videoauto.
+
+---
+
+## 1. Prerequisites
+
+You need git, Python 3.12, Node.js 24, ffmpeg and the Claude Code CLI.
+
+### Windows (PowerShell)
+
+```powershell
+winget install -e --id Git.Git
+winget install -e --id Python.Python.3.12
+winget install -e --id Schniz.fnm          # Node version manager
+winget install -e --id Gyan.FFmpeg         # the full build: drawtext is needed for contact sheets
+irm https://claude.ai/install.ps1 | iex    # Claude Code CLI
+```
+
+Close and reopen PowerShell, then:
+
+```powershell
+fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression
+fnm install 24
+fnm use 24
+node --version        # v24.x
+ffmpeg -version       # first line: ffmpeg version ...
+claude --version
+claude auth login     # opens the browser; uses your Claude subscription
+claude auth status    # should show you are logged in
+```
+
+To have `node` in every new PowerShell window, add the `fnm env ...` line to your profile
+(`notepad $PROFILE`). videoauto itself also finds an fnm-installed Node on Windows without it.
+
+### macOS (Homebrew, untested)
+
+```bash
+brew install git python@3.12 fnm ffmpeg
+eval "$(fnm env --use-on-cd)"      # add this line to ~/.zshrc too
+fnm install 24 && fnm use 24
+curl -fsSL https://claude.ai/install.sh | bash
+claude auth login
+```
+
+### Ubuntu 24.04 (untested)
+
+```bash
+sudo apt update && sudo apt install -y git python3.12 python3.12-venv ffmpeg fonts-dejavu-core
+curl -fsSL https://fnm.vercel.app/install | bash      # then open a new terminal
+fnm install 24 && fnm use 24
+curl -fsSL https://claude.ai/install.sh | bash
+claude auth login
+```
+
+Every model call (captions and the plan) goes through `claude -p` and counts against your Claude
+plan's usage. A 16-clip folder took 7 calls in total (see **Run it**).
+
+---
+
+## 2. OpenChatCut (required, separate project)
+
+videoauto does not render video itself. It runs OpenChatCut's `occ` command line as a subprocess
+(it never imports OpenChatCut code), and it needs OpenChatCut's catalogue of effects and transitions
+as a JSON file. **Both must be set up before the first run.**
+
+Put the two projects **side by side** in the same parent folder. The default `config.yaml`
+expects exactly this layout:
+
+```
+some-folder/
+  OpenChatCut/      <- step 2
+  videoauto/        <- step 3
+```
+
+```bash
+cd some-folder
+git clone https://github.com/0xsline/OpenChatCut.git
+git clone https://github.com/bach04py/videoauto.git
+cd OpenChatCut
+fnm use                     # reads .nvmrc (Node 24); answer "y" if fnm offers to install it
+npm install                 # takes several minutes; must finish without errors
+```
+
+Now generate `catalogue.json`. **The generator script is not part of upstream OpenChatCut**; it ships
+with videoauto in `openchatcut/dump-catalogue.mts` and has to be copied into OpenChatCut's
+`scripts/` folder, because it imports OpenChatCut's own source files by relative path:
+
+```bash
+# still inside OpenChatCut/
+cp ../videoauto/openchatcut/dump-catalogue.mts scripts/          # Windows: copy ..\videoauto\openchatcut\dump-catalogue.mts scripts\
+npx tsx scripts/dump-catalogue.mts ../videoauto/catalogue.json
+```
+
+The last line should end with something like
+`{"effect":33,"lut":16,...,"transition":16,"template":235,"total":300,...}` and the file
+`videoauto/catalogue.json` (about 0.8 MB) must now exist. That is where videoauto looks for it
+(`catalogue:` in `config.yaml`). Regenerate it whenever you update OpenChatCut.
+
+Optional check that `occ` runs:
+
+```bash
+npx tsx cli/main.ts --help          # prints "occ — OpenChatCut command line"
+```
+
+You do not need to open the OpenChatCut app. videoauto uses its own OpenChatCut data folder
+(`.occ-data/` inside videoauto) so it never touches your OpenChatCut projects.
+
+---
+
+## 3. Install videoauto
+
+```powershell
+cd ..\videoauto
 py -3.12 -m venv .venv
 .venv\Scripts\activate
-pip install -e .[music,dev]     # or just -e . for video only (no librosa / numba / scipy)
-winget install Gyan.FFmpeg      # full build: drawtext is needed for contact sheets
+pip install -e .
 ```
 
-**Windows Smart App Control.** It blocks `numpy/random/_sfc64.pyd` from numpy 2.5.x, which
-librosa imports through scipy/numba. The `music` extra caps numpy below 2.3 (2.2.6 loads fine).
-Nobody needs to turn Smart App Control off. The video path doesn't use `numpy.random` and works
-on current numpy.
+macOS/Linux: `python3.12 -m venv .venv && source .venv/bin/activate && pip install -e .`
 
-### Vision provider
+Optional extras:
 
-The provider is set in `videoauto.toml`:
+- `pip install -e ".[music]"` adds BPM, beat and energy analysis for audio files placed in a
+  `music/` subfolder (librosa). The plan does not use music yet, so you can skip this.
+  The extra caps numpy below 2.3 on purpose: **Windows Smart App Control** blocks
+  `numpy/random/_sfc64.pyd` from numpy 2.5.x, which librosa loads through scipy/numba. numpy 2.2.6
+  loads fine. Do not turn Smart App Control off; the cap is the fix. The video path does not use
+  `numpy.random` and works on current numpy without the extra.
+- `pip install -e ".[dev]"` adds pytest. Tests run on your own clips in `tests/fixtures/`
+  (`gym.mp4`, `sunset.mp4`); footage is never committed, so tests that need it are skipped.
+
+`faster-whisper` (speech) is installed with the base package. The first file that contains speech
+downloads a Whisper model (`medium`, about 1.5 GB, on CPU). The speech path is untested.
+
+---
+
+## 4. Configure: `config.yaml`
+
+`config.yaml` in the videoauto folder is read from the current directory (or pass
+`--config path`). Relative paths are relative to the file itself.
+
+```yaml
+brief:
+  duration: 15          # target length in seconds
+  aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
+  fps: 30               # 24 | 25 | 30 | 50 | 60
+  platform: tiktok      # free text, passed to the planner
+  notes: ""             # optional instructions for the planner, e.g. "start with a close-up"
+
+media_dir: tests/fixtures     # only used by the separate plan/build commands;
+                              # videoauto.run uses the folder you pass it instead
+catalogue: catalogue.json     # CHANGE if you generated catalogue.json somewhere else (step 2)
+min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
+
+openchatcut:
+  repo: ../OpenChatCut        # CHANGE if OpenChatCut is not next to videoauto
+  data_dir: .occ-data         # OPENCHATCUT_DATA_DIR used for every occ call
+  # node: C:/path/to/node.exe # CHANGE only if videoauto cannot find Node (see Troubleshooting)
+  resolution: 1080p
+  video_bitrate_mbps: 10      # H.264 target; 8-12 suits 1080x1920 (15 s at 10 Mbps = about 19 MB)
+  timeout: 1800               # seconds allowed for occ render
+  max_fail_ratio: 0.30        # abort the build when more than 30% of occ item commands fail
+```
+
+The model provider is configured separately and defaults to the Claude CLI; nothing to do if
+`claude auth status` shows you are logged in. To use an OpenAI-compatible endpoint instead, create
+`videoauto.toml`:
 
 ```toml
 [vision]
-provider = "claude"            # default; or "openai-compatible"
+provider = "openai-compatible"
 
 [vision.openai_compatible]
 base_url = "https://.../v1"
-model    = "..."
-api_key_env = "VIDEOAUTO_API_KEY"   # the key is read from this env var, never stored in the file
+model = "..."
+api_key_env = "VIDEOAUTO_API_KEY"   # the key is read from this environment variable
 ```
 
-- **claude**: runs `claude -p --output-format json`. The prompt references the contact sheet's
-  path, and only the `Read` tool is allowed.
-- **openai-compatible**: POSTs to `/chat/completions` with the sheet as a base64 image.
+---
 
-Rules for keeping cost down:
-- Keyframes from **all queued files** go into 9-cell contact sheets: 3x3, built with ffmpeg
-  `tile`, with each cell's number drawn on it by `drawtext`. One request covers one sheet. When
-  two cells belong to the same shot (long shots), the prompt says so and the reply has one entry
-  for that shot.
-- The reply is a JSON array keyed by cell number:
-  `[{"cell": 1, "caption": "...", "subjects": [...], "shot_size": "..."}]`.
-- Requests run sequentially. If a reply is malformed, it is retried twice. After that the shot
-  gets `caption: null` and the `caption_failed` flag.
-- The locally computed camera label is passed into the prompt, so the Vietnamese caption mentions
-  it without the model guessing motion from a still image.
-- If the provider reports a usage or rate limit, the run stops. Every file whose shots are all
-  captioned is written to the cache. Files only partly done are **not** written. A message in
-  Vietnamese says when to retry, using the reset time when the CLI reports one.
-- At the end of a run it logs the number of model calls, shots per call, and cache hits.
+## 5. Run it
 
-### Errors
+From the videoauto folder, with the virtual environment active:
 
-Each problem a user can hit (missing ffmpeg/ffprobe, unreadable file, `claude` not logged in or
-no API key, limit reached) is caught at the CLI boundary. The user sees a short Vietnamese message
-saying what went wrong and what to do, then the exit code is non-zero. Stack traces appear only
-with `--debug`.
+```powershell
+python -m videoauto.run D:\footage\gym-shoot --out output\
+```
 
-### Tests (pytest)
-
-They run against a short real video in `tests/fixtures/`. The vision provider is faked, so tests
-never spend usage. They cover:
-1. A second run over an unchanged file makes 0 provider calls and logs a cache hit.
-2. Schema validation rejects a malformed index, and nothing is written. That includes a missing
-   `sharpness`, an old `schema_version`, and a blurry shot counted as rejected.
-3. A simulated rate-limit error mid-run stops cleanly: finished files are cached, the partly done
-   file isn't, no stray or partial `.json` files remain, and the message is in Vietnamese.
-
-Run them with ffmpeg on PATH: `.venv\Scripts\python -m pytest`
-
-Exit codes: 0 ok, 1 some files failed, 2 user error (missing ffmpeg/claude, bad path or config),
-3 limit reached (partial run, safe to re-run), 4 invalid index (a bug).
-
-### Layout
+Progress is printed in Vietnamese, one block per stage:
 
 ```
-videoauto/
-  index.py plan.py build.py   CLI entries (python -m videoauto.index / .plan / .build)
-  planner/  catalogue.py validate.py planner.py    M2
-  builder/  occ.py builder.py                      M3 (occ subprocess only)
-  brief.py              config.yaml loader
-  indexer.py            orchestration, cross-file batching, cache writes
-  probe.py crop.py frames.py speech.py audio.py keyframes.py quality.py
-  vision/base.py claude_cli.py openai_compat.py contact_sheet.py captioner.py
-  cache.py schema.py config.py errors.py tools.py
-  schemas/index.schema.json
-tests/
+kiểm tra môi trường…                       # checks ffmpeg, Node, OpenChatCut, catalogue, claude first
+━━ [1/3] Lập chỉ mục …                     # index every clip; captions batched 9 keyframes per call
+━━ [2/3] Lập kế hoạch dựng …               # ONE model call -> plan.json
+━━ [3/3] Dựng video bằng OpenChatCut …     # occ: project, import, clips, LUT, transitions, fades, render
+━━ XONG trong 572s (…); 7 lượt gọi model
 ```
+
+What appears in `output/`:
+
+| Path | What it is |
+|---|---|
+| `final.mp4` | the video (1080x1920 H.264 for 9:16) |
+| `final.mp4.build.json` | every `occ` command with its arguments, result and time; warnings |
+| `plan.json` | the EditPlan: clips (source in/out), LUT, transitions, fades, the planner's script and warnings |
+| `index/<sha256>.json` | one index per source file (shots, captions, sharpness, motion, flags) |
+| `index/frames/` | the keyframes the captions were made from |
+
+Measured on one Windows 11 laptop (no GPU) with 16 clips (4K, 2.3 GB): indexing about 6.5 minutes
+with 6 caption calls; planning about 15 s with 1 call; building about 2–3 minutes (each `occ`
+command costs about 2–3 s of start-up; the render of 15 s at 1080x1920 about 40–90 s).
+
+Running again on the same folder reuses the cached indexes (`cache: TRÚNG …`, zero caption calls),
+then makes one new plan call and a new build.
+
+Exit codes: `0` done; `2` setup or input problem; `3` usage limit reached (safe to re-run later);
+`5` the planner refused (not enough usable footage); `6` the build was aborted.
+
+### Debugging one stage at a time
+
+```
+python -m videoauto.index <folder> --out output/index
+python -m videoauto.plan  output/index --out output/plan.json        # uses media_dir from config.yaml
+python -m videoauto.build output/plan.json --out output/final.mp4
+python -m videoauto.index <folder> --out output/index --calibrate-blur  # local blur report, no model calls
+```
+
+Add `--debug` to any command for a full Python traceback.
+
+---
+
+## Troubleshooting
+
+All messages are printed as `Lỗi: …` with the fix in the message.
+
+**ffmpeg not found**
+```
+Lỗi: Không tìm thấy ffmpeg trong PATH. Cài bằng lệnh: winget install Gyan.FFmpeg, rồi mở terminal mới và chạy lại.
+```
+Install ffmpeg (step 1), then **open a new terminal**: winget only updates PATH for new windows.
+`ffmpeg -version` must work in the terminal you run videoauto from.
+
+**Node not on PATH / not found**
+```
+Lỗi: Không tìm thấy Node.js ('node'). Cài Node (bản trong .nvmrc của OpenChatCut) hoặc đặt openchatcut.node trong config.yaml.
+```
+On Windows, videoauto looks for `node` on PATH, then for the fnm-installed version named in
+OpenChatCut's `.nvmrc`. If neither works, set the full path in `config.yaml`, e.g.
+`node: C:/Users/<you>/AppData/Roaming/fnm/node-versions/v24.22.1/installation/node.exe`
+(macOS/Linux: the output of `fnm exec --using=24 which node`). Related messages:
+`openchatcut.repo = '…' không phải repo OpenChatCut (thiếu cli/main.ts)` means `repo:` points to the
+wrong folder; `Repo OpenChatCut chưa cài thư viện. Chạy npm install …` means step 2's `npm install`
+did not finish.
+
+**catalogue.json missing**
+```
+Lỗi: Không tìm thấy catalogue '…\catalogue.json'. Chép catalogue.json từ thư mục gốc repo OpenChatCut (tạo bằng scripts/dump-catalogue.mts) và đặt đường dẫn 'catalogue' trong config.yaml.
+```
+Redo the catalogue part of step 2, or point `catalogue:` at the file you generated.
+
+**Claude CLI not installed or not logged in**
+```
+Lỗi: Không tìm thấy lệnh `claude`. Cài Claude Code CLI rồi đăng nhập bằng lệnh: claude auth login (hoặc đặt vision.provider = "openai-compatible" trong videoauto.toml).
+Lỗi: Không có quyền truy cập Claude: <the CLI's own message>. Đăng nhập bằng lệnh: claude auth login (kiểm tra: claude auth status).
+```
+Run `claude auth login`, check with `claude auth status`, and run videoauto again. The second line
+quotes whatever the Claude CLI reported, for example `Invalid API key · Please run /login`.
+
+**Windows Smart App Control blocks numpy** (only with the `[music]` extra)
+```
+ImportError: DLL load failed while importing _sfc64: An Application Control policy has blocked this file.
+```
+videoauto reports it as `Windows Smart App Control chặn một thư viện của librosa (thường do numpy
+quá mới). Chạy: pip install "numpy>=2.0,<2.3" rồi thử lại.` Run exactly that. Do not disable Smart
+App Control. Video indexing keeps working either way.
+
+**Usage limit reached**
+```
+Dừng: Đã chạm giới hạn sử dụng/tốc độ của Claude. Đã dừng an toàn: các tệp đã xử lý xong được lưu vào cache, tệp đang dở không được ghi. Hãy chạy lại lệnh khoảng 19:00 ngày 16/11; các tệp đã có trong cache sẽ không tốn lượt gọi nào.
+```
+Exit code 3. Nothing half-finished is written. Run the same command after the time shown; finished
+files are cache hits and cost no calls.
+
+**The video is sideways**
+Some cameras record portrait footage as landscape (e.g. 3840x2160) without a rotation tag, so every
+tool, including OpenChatCut, shows it sideways. Tag copies of the files losslessly and run on the
+copies (`90` = turn counter-clockwise; use `-90` if they come out upside down):
+```
+ffmpeg -display_rotation 90 -i C0144.MP4 -map 0:v:0 -map 0:a:0 -c copy upright/C0144.MP4
+```
+
+**A clip is skipped with `Không đọc được tệp …`**
+The file could not be decoded by ffmpeg. The run continues with the other clips; check the file
+plays in a normal video player.
+
+---
+
+## What this does not do yet
+
+- No titles, captions, overlays or motion-graphics templates.
+- No music: files in `music/` are analysed (BPM, beats) but never placed in the edit; the output
+  carries the source clips' own sound.
+- No folder watcher: you run the command yourself.
+- Speech transcription (Whisper) is wired in but untested on real speech.
+- Planning is minimal: shot choice and order, one LUT for the whole piece, fades, optional transitions.
+  Footage whose orientation differs from the target (e.g. landscape into 9:16) is letterboxed, not
+  reframed.
+- Developed and tested on Windows 11 only.
+
+---
+
+## How it works (short)
+
+- **M1 index** (`videoauto/index.py`): ffprobe metadata; PySceneDetect shot boundaries; keyframes;
+  OpenCV motion, camera movement and per-shot `sharpness`; ffmpeg black/frozen/silent detection;
+  Vietnamese captions from 3x3 contact sheets, one model call per sheet, sequential. One JSON per
+  source at `<out>/<sha256>.json`, validated against `videoauto/schemas/index.schema.json`. A
+  `blurry` flag marks only extreme blur (sharpness < 35, or < 25% of the median of the same file's
+  other shots) and never removes a shot from `usable_shots`.
+- **M2 plan** (`videoauto/planner/`): rejects locally (no call) when usable footage is under
+  `min_material_ratio` x duration; otherwise one text-only model call; every id and parameter is
+  checked against `catalogue.json`, in/out against the source, no overlaps, transitions only on cuts.
+  Invalid parts are dropped with a warning, never passed on. Schema:
+  `videoauto/schemas/editplan.schema.json`.
+- **M3 build** (`videoauto/builder/`): `occ project new` → `import_folder` → one `edit_item` per clip
+  → `manage_effects` (LUT) → `edit_item` transitions → fades → `occ render`, all with one
+  `OPENCHATCUT_DATA_DIR`. A failed item is skipped and recorded; the build aborts above 30% failures.
+
+## License
+
+AGPL-3.0-or-later, the same as OpenChatCut. See `LICENSE`.

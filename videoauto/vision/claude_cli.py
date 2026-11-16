@@ -25,8 +25,8 @@ class ClaudeCLIProvider(VisionProvider):
         self._exe = shutil.which(self.command)
         if not self._exe:
             raise ProviderUnavailable(
-                f"Không tìm thấy lệnh `{self.command}`. Cài Claude Code rồi chạy `claude` và gõ /login, "
-                "hoặc đặt vision.provider = \"openai-compatible\" trong videoauto.toml."
+                f"Không tìm thấy lệnh `{self.command}`. Cài Claude Code CLI rồi đăng nhập bằng lệnh: "
+                "claude auth login (hoặc đặt vision.provider = \"openai-compatible\" trong videoauto.toml)."
             )
 
     def image_reference(self, image: Path) -> str:

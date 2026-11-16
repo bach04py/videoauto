@@ -118,8 +118,15 @@ def analyse(path: Path, pr: Probe, crop: Crop | None, threshold: float, min_scen
         proc.wait()
     if i == 0:
         raise UnreadableFile(f"Không giải mã được khung hình nào từ '{path.name}'. {err.strip()[:160]}")
-    cuts = sorted({c for c in cuts if 0 < c < i})
-    return FrameAnalysis(pr.fps, i, cuts, samples)
+    return FrameAnalysis(pr.fps, i, keep_cuts(cuts, i, min_scene_len), samples)
+
+
+def keep_cuts(cuts: list[int], n_frames: int, min_scene_len: int) -> list[int]:
+    """min_scene_len only spaces cuts apart; it does not protect the tail after the last cut.
+    A cut a couple of frames before EOF (seen on a Sony XAVC clip: 628 of 630) makes a sliver
+    shot whose keyframe lies past the last decodable frame, and the whole file failed.
+    Such tails are folded into the previous shot."""
+    return sorted({c for c in cuts if 0 < c <= n_frames - min_scene_len})
 
 
 @dataclass(frozen=True)

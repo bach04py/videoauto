@@ -170,7 +170,8 @@ class Builder:
         # ---- render (fatal)
         rep.output.parent.mkdir(parents=True, exist_ok=True)
         r = self.occ.run("render", ["render", pid, "--out", str(rep.output),
-                                    "--resolution", cfg.occ.resolution, "--fps", str(fps)],
+                                    "--resolution", cfg.occ.resolution, "--fps", str(fps),
+                                    "--bitrate", str(round(cfg.occ.video_bitrate_mbps * 1_000_000))],
                          timeout=cfg.occ.timeout)
         self._fatal(r, "xuất video (render)")
         if not rep.output.exists() or rep.output.stat().st_size == 0:

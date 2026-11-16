@@ -44,6 +44,7 @@ class OccConfig:
     resolution: str
     timeout: int
     max_fail_ratio: float
+    video_bitrate_mbps: float = 10.0
 
 
 @dataclass
@@ -75,6 +76,17 @@ def _find_node(repo: Path) -> str | None:
         if want and c.parts[-3].lstrip("v") == want.lstrip("v"):
             return str(c)
     return str(candidates[0]) if candidates else None
+
+
+def _bitrate(value) -> float:
+    try:
+        mbps = float(value)
+    except (TypeError, ValueError):
+        mbps = -1
+    if not 0.5 <= mbps <= 100:
+        raise UserError(f"openchatcut.video_bitrate_mbps = {value!r} không hợp lệ: dùng một số trong "
+                        "khoảng 0.5–100 (gợi ý 8–12 cho video dọc 1080x1920).")
+    return mbps
 
 
 def _node_setting(base: Path, value: str | None, repo: Path) -> str:
@@ -123,6 +135,7 @@ def load_project_config(path: Path | None = None) -> ProjectConfig:
         resolution=str(o.get("resolution", "1080p")),
         timeout=int(o.get("timeout", 1800)),
         max_fail_ratio=float(o.get("max_fail_ratio", 0.30)),
+        video_bitrate_mbps=_bitrate(o.get("video_bitrate_mbps", 10)),
     )
     catalogue = _rel(base, raw.get("catalogue") or "catalogue.json")
     return ProjectConfig(path=path, brief=brief, media_dir=_rel(base, raw.get("media_dir")),

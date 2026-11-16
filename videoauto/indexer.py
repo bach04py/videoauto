@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from . import audio, frames, keyframes, quality
+from . import audio, frames, keyframes, quality, schema
 from .cache import Cache, sha256_of
 from .crop import detect_crop
 from .errors import LimitReached, ProviderUnavailable, UserError
@@ -23,7 +23,7 @@ log = logging.getLogger("videoauto")
 
 VIDEO_EXT = {".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v", ".mts", ".m2ts", ".3gp"}
 AUDIO_EXT = {".mp3", ".wav", ".m4a", ".flac", ".ogg", ".aac", ".opus"}
-REJECTING = {"black", "frozen", "blurry"}
+REJECTING = schema.REJECTING   # blurry is NOT here: blur ranks shots, it never discards them
 
 
 @dataclass
@@ -179,8 +179,6 @@ class Indexer:
                 flags.append("frozen")
             if quality.coverage(det.silent, start, end) >= q["silent_cover"]:
                 flags.append("silent")
-            if quality.is_blurry(sharp, q["blur_threshold"], "black" in flags):
-                flags.append("blurry")
 
             seg = [{"start": s.start, "end": s.end, "text": s.text}
                    for s in segments if s.start < end and s.end > start]
@@ -188,14 +186,22 @@ class Indexer:
             shot = {
                 "id": sid, "start": start, "end": end, "keyframes": times,
                 "caption": None, "subjects": [], "shot_size": None, "camera": camera,
-                "motion": frames.motion_level(samples), "transcript": seg or None, "flags": flags,
-                "_sharpness": round(sharp, 1),
+                "motion": frames.motion_level(samples), "sharpness": round(sharp, 1),
+                "transcript": seg or None, "flags": flags,
             }
             if "black" in flags and all(quality.is_blank(p) for p in kpaths):
                 shot["caption"] = "Khung hình đen, không có nội dung"   # nothing to describe: no model cell
             else:
                 jobs.append(ShotJob((sha, sid), kpaths, camera, picture))
             shots.append(shot)
+
+        # blur needs every shot of the file (relative rule), so it is judged after the loop
+        verdicts = quality.judge_blur([s["sharpness"] for s in shots],
+                                      ["black" in s["flags"] for s in shots], q)
+        for s, v in zip(shots, verdicts):
+            if v.blurry:
+                s["flags"].append("blurry")
+                s["_blur_note"] = quality.blur_note(s["id"], s["sharpness"], v, q)
 
         index = {
             "schema_version": SCHEMA_VERSION, "file": path.name, "sha256": sha, "kind": "video",
@@ -217,10 +223,10 @@ class Indexer:
                 self._write(self._finish_video(index))
 
     def _finish_video(self, index: dict[str, Any]) -> dict[str, Any]:
-        sha, q = index["sha256"], self.cfg["quality"]
+        sha = index["sha256"]
         notes, rejected = [], 0
         for s in index["shots"]:
-            sharp = s.pop("_sharpness")
+            blur_note = s.pop("_blur_note", None)
             if s["caption"] is None:
                 cap = self.captioner.results.get((sha, s["id"]))
                 if cap is None:
@@ -232,8 +238,8 @@ class Indexer:
                 notes.append(f"{s['id']}: tối dưới ngưỡng (khung hình đen)")
             if "frozen" in f:
                 notes.append(f"{s['id']}: hình bị đứng (đóng băng)")
-            if "blurry" in f:
-                notes.append(f"{s['id']}: mờ, độ nét {sharp:.0f} < {q['blur_threshold']:.0f}")
+            if blur_note:
+                notes.append(blur_note + " (vẫn tính là dùng được)")
             if "silent" in f and index["audio"]["has_audio"]:
                 notes.append(f"{s['id']}: không có tiếng")
             if "caption_failed" in f:

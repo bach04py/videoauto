@@ -10,7 +10,7 @@ import pytest
 
 from conftest import FakeProvider
 from videoauto import index as cli
-from videoauto import schema, tools
+from videoauto import quality, schema, tools
 from videoauto.cache import Cache
 from videoauto.errors import IndexValidationError, LimitReached, ProviderUnavailable
 from videoauto.indexer import Indexer, collect
@@ -44,6 +44,7 @@ def test_gym_index_is_valid_and_sensible(gym_index):
     shot = gym_index["shots"][0]
     assert shot["flags"] == ["silent"]                # sharp subject + soft background is NOT blurry
     assert len(shot["keyframes"]) == 2                # > 8 s
+    assert shot["sharpness"] == pytest.approx(139.2, abs=5)   # raw score, for ranking in M2
     assert gym_index["quality"]["usable_shots"] == 1
 
 
@@ -58,6 +59,50 @@ def test_blur_metric_separates_sharp_from_blurred(gym, tmp_path):
     cv2.imencode(".jpg", cv2.GaussianBlur(img, (0, 0), 1.5))[1].tofile(str(blurred))
     thr = DEFAULTS["quality"]["blur_threshold"]
     assert quality.sharpness(sharp) > thr > quality.sharpness(blurred)
+
+
+# ---------------------------------------------------------------- blur rule: flag, never a gate
+
+def flagged(scores, black=None, floor=35.0, rel=0.25, k=2):
+    v = quality.blur_verdicts(scores, black or [False] * len(scores), floor, rel, k)
+    return [x.reason for x in v]
+
+
+def test_blur_relative_flags_outlier_in_same_file():
+    # textured file: one shot far below its siblings, though above the absolute floor
+    assert flagged([200, 180, 220, 40]) == [None, None, None, "relative"]
+
+
+def test_blur_absolute_catches_a_file_where_everything_is_blurred():
+    # relative alone would see nothing (all similar); the floor still flags them
+    assert flagged([20, 22, 25]) == ["absolute"] * 3
+
+
+def test_blur_plain_content_file_is_not_flagged():
+    # a plain, dark file: uniformly low but above the floor -> nothing flagged
+    assert flagged([50, 45, 55, 48]) == [None] * 4
+
+
+def test_blur_relative_needs_enough_other_shots():
+    assert flagged([200, 40]) == [None, None]          # one sibling is not a reference
+    assert flagged([200, 20]) == [None, "absolute"]    # the floor still applies
+
+
+def test_blur_black_shots_never_flagged_and_not_a_reference():
+    reasons = flagged([200, 210, 2, 45], black=[False, False, True, False])
+    assert reasons == [None, None, None, "relative"]   # ref for 45 = median(200, 210), not 2
+    assert flagged([200, 2, 45], black=[False, True, False]) == [None, None, None]  # 1 sibling
+
+
+def test_blurry_shot_stays_usable_and_keeps_its_score(cfg, sunset, tmp_path, monkeypatch):
+    monkeypatch.setattr("videoauto.quality.sharpness", lambda p: 12.34)   # catastrophic blur
+    _, rep = run(cfg, sunset, tmp_path, FakeProvider())
+    ix = json.loads(rep.written[0].read_text(encoding="utf-8"))
+    shot = ix["shots"][0]
+    assert "blurry" in shot["flags"] and shot["sharpness"] == 12.3
+    assert shot["caption"]                                    # still captioned
+    assert ix["quality"]["usable_shots"] == 1 and ix["quality"]["rejected"] == 0
+    assert any("mờ nặng" in n and "vẫn tính là dùng được" in n for n in ix["quality"]["notes"])
 
 
 # ---------------------------------------------------------------- 1. cache hit: zero calls
@@ -89,7 +134,11 @@ MUTATIONS = {
     "shots leave a gap": lambda ix: ix["shots"][-1].update(start=ix["shots"][-1]["start"] + 0.5),
     "shot ends before it starts": lambda ix: ix["shots"][0].update(end=0.0),
     "has_speech lies": lambda ix: ix.update(has_speech=True),
-    "wrong schema_version": lambda ix: ix.update(schema_version=2),
+    "old schema_version": lambda ix: ix.update(schema_version=1),
+    "missing sharpness": lambda ix: ix["shots"][0].pop("sharpness"),
+    "negative sharpness": lambda ix: ix["shots"][0].update(sharpness=-1.0),
+    "blur counted as rejection": lambda ix: (ix["shots"][0]["flags"].append("blurry"),
+                                             ix["quality"].update(rejected=1, usable_shots=0)),
 }
 
 

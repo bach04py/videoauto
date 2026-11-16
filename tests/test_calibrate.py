@@ -51,7 +51,8 @@ def test_calibrate_flags_and_sheet(clips, tmp_path, no_models, monkeypatch, caps
     out = tmp_path / "idx"
     assert cli.main([str(clips), "--out", str(out), "--calibrate-blur", "--config", str(cfg)]) == 0
     rows = read_tsv(out)
-    assert all(r["blurry"] == "1" for r in rows)
+    assert all(r["blurry"] == "1" and r["reason"] == "absolute" for r in rows)
+    assert all(r["ratio"] == "" for r in rows)            # 1 shot per file: no relative reference
     sheets = sorted(out.glob("calibrate_blur_flagged_*.jpg"))
     assert len(sheets) == 1 and sheets[0].stat().st_size > 1000
     assert "calibrate_blur_flagged_01.jpg" in capsys.readouterr().out

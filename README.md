@@ -13,6 +13,8 @@ python -m videoauto.index <file|folder> --out .index/
 Each source file gets one JSON index at `.index/<sha256>.json`. The format is defined in
 [`videoauto/schemas/index.schema.json`](videoauto/schemas/index.schema.json). Every index is validated
 against it before it is written. A validation failure raises an error and nothing is written.
+A cached index from an older `schema_version` fails validation on read, so that file is indexed
+again. Version 2 added per-shot `sharpness`, and with it `blurry` stopped excluding shots.
 
 ### Pipeline per video (local steps first, model calls last)
 
@@ -27,7 +29,7 @@ against it before it is written. A validation failure raises an error and nothin
 | motion 0–1 (`1 - exp(-d/10)`, d = mean grey change at ~6 samples/s) | OpenCV | no |
 | camera movement: 3x3 tile phase correlation, fit translation + zoom, trust only samples where the tiles agree | OpenCV | no |
 | flags black / frozen / silent | ffmpeg `blackdetect` / `freezedetect` / `silencedetect` | no |
-| flag blurry | OpenCV variance of Laplacian on keyframes | no |
+| `sharpness` per shot + `blurry` flag (rule below) | OpenCV variance of Laplacian on keyframes | no |
 | audio peaks (loudest RMS moments, ≥ 1 s apart) | numpy | no |
 
 `audio.has_music` and `audio.bpm` are `null` for video in M1 (there's no music detector yet).
@@ -42,7 +44,41 @@ call. When there's no steady pulse (silence, ambient), `bpm` is `null` and `beat
 If a file with identical bytes was already indexed as the other kind in the same `--out`, that
 file fails with a clear message. It is never served the wrong cached index.
 
-### Calibrating the blur threshold
+### Sharpness and the `blurry` flag
+
+Every shot carries `sharpness`: the variance of the Laplacian of the sharpest 3x3 tile, taken on
+the shot's sharpest keyframe resized to 480 px wide. Higher means sharper. It exists for
+**ranking**: when M2 has a choice between shots, it prefers the sharper one. The score depends
+heavily on content (texture, light), so it compares well only between similar shots, and best
+within one file.
+
+`blurry` is a flag, **never a gate**. `quality.usable_shots` and `quality.rejected` count only
+`black` and `frozen`. A blurry shot is still captioned and still usable, and its quality note
+says so. The flag marks only clearly unusable blur. The exact rule, applied per file in
+`quality.blur_verdicts`, is the same for indexing and `--calibrate-blur`:
+
+> A shot that is not `black` gets `blurry` when **either**
+> 1. **absolute**: `sharpness < blur_threshold` (default **35**), or
+> 2. **relative**: the same file has at least `blur_relative_min_others` (default **2**) *other*
+>    non-black shots, and `sharpness < blur_relative × median(sharpness of those other shots)`
+>    (default **0.25**, i.e. under a quarter of the file's typical shot).
+>
+> Black shots are never flagged and are left out of every other shot's median.
+
+Why both: the relative rule alone flags nothing when every shot in a file is blurred, so the
+floor catches that. The floor alone misfires on plain content (night, fog, sky, bare walls),
+so it stays low and the relative rule catches softness that is visible only next to the
+file's other shots, which share camera, lens and light. With 0 or 1 other shot there's no
+meaningful reference, so only the floor applies.
+
+Where 0.25 comes from (two fixtures only, so treat it as a starting point): within one
+continuous take, real frames went down to about 0.45× the clip median. Synthetic defocus of
+radius 2 px or more dropped the same frames to about 0.10–0.20×.
+
+All three values live in `[quality]` in `videoauto.toml`: `blur_threshold`, `blur_relative`
+and `blur_relative_min_others`.
+
+### Calibrating the blur rule
 
 ```
 python -m videoauto.index <folder> --out .index/ --calibrate-blur
@@ -50,12 +86,12 @@ python -m videoauto.index <folder> --out .index/ --calibrate-blur
 
 This runs local analysis only, with no model calls, no Whisper and no index written. It uses
 the same shots, keyframes, sharpness metric and blur rule as indexing. It prints every shot
-sorted by sharpness (score, flagged?, near the threshold?, keyframe path) and writes:
-- `calibrate_blur.tsv`, the full table
+sorted by sharpness: score, ratio to the median of the file's other shots (`/tệp`), flagged and
+why (`abs` / `rel`), near a boundary, and keyframe path. "Near" means within 0.67–1.5× of the
+floor, or a ratio under 2× `blur_relative`. It also writes:
+- `calibrate_blur.tsv`, the full table, including `file_median_others`, `ratio` and `reason`
 - `calibrate_blur_flagged_NN.jpg` and `calibrate_blur_near_NN.jpg`, contact sheets whose cell
   labels match the `#` column
-
-Change the threshold with `[quality] blur_threshold` in `videoauto.toml`.
 
 ### Install
 
@@ -117,7 +153,8 @@ with `--debug`.
 They run against a short real video in `tests/fixtures/`. The vision provider is faked, so tests
 never spend usage. They cover:
 1. A second run over an unchanged file makes 0 provider calls and logs a cache hit.
-2. Schema validation rejects a malformed index, and nothing is written.
+2. Schema validation rejects a malformed index, and nothing is written. That includes a missing
+   `sharpness`, an old `schema_version`, and a blurry shot counted as rejected.
 3. A simulated rate-limit error mid-run stops cleanly: finished files are cached, the partly done
    file isn't, no stray or partial `.json` files remain, and the message is in Vietnamese.
 

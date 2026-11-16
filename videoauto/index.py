@@ -50,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.calibrate_blur:
             from .calibrate import calibrate_blur, print_report
             rows, sheets, failed = calibrate_blur(cfg, sources, args.out)
-            print_report(rows, sheets, cfg["quality"]["blur_threshold"], args.out)
+            print_report(rows, sheets, cfg["quality"], args.out)
             return 1 if failed else 0
         report = Indexer(cfg, args.out).run(sources)
     except UserError as e:

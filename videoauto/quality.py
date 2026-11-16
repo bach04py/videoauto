@@ -57,9 +57,51 @@ def coverage(intervals: list[Interval], start: float, end: float) -> float:
     return min(1.0, covered / (end - start))
 
 
-def is_blurry(score: float, threshold: float, black: bool) -> bool:
-    """Single rule used by indexing and --calibrate-blur. Black shots are never 'blurry'."""
-    return score < threshold and not black
+@dataclass
+class BlurVerdict:
+    blurry: bool
+    reason: str | None          # "absolute" | "relative" | None
+    reference: float | None     # median sharpness of the file's OTHER non-black shots (if enough)
+    ratio: float | None         # score / reference
+
+
+def blur_verdicts(scores: list[float], black: list[bool], floor: float, relative: float,
+                  min_others: int) -> list[BlurVerdict]:
+    """The one blur rule, used by indexing and --calibrate-blur, for all shots of ONE file.
+
+    A non-black shot is blurry when
+      (a) its sharpness < floor                                   (catastrophic, any content), or
+      (b) the file has >= min_others other non-black shots and
+          sharpness < relative x median(sharpness of those other shots).
+    Black shots are never blurry and never count in another shot's reference.
+    (b) alone flags nothing when every shot is blurred; (a) alone misfires on plain content.
+    """
+    out = []
+    for i, (s, b) in enumerate(zip(scores, black)):
+        others = [x for j, (x, bb) in enumerate(zip(scores, black)) if j != i and not bb]
+        ref = float(np.median(others)) if len(others) >= min_others else None
+        ratio = s / ref if ref else None
+        reason = None
+        if not b:
+            if s < floor:
+                reason = "absolute"
+            elif ratio is not None and ratio < relative:
+                reason = "relative"
+        out.append(BlurVerdict(reason is not None, reason, ref, ratio))
+    return out
+
+
+def judge_blur(scores: list[float], black: list[bool], q: dict) -> list[BlurVerdict]:
+    """blur_verdicts with the [quality] config section."""
+    return blur_verdicts(scores, black, q["blur_threshold"], q["blur_relative"],
+                         q["blur_relative_min_others"])
+
+
+def blur_note(sid: str, score: float, v: BlurVerdict, q: dict) -> str:
+    if v.reason == "absolute":
+        return f"{sid}: mờ nặng, độ nét {score:.0f} < ngưỡng tuyệt đối {q['blur_threshold']:g}"
+    return (f"{sid}: mờ hơn hẳn các shot khác trong tệp, độ nét {score:.0f} = "
+            f"{v.ratio:.0%} trung vị {v.reference:.0f} (ngưỡng {q['blur_relative']:.0%})")
 
 
 def is_blank(image_path: Path) -> bool:

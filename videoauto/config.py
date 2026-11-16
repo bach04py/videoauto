@@ -19,7 +19,13 @@ DEFAULTS: dict[str, Any] = {
     "shots": {"threshold": 27.0, "min_scene_len": 15},
     "keyframes": {"second_frame_after": 8.0, "max_side": 768},
     "quality": {
-        "blur_threshold": 35.0,      # Laplacian variance of the sharpest 3x3 tile, 480 px wide
+        # blurry = sharpness < blur_threshold (absolute floor), OR, when the file has at least
+        # blur_relative_min_others other non-black shots, sharpness < blur_relative x their median.
+        # Sharpness = Laplacian variance of the sharpest 3x3 tile, 480 px wide. Blurry is a flag
+        # only: it never removes a shot from usable_shots.
+        "blur_threshold": 35.0,
+        "blur_relative": 0.25,
+        "blur_relative_min_others": 2,
         "black_cover": 0.5,          # fraction of a shot that must be black/frozen to flag it
         "frozen_cover": 0.5,
         "silent_cover": 0.9,

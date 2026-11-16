@@ -99,7 +99,7 @@ def test_silence_has_no_bpm(cfg, tmp_path):
 
 
 def test_music_schema_invariants():
-    good = {"schema_version": 1, "file": "a.wav", "sha256": "0" * 64, "kind": "music",
+    good = {"schema_version": schema.SCHEMA_VERSION, "file": "a.wav", "sha256": "0" * 64, "kind": "music",
             "duration": 4.0, "bpm": 120.0, "beats": [0.5, 1.0, 1.5],
             "energy": {"hop_seconds": 0.1, "values": [0.0, 1.0]}}
     assert schema.errors(good) == []

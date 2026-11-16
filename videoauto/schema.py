@@ -12,7 +12,8 @@ from jsonschema import Draft202012Validator
 from .errors import IndexValidationError
 
 SCHEMA_PATH = Path(__file__).parent / "schemas" / "index.schema.json"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2   # 2: per-shot "sharpness"; "blurry" no longer excludes a shot
+REJECTING = frozenset({"black", "frozen"})   # flags that remove a shot from usable_shots
 
 
 @lru_cache(maxsize=1)
@@ -50,7 +51,7 @@ def errors(index: Any) -> list[str]:
             errs.append(f"shots/{n-1}: not contiguous with previous shot")
     if shots and shots[-1]["end"] > index["duration"] + 0.5:
         errs.append("shots: last shot ends after duration")
-    rejected = sum(1 for s in shots if set(s["flags"]) & {"black", "frozen", "blurry"})
+    rejected = sum(1 for s in shots if set(s["flags"]) & REJECTING)
     q = index["quality"]
     if q["rejected"] != rejected or q["usable_shots"] != len(shots) - rejected:
         errs.append("quality: usable_shots/rejected do not match shot flags")

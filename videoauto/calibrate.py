@@ -35,12 +35,14 @@ class Row:
     keyframe: Path        # the keyframe that produced the score
     black: bool
     flagged: bool
+    reason: str | None    # "absolute" | "relative" | None
+    reference: float | None   # median of the file's other non-black shots (None: too few)
+    ratio: float | None
     near: bool
     no: int = 0           # row number = cell label on the contact sheets
 
 
 def calibrate_blur(cfg: dict, sources: list[Source], out_dir: Path) -> tuple[list[Row], list[Path], int]:
-    thr = cfg["quality"]["blur_threshold"]
     rows: list[Row] = []
     failed = 0
     for src in sources:
@@ -48,7 +50,7 @@ def calibrate_blur(cfg: dict, sources: list[Source], out_dir: Path) -> tuple[lis
             log.info("bỏ qua %s (nhạc)", src.path.name)
             continue
         try:
-            rows += _shots(cfg, src.path, out_dir, thr)
+            rows += _shots(cfg, src.path, out_dir)
         except UserError as e:
             log.error("lỗi: %s", e.message)
             failed += 1
@@ -58,7 +60,8 @@ def calibrate_blur(cfg: dict, sources: list[Source], out_dir: Path) -> tuple[lis
     return rows, _write_outputs(rows, out_dir), failed
 
 
-def _shots(cfg: dict, path: Path, out_dir: Path, thr: float) -> list[Row]:
+def _shots(cfg: dict, path: Path, out_dir: Path) -> list[Row]:
+    q = cfg["quality"]
     log.info("phân tích %s", path.name)
     sha = sha256_of(path)
     pr = probe(path)
@@ -68,16 +71,26 @@ def _shots(cfg: dict, path: Path, out_dir: Path, thr: float) -> list[Row]:
     fa = frames.analyse(path, pr, crop, cfg["shots"]["threshold"], cfg["shots"]["min_scene_len"])
     det = quality.detect(path, pr.duration, False, cfg["quality"]["silence_db"], crop)
     fdir = out_dir / "frames" / sha
-    rows = []
+    measured = []
     for span in frames.shot_spans(fa, pr.duration):
         _times, kpaths = keyframes.for_shot(path, span, cfg["keyframes"], fdir, crop)
-        scored = [(quality.sharpness(p), p) for p in kpaths]
-        score, best = max(scored)
-        black = quality.coverage(det.black, span.start, span.end) >= cfg["quality"]["black_cover"]
-        rows.append(Row(path.name, span.id, span.start, span.end, round(score, 1), best, black,
-                        quality.is_blurry(score, thr, black),
-                        not black and NEAR_LOW * thr <= score < NEAR_HIGH * thr))
+        score, best = max((quality.sharpness(p), p) for p in kpaths)
+        black = quality.coverage(det.black, span.start, span.end) >= q["black_cover"]
+        measured.append((span, round(score, 1), best, black))
+    # same rounding as the index, so the table matches the indexed sharpness exactly
+    verdicts = quality.judge_blur([m[1] for m in measured], [m[3] for m in measured], q)
+    rows = []
+    for (span, score, best, black), v in zip(measured, verdicts):
+        rows.append(Row(path.name, span.id, span.start, span.end, score, best, black,
+                        v.blurry, v.reason, v.reference, v.ratio, not black and _near(score, v, q)))
     return rows
+
+
+def _near(score: float, v: quality.BlurVerdict, q: dict) -> bool:
+    """Close to either boundary: within NEAR_LOW-NEAR_HIGH x floor, or ratio < 2 x relative."""
+    floor = q["blur_threshold"]
+    return (NEAR_LOW * floor <= score < NEAR_HIGH * floor
+            or (v.ratio is not None and q["blur_relative"] <= v.ratio < 2 * q["blur_relative"]))
 
 
 def _write_outputs(rows: list[Row], out_dir: Path) -> list[Path]:
@@ -86,10 +99,14 @@ def _write_outputs(rows: list[Row], out_dir: Path) -> list[Path]:
         old.unlink()
     with open(out_dir / "calibrate_blur.tsv", "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f, delimiter="\t")
-        w.writerow(["no", "file", "shot", "start", "end", "sharpness", "blurry", "near", "black", "keyframe"])
+        w.writerow(["no", "file", "shot", "start", "end", "sharpness", "file_median_others", "ratio",
+                    "blurry", "reason", "near", "black", "keyframe"])
         for r in rows:
-            w.writerow([r.no, r.file, r.shot, r.start, r.end, r.score, int(r.flagged), int(r.near),
-                        int(r.black), str(r.keyframe.resolve())])
+            w.writerow([r.no, r.file, r.shot, r.start, r.end, r.score,
+                        "" if r.reference is None else round(r.reference, 1),
+                        "" if r.ratio is None else round(r.ratio, 3),
+                        int(r.flagged), r.reason or "", int(r.near), int(r.black),
+                        str(r.keyframe.resolve())])
     sheets = []
     for name, group in (("flagged", [r for r in rows if r.flagged]),
                         ("near", [r for r in rows if r.near and not r.flagged])):
@@ -101,14 +118,21 @@ def _write_outputs(rows: list[Row], out_dir: Path) -> list[Path]:
     return sheets
 
 
-def print_report(rows: list[Row], sheets: list[Path], thr: float, out_dir: Path) -> None:
-    print(f"\nNgưỡng mờ hiện tại: {thr:g} (độ nét < ngưỡng → blurry). '~' = gần ngưỡng "
-          f"({NEAR_LOW:g}×–{NEAR_HIGH:g}×). Sắp xếp theo độ nét tăng dần.\n")
-    print(f"{'#':>3}  {'độ nét':>7}  {'mờ?':<4} {'':1}  {'tệp':<24} {'shot':<4}  {'thời gian':<15}  keyframe")
+def print_report(rows: list[Row], sheets: list[Path], q: dict, out_dir: Path) -> None:
+    floor, rel, k = q["blur_threshold"], q["blur_relative"], q["blur_relative_min_others"]
+    print(f"\nQuy tắc mờ: độ nét < {floor:g} (tuyệt đối, 'abs'), HOẶC độ nét < {rel:.0%} trung vị các "
+          f"shot khác cùng tệp khi tệp có ≥ {k} shot khác ('rel'). Cờ mờ chỉ là thông tin, "
+          f"không loại shot.\n'~' = gần ngưỡng ({NEAR_LOW:g}×–{NEAR_HIGH:g}× ngưỡng tuyệt đối, hoặc "
+          f"tỉ lệ dưới {2 * rel:.0%}). Sắp xếp theo độ nét tăng dần.\n")
+    print(f"{'#':>3}  {'độ nét':>7}  {'/tệp':>5}  {'mờ?':<7} {'':1}  {'tệp':<24} {'shot':<4}  "
+          f"{'thời gian':<15}  keyframe")
     for r in rows:
-        mark = "BLACK" if r.black else ("CÓ" if r.flagged else "-")
-        print(f"{r.no:>3}  {r.score:>7.1f}  {mark:<4} {'~' if r.near else ' ':1}  {r.file[:24]:<24} "
-              f"{r.shot:<4}  {r.start:6.2f}–{r.end:<7.2f}  {r.keyframe.resolve()}")
+        mark = "BLACK" if r.black else (f"CÓ {'abs' if r.reason == 'absolute' else 'rel'}"
+                                        if r.flagged else "-")
+        ratio = "—" if r.ratio is None else f"{r.ratio:.0%}"
+        print(f"{r.no:>3}  {r.score:>7.1f}  {ratio:>5}  {mark:<7} {'~' if r.near else ' ':1}  "
+              f"{r.file[:24]:<24} {r.shot:<4}  {r.start:6.2f}–{r.end:<7.2f}  {r.keyframe.resolve()}")
+    print("('/tệp' = độ nét ÷ trung vị các shot khác cùng tệp; '—' = tệp có quá ít shot để so sánh)")
     flagged = sum(r.flagged for r in rows)
     print(f"\n{len(rows)} shot, {flagged} bị gắn cờ mờ, {sum(r.near for r in rows)} gần ngưỡng.")
     print(f"Bảng đầy đủ: {(out_dir / 'calibrate_blur.tsv').resolve()}")

@@ -6,7 +6,7 @@
   "type": "object",
   "required": ["schema_version", "file", "sha256", "kind", "duration"],
   "properties": {
-    "schema_version": { "const": 1 },
+    "schema_version": { "const": 2 },
     "file": { "type": "string", "minLength": 1 },
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "kind": { "enum": ["video", "music"] },
@@ -34,7 +34,7 @@
     "shot": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "start", "end", "keyframes", "caption", "subjects", "shot_size", "camera", "motion", "transcript", "flags"],
+      "required": ["id", "start", "end", "keyframes", "caption", "subjects", "shot_size", "camera", "motion", "sharpness", "transcript", "flags"],
       "properties": {
         "id": { "type": "string", "pattern": "^s[0-9]{2,}$" },
         "start": { "$ref": "#/$defs/seconds" },
@@ -56,12 +56,17 @@
           "enum": ["static", "pan", "tilt", "zoom", "tracking", "handheld", null]
         },
         "motion": { "type": "number", "minimum": 0, "maximum": 1 },
+        "sharpness": {
+          "description": "Raw sharpness: variance of Laplacian of the sharpest 3x3 tile of the shot's sharpest keyframe, resized to 480 px wide. Higher = sharper. For RANKING shots; only comparable between shots of similar content (same file is best).",
+          "type": "number", "minimum": 0
+        },
         "transcript": {
           "description": "Speech segments overlapping this shot (absolute times), or null when none.",
           "type": ["array", "null"],
           "items": { "$ref": "#/$defs/segment" }
         },
         "flags": {
+          "description": "black and frozen exclude the shot from quality.usable_shots. blurry (clearly unusable blur: below the absolute floor, or far below the file's other shots), silent and caption_failed are informational only.",
           "type": "array", "uniqueItems": true,
           "items": { "enum": ["black", "frozen", "silent", "blurry", "caption_failed"] }
         }
@@ -99,8 +104,8 @@
           "additionalProperties": false,
           "required": ["usable_shots", "rejected", "notes"],
           "properties": {
-            "usable_shots": { "type": "integer", "minimum": 0 },
-            "rejected": { "type": "integer", "minimum": 0 },
+            "usable_shots": { "description": "Shots without a black or frozen flag. Blur never reduces this.", "type": "integer", "minimum": 0 },
+            "rejected": { "description": "Shots flagged black or frozen.", "type": "integer", "minimum": 0 },
             "notes": { "type": "array", "items": { "type": "string" } }
           }
         }

@@ -25,7 +25,11 @@ def main(argv: list[str] | None = None, provider=None, occ=None) -> int:
     ap = argparse.ArgumentParser(prog="python -m videoauto.run",
                                  description="Từ thư mục video thô ra video hoàn chỉnh: lập chỉ mục → "
                                              "lập kế hoạch → dựng.")
-    ap.add_argument("folder", type=Path, help="thư mục video thô (nhạc đặt trong thư mục con music/)")
+    ap.add_argument("folder", type=Path, nargs="?", default=None,
+                    help="thư mục video thô (mặc định: footage_dir trong config.yaml)")
+    ap.add_argument("--footage", type=Path, default=None, help="như folder: ghi đè footage_dir")
+    ap.add_argument("--script", type=Path, default=None,
+                    help="tệp kịch bản cần theo (ghi đè script_file trong config.yaml)")
     ap.add_argument("--out", type=Path, default=Path("output"), help="thư mục kết quả (mặc định output/)")
     ap.add_argument("--config", type=Path, default=None, help="config.yaml (mặc định: trong thư mục hiện tại)")
     ap.add_argument("--vision-config", type=Path, default=None, help="videoauto.toml (tuỳ chọn)")
@@ -56,10 +60,24 @@ def _run(args, provider, occ) -> int:
 
     # ---- preflight: everything that can fail in a second fails before the slow work
     log.info("kiểm tra môi trường…")
-    pcfg = load_project_config(args.config)
-    if not args.folder.is_dir():
-        raise UserError(f"'{args.folder}' không phải thư mục. Truyền thư mục chứa video thô.")
-    pcfg.media_dir = args.folder.resolve()                      # the folder given here wins
+    pcfg = load_project_config(args.config)                        # also validates brand/logo
+    if args.folder and args.footage and args.folder.resolve() != args.footage.resolve():
+        raise UserError("Chỉ truyền thư mục video một lần: hoặc làm tham số, hoặc --footage.")
+    folder = args.folder or args.footage or pcfg.footage_dir         # command line wins over config
+    if folder is None:
+        raise UserError("Chưa biết lấy video ở đâu: đặt footage_dir trong config.yaml, hoặc chạy "
+                        "python -m videoauto.run <thư mục video>.")
+    if not folder.is_dir():
+        raise UserError(f"Thư mục video '{folder}' không tồn tại. Sửa footage_dir trong config.yaml "
+                        "hoặc truyền đúng thư mục.")
+    pcfg.footage_dir = folder = folder.resolve()
+    if args.script is not None:
+        if not args.script.is_file():
+            raise UserError(f"Không tìm thấy tệp kịch bản '{args.script}' (--script).")
+        pcfg.script_file = args.script.resolve()
+    if pcfg.script_file is not None and not pcfg.script_file.is_file():
+        log.warning("script_file '%s' không tồn tại: model sẽ tự viết kịch bản", pcfg.script_file)
+    script = pcfg.script_text()
     vcfg = load_config(args.vision_config)
     check_ffmpeg()
     Catalogue.load(pcfg.catalogue)
@@ -67,13 +85,17 @@ def _run(args, provider, occ) -> int:
     occ.check()
     provider = provider or make_provider(vcfg["vision"])
     provider.check()
-    sources = collect(args.folder, index_dir)
-    log.info("ok: %d tệp, brief %gs %s, OpenChatCut tại %s", len(sources), pcfg.brief.duration,
-             pcfg.brief.aspect, pcfg.occ.repo)
+    sources = collect(folder, index_dir)
+    log.info("ok: %d tệp trong %s, brief %gs %s, OpenChatCut tại %s", len(sources), folder,
+             pcfg.brief.duration, pcfg.brief.aspect, pcfg.occ.repo)
+    b = pcfg.brand
+    log.info("thương hiệu: %s; logo: %s; kịch bản: %s", b.name or "(không)",
+             f"{b.logo.name} ({b.logo_position}, {b.logo_scale:g}, {b.logo_mode})" if b.logo else "(không)",
+             f"theo {pcfg.script_file.name} ({len(script)} ký tự)" if script else "model tự viết")
     times: dict[str, float] = {}
 
     # ---- 1. index
-    _stage(1, f"Lập chỉ mục {args.folder} → {index_dir}")
+    _stage(1, f"Lập chỉ mục {folder} → {index_dir}")
     t = time.monotonic()
     rep = Indexer(vcfg, index_dir, provider=provider).run(sources)
     times["index"] = time.monotonic() - t

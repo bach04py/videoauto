@@ -45,8 +45,26 @@ def cut_times(clips: list[dict], fps: int) -> list[float]:
     return cuts
 
 
+def transition_window(cut_frame: int, frames: int) -> tuple[int, int]:
+    """Frames [start, end) that OpenChatCut paints a GL transition over: centred on the cut,
+    start = cut - floor(L/2) (src/editor/TimelineComposition.tsx, glWindows). The window is
+    drawn above every track, so any overlay underneath (the logo) disappears for its length."""
+    start = cut_frame - frames // 2
+    return start, start + frames
+
+
+def logo_window(brand, total_frames: int, fps: int) -> tuple[int, int] | None:
+    """Frames [start, end) where the logo is on screen, or None without a logo."""
+    if brand is None or brand.logo is None or total_frames <= 0:
+        return None
+    if brand.logo_mode == "end":
+        from ..brief import LOGO_END_SECONDS
+        return max(0, total_frames - round(LOGO_END_SECONDS * fps)), total_frames
+    return 0, total_frames
+
+
 def validate_plan(plan: dict, cat: Catalogue,
-                  shots: dict[str, list[dict]] | None = None) -> list[str]:
+                  shots: dict[str, list[dict]] | None = None, brand=None) -> list[str]:
     """Drop every invalid clip/effect/transition/fade in place. Returns the new warnings
     (also appended to plan["warnings"]). `shots` (file -> M1 shots) enables the
     black/frozen check; the builder runs without it."""
@@ -99,6 +117,7 @@ def validate_plan(plan: dict, cat: Catalogue,
     plan["clips"] = kept
 
     cuts = cut_times(kept, fps)
+    logo = logo_window(brand, sum(clip_frames(c, fps) for c in kept), fps)
     used: set[int] = set()
     trans = []
     for t in plan["transitions"]:
@@ -117,6 +136,12 @@ def validate_plan(plan: dict, cat: Catalogue,
         if t["frames"] > limit:
             warn.append(f"bỏ {tag}: {t['frames']} khung dài hơn nửa clip kề bên ({limit})")
             continue
+        if logo is not None:
+            ws, we = transition_window(round(cuts[k] * fps), t["frames"])
+            if ws < logo[1] and we > logo[0]:
+                warn.append(f"bỏ {tag}: chuyển cảnh của OpenChatCut che mất logo trong lúc chạy "
+                            "(logo đang hiện ở đoạn này)")
+                continue
         used.add(k)
         trans.append({**t, "at": round(cuts[k], 4)})
     plan["transitions"] = trans

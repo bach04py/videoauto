@@ -13,6 +13,9 @@ tests/fixtures/
 *.[mM][tT][sS]
 !openchatcut/*.mts
 catalogue.json
+# your brand assets and scripts stay local (see README, config.yaml)
+brand/
+scripts/
 .occ-data/
 output/
 plan.json

@@ -19,6 +19,7 @@ def main(argv: list[str] | None = None, occ=None) -> int:
     ap.add_argument("plan", type=Path)
     ap.add_argument("--out", type=Path, default=Path("output/final.mp4"))
     ap.add_argument("--config", type=Path, default=None, help="config.yaml")
+    ap.add_argument("--footage", type=Path, default=None, help="ghi đè footage_dir")
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--debug", action="store_true")
     args = ap.parse_args(argv)
@@ -28,6 +29,8 @@ def main(argv: list[str] | None = None, occ=None) -> int:
         from .brief import load_project_config
         from .builder.builder import Builder, load_plan
         pcfg = load_project_config(args.config)
+        if args.footage:
+            pcfg.footage_dir = args.footage.resolve()
         plan = load_plan(args.plan)
         log.info("dựng %s → %s (data dir OpenChatCut: %s)", args.plan, args.out, pcfg.occ.data_dir)
         rep = Builder(pcfg, occ).build(plan, args.out)

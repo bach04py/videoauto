@@ -8,15 +8,27 @@ Claude), lập kế hoạch dựng bằng **một** lượt gọi model, rồi d
 [OpenChatCut](https://github.com/0xsline/OpenChatCut). Đây là bản thử nghiệm sớm: kết quả còn thô.
 
 ```
-python -m videoauto.run D:\quay\buoi-tap --out output\
+python -m videoauto.run
 ```
+
+Lệnh trên **không cần tham số**: thư mục video (`footage_dir`), kịch bản cần theo (`script_file`),
+thông tin thương hiệu và logo (`brand`) đều đặt sẵn trong `config.yaml`. Có thể ghi đè:
+`python -m videoauto.run D:\quay\buoi-khac --script kich-ban.txt`.
+
+- **Thương hiệu**: tên, khẩu hiệu và mô tả giúp model chọn cảnh, nhịp và viết lời dẫn hợp thương hiệu
+  (chỉ đưa vào bước lập kế hoạch, không đưa vào bước mô tả cảnh).
+- **Logo**: chèn PNG trong suốt ở một góc, suốt video hoặc 3 giây cuối. Khi logo đang hiện, video
+  không dùng hiệu ứng chuyển cảnh (OpenChatCut vẽ chuyển cảnh đè lên logo). Logo ngang và có chữ
+  nhỏ nên đặt `logo_scale` khoảng 0.30–0.35 cho khung dọc 9:16.
+- **Kịch bản**: nếu có `script_file`, công cụ làm theo kịch bản đó; cảnh nào footage không có sẽ được
+  cảnh báo rõ, không bịa.
 
 Cần cài: Python 3.12, Node 24, ffmpeg, Claude Code CLI (đã đăng nhập), và một bản OpenChatCut đặt
 **cạnh** thư mục videoauto, đã chạy `npm install` và đã tạo `catalogue.json`. Làm theo đúng thứ tự
 các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ sai nhất). Mọi thông báo lỗi của công cụ
 đều bằng tiếng Việt và nói rõ cần làm gì; xem mục **Troubleshooting**.
 
-Chưa làm được: chữ/overlay, nhạc nền, theo dõi thư mục tự động; phần nhận giọng nói chưa được kiểm thử.
+Chưa làm được: chữ/phụ đề, nhạc nền, theo dõi thư mục tự động; phần nhận giọng nói chưa được kiểm thử.
 Chỉ mới chạy thử trên Windows 11.
 
 ---
@@ -30,11 +42,13 @@ validates that plan hard, and then drives the [OpenChatCut](https://github.com/0
 `occ` command line to assemble and render the MP4.
 
 ```
-python -m videoauto.run path/to/footage --out output/
+python -m videoauto.run
 ```
 
-The output is a crude first cut: picked and ordered shots, one LUT, a fade in and out, sometimes a
-transition. It is not a finished edit with titles or music (see **What this does not do yet**).
+With `footage_dir` (and optionally `script_file` and `brand`) set in `config.yaml`, that is the
+whole command. The output is a crude first cut: picked and ordered shots, one LUT, a fade in and
+out, an optional logo, sometimes a transition. It is not a finished edit with titles or music
+(see **What this does not do yet**).
 It has been developed and run on **Windows 11 only**. The macOS/Linux commands below are the
 standard ones for each tool but have not been tested with videoauto.
 
@@ -175,30 +189,114 @@ downloads a Whisper model (`medium`, about 1.5 GB, on CPU). The speech path is u
 ## 4. Configure: `config.yaml`
 
 `config.yaml` in the videoauto folder is read from the current directory (or pass
-`--config path`). Relative paths are relative to the file itself.
+`--config path`). Relative paths are relative to the file itself. This is the committed file; the
+lines marked **CHANGE** are the ones you must edit:
 
 ```yaml
 brief:
   duration: 15          # target length in seconds
   aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
   fps: 30               # 24 | 25 | 30 | 50 | 60
-  platform: tiktok      # free text, passed to the planner
-  notes: ""             # optional instructions for the planner, e.g. "start with a close-up"
+  platform: tiktok      # free text for the planner
+  notes: ""             # optional extra instructions for the planner
 
-media_dir: tests/fixtures     # only used by the separate plan/build commands;
-                              # videoauto.run uses the folder you pass it instead
-catalogue: catalogue.json     # CHANGE if you generated catalogue.json somewhere else (step 2)
+footage_dir: D:/quay/buoi-tap        # CHANGE: folder with the raw clips (override: run <folder> or --footage)
+script_file: scripts/buoi-tap.txt    # optional: the script to follow; absent or empty = planner writes one
+                                     # (override: --script <file>)
+
+brand:
+  name: "Hoàng Gia Gym & Fitness 24h"
+  tagline: "Khỏe mỗi ngày"           # optional
+  context: |                         # optional free text for the planner (never sent to captioning)
+    Chuỗi phòng tập, hồ bơi và sân pickleball ở Bình Dương.
+    Giọng điệu khỏe khoắn, hướng tới hội viên mới.
+  logo: brand/logo.png               # optional; PNG with transparency. CHANGE or remove this line
+  logo_position: bottom-right        # top-left | top-right | bottom-left | bottom-right
+  logo_scale: 0.22                   # logo width as a fraction of frame width (0.05-0.5)
+  logo_opacity: 0.85                 # 0.05-1
+  logo_margin: 0.04                  # distance from the edges, fraction of frame width (0-0.25)
+  logo_mode: always                  # always | end  (end = last 3 seconds only)
+
+catalogue: catalogue.json     # generated from OpenChatCut (README step 2)
 min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
 
 openchatcut:
-  repo: ../OpenChatCut        # CHANGE if OpenChatCut is not next to videoauto
+  repo: ../OpenChatCut        # CHANGE if OpenChatCut is not next to the videoauto folder
   data_dir: .occ-data         # OPENCHATCUT_DATA_DIR used for every occ call
-  # node: C:/path/to/node.exe # CHANGE only if videoauto cannot find Node (see Troubleshooting)
+  # node: C:/path/to/node.exe # only if videoauto cannot find Node (see Troubleshooting)
   resolution: 1080p
-  video_bitrate_mbps: 10      # H.264 target; 8-12 suits 1080x1920 (15 s at 10 Mbps = about 19 MB)
+  video_bitrate_mbps: 10      # H.264 target; 8-12 suits 1080x1920 social video
   timeout: 1800               # seconds allowed for occ render
   max_fail_ratio: 0.30        # abort the build when more than 30% of occ item commands fail
 ```
+
+Every setting is checked before any work starts (`kiểm tra môi trường…`): a missing logo file, a
+`logo_scale` outside 0.05–0.5, an unknown `logo_position` or `logo_mode`, a missing `footage_dir`
+each stop the run in the first second with a Vietnamese message, e.g.
+`Lỗi: brand.logo_scale = 0.6 không hợp lệ: phải là số trong khoảng 0.05–0.5.`
+
+The example brand, logo and script are not part of this repository: put your own logo at
+`brand/logo.png` and your script at `scripts/buoi-tap.txt` (both folders are git-ignored), or remove
+those lines.
+
+### Brand: worked example
+
+With the `brand` block above, `name`, `tagline` and `context` go into the **planning** prompt only,
+so shot choice, pacing and the written script reflect the business. They are never sent with the
+caption requests: captions describe only what is in the frame. On a real 17-clip gym shoot the
+planner opened on a close-up of a strapped hand gripping the bar, ended the script with
+"Hoàng Gia Gym & Fitness 24h – Khỏe mỗi ngày", and warned on its own:
+`Footage chỉ có phòng gym; không có hình hồ bơi hay sân pickleball nên video không đề cập đến các
+tiện ích này.` The brand context does not make it claim footage it does not have.
+
+### Logo overlay, and why there are no transitions under it
+
+The logo is a real overlay in OpenChatCut: `import_asset` (the PNG), `edit_track create` (a video
+track above V1), `edit_item` (an image item on that track), then an `edit_item` update with
+`transform` `{scale, x, y, opacity}`. Measured on occ: an image without a transform is fitted
+"contain" into the frame and centred; `scale` multiplies that size; `x`/`y` move its centre by a
+percentage of the frame width/height. videoauto converts `logo_scale`, `logo_margin` and
+`logo_position` into those values, so the logo keeps its aspect ratio and is exactly `logo_scale`
+of the frame width.
+
+**Limitation found in OpenChatCut:** its renderer draws GL transitions on top of every track except
+captions (`src/editor/TimelineComposition.tsx`, "painted over both clips, beneath captions"). The
+transition window is `L` frames starting `floor(L/2)` frames before the cut. For that whole window
+the logo disappears; a test render with a 30-frame cross-dissolve showed the logo at 2.5 s and no
+logo in the middle of the transition.
+
+**What videoauto does:** no transitions while the logo is on screen. With `logo_mode: always` the
+planner is told to use plain cuts, and the validator (in both planner and builder) drops any
+transition whose window overlaps the logo, with a warning. With `logo_mode: end`, transitions
+before the last 3 s are kept. The alternative, cutting the logo into segments around each
+transition, still loses the logo during every transition and makes it blink for 0.1–0.3 s at each
+cut, which looks like a fault on a brand mark. The chosen approach was verified by render: the logo
+is present at 2.5 s and at the cut; in `end` mode a frame in the middle of an earlier transition
+shows the transition, and the logo appears from 3 s before the end.
+
+**Logo size on 9:16:** `logo_scale` is a fraction of the frame **width**, and a 9:16 frame is
+narrow. A wide logo with small lettering (this one is 1065x786 with a "Gym&Fitness 24h" arc) is
+about 238 px wide at 0.22, and its small text is unreadable on a phone. Use 0.30–0.35 for logos
+like that; the default 0.22 suits compact marks.
+
+### Following your own script (`script_file`)
+
+When `script_file` exists and is not empty, the planner **follows** it instead of inventing a
+narrative: plain text, with or without timecodes, for example
+
+```
+0-3s: cận cảnh tay nắm tạ
+3-8s: toàn cảnh phòng tập
+8-12s: cảnh hồ bơi
+12-15s: kết bằng tên phòng tập
+```
+
+The model must report, beat by beat, which clips cover each part. A beat the footage cannot cover
+becomes a warning that names it, such as `kịch bản: không có cảnh phù hợp cho "cảnh hồ bơi"`, and
+the closest match is used only where it is reasonable; nothing is fabricated and no beat is
+dropped silently (a reply without that report is itself flagged). Any such warning lowers the plan to
+tier `basic`. `plan.json` records `"script_source": "user"`. When the file is absent or empty, the
+planner writes the script as before (`"script_source": "planner"`).
 
 The model provider is configured separately and defaults to the Claude CLI; nothing to do if
 `claude auth status` shows you are logged in. To use an OpenAI-compatible endpoint instead, create
@@ -218,11 +316,15 @@ api_key_env = "VIDEOAUTO_API_KEY"   # the key is read from this environment vari
 
 ## 5. Run it
 
-From the videoauto folder, with the virtual environment active:
+From the videoauto folder, with the virtual environment active and `footage_dir` set:
 
 ```powershell
-python -m videoauto.run D:\footage\gym-shoot --out output\
+python -m videoauto.run
 ```
+
+Everything can be overridden for one run:
+`python -m videoauto.run D:\footage\other-shoot --script my-script.txt --out output\other`
+(`--footage <folder>` works the same as the positional folder; `--out` defaults to `output/`).
 
 Progress is printed in Vietnamese, one block per stage:
 
@@ -259,8 +361,8 @@ Exit codes: `0` done; `2` setup or input problem; `3` usage limit reached (safe 
 
 ```
 python -m videoauto.index <folder> --out output/index
-python -m videoauto.plan  output/index --out output/plan.json        # uses media_dir from config.yaml
-python -m videoauto.build output/plan.json --out output/final.mp4
+python -m videoauto.plan  output/index --out output/plan.json        # footage_dir/script_file from config.yaml
+python -m videoauto.build output/plan.json --out output/final.mp4    # both accept --footage; plan accepts --script
 python -m videoauto.index <folder> --out output/index --calibrate-blur  # local blur report, no model calls
 ```
 
@@ -336,7 +438,9 @@ plays in a normal video player.
 
 ## What this does not do yet
 
-- No titles, captions, overlays or motion-graphics templates.
+- No titles, captions or motion-graphics templates. The only overlay is the logo, and while it is
+  on screen there are no transitions (see **Logo overlay**).
+- The brand tagline is not written on screen; it only steers the planner.
 - No music: files in `music/` are analysed (BPM, beats) but never placed in the edit; the output
   carries the source clips' own sound.
 - No folder watcher: you run the command yourself.
@@ -363,10 +467,11 @@ plays in a normal video player.
 - **M2 plan** (`videoauto/planner/`): rejects locally (no call) when usable footage is under
   `min_material_ratio` x duration; otherwise one text-only model call; every id and parameter is
   checked against `catalogue.json`, in/out against the source, no overlaps, transitions only on cuts.
-  Invalid parts are dropped with a warning, never passed on. Schema:
-  `videoauto/schemas/editplan.schema.json`.
+  Invalid parts are dropped with a warning, never passed on. Brand text and the user script go
+  into this prompt only. Schema: `videoauto/schemas/editplan.schema.json`.
 - **M3 build** (`videoauto/builder/`): `occ project new` → `import_folder` → one `edit_item` per clip
-  → `manage_effects` (LUT) → `edit_item` transitions → fades → `occ render`, all with one
+  → `manage_effects` (LUT) → `edit_item` transitions → fades → logo (`import_asset`, `edit_track`,
+  `edit_item` image + transform) → `occ render`, all with one
   `OPENCHATCUT_DATA_DIR`. A failed item is skipped and recorded; the build aborts above 30% failures.
 
 ## License

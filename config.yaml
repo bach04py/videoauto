@@ -1,21 +1,38 @@
-# videoauto M2/M3 config. Relative paths are relative to this file.
+# videoauto config. Relative paths are relative to this file.
+# Lines marked CHANGE are the ones you must edit for your machine.
 
 brief:
-  duration: 15          # seconds
+  duration: 15          # target length in seconds
   aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
-  fps: 30
-  platform: tiktok
-  notes: ""             # optional free text for the planner
+  fps: 30               # 24 | 25 | 30 | 50 | 60
+  platform: tiktok      # free text for the planner
+  notes: ""             # optional extra instructions for the planner
 
-media_dir: tests/fixtures     # the raw footage folder that was indexed (M3 imports it)
-catalogue: catalogue.json     # copied from the OpenChatCut repo root (not committed)
-min_material_ratio: 0.6       # reject when usable footage < 0.6 x brief.duration
+footage_dir: D:/quay/buoi-tap        # CHANGE: folder with the raw clips (override: run <folder> or --footage)
+script_file: scripts/buoi-tap.txt    # optional: the script to follow; absent or empty = planner writes one
+                                     # (override: --script <file>)
+
+brand:
+  name: "Hoàng Gia Gym & Fitness 24h"
+  tagline: "Khỏe mỗi ngày"           # optional
+  context: |                         # optional free text for the planner (never sent to captioning)
+    Chuỗi phòng tập, hồ bơi và sân pickleball ở Bình Dương.
+    Giọng điệu khỏe khoắn, hướng tới hội viên mới.
+  logo: brand/logo.png               # optional; PNG with transparency. CHANGE or remove this line
+  logo_position: bottom-right        # top-left | top-right | bottom-left | bottom-right
+  logo_scale: 0.22                   # logo width as a fraction of frame width (0.05-0.5)
+  logo_opacity: 0.85                 # 0.05-1
+  logo_margin: 0.04                  # distance from the edges, fraction of frame width (0-0.25)
+  logo_mode: always                  # always | end  (end = last 3 seconds only)
+
+catalogue: catalogue.json     # generated from OpenChatCut (README step 2)
+min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
 
 openchatcut:
-  repo: ../OpenChatCut        # checkout with node_modules installed (npm install)
-  data_dir: .occ-data         # OPENCHATCUT_DATA_DIR used for EVERY occ call
-  # node: C:/path/to/node.exe # default: node on PATH, else the fnm version from the repo's .nvmrc
+  repo: ../OpenChatCut        # CHANGE if OpenChatCut is not next to the videoauto folder
+  data_dir: .occ-data         # OPENCHATCUT_DATA_DIR used for every occ call
+  # node: C:/path/to/node.exe # only if videoauto cannot find Node (see Troubleshooting)
   resolution: 1080p
   video_bitrate_mbps: 10      # H.264 target; 8-12 suits 1080x1920 social video
-  timeout: 1800               # seconds, for occ render
-  max_fail_ratio: 0.30        # abort the build when more item commands fail than this
+  timeout: 1800               # seconds allowed for occ render
+  max_fail_ratio: 0.30        # abort the build when more than 30% of occ item commands fail

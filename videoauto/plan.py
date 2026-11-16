@@ -24,6 +24,8 @@ def main(argv: list[str] | None = None, provider=None) -> int:
     ap.add_argument("--config", type=Path, default=None, help="config.yaml (brief + đường dẫn)")
     ap.add_argument("--vision-config", type=Path, default=None, help="videoauto.toml (provider)")
     ap.add_argument("--provider", choices=["claude", "openai-compatible"], default=None)
+    ap.add_argument("--footage", type=Path, default=None, help="ghi đè footage_dir")
+    ap.add_argument("--script", type=Path, default=None, help="ghi đè script_file")
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--debug", action="store_true")
     args = ap.parse_args(argv)
@@ -36,6 +38,10 @@ def main(argv: list[str] | None = None, provider=None) -> int:
         from .vision import make_provider
         t0 = time.monotonic()
         pcfg = load_project_config(args.config)
+        if args.footage:
+            pcfg.footage_dir = args.footage.resolve()
+        if args.script:
+            pcfg.script_file = args.script.resolve()
         vcfg = load_config(args.vision_config)
         if args.provider:
             vcfg["vision"]["provider"] = args.provider

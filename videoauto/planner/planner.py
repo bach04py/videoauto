@@ -65,7 +65,7 @@ def load_material(index_dir: Path, media_dir: Path | None) -> Material:
         if media_dir is not None:
             found = [q for q in media.get(name, []) if sha256_of(q) == ix["sha256"]]
             if not found:
-                m.warnings.append(f"bỏ qua '{name}': không có tệp khớp nội dung trong media_dir")
+                m.warnings.append(f"bỏ qua '{name}': không có tệp khớp nội dung trong footage_dir")
                 continue
         m.indexes[name] = ix
     return m
@@ -119,6 +119,44 @@ def build_prompt(cfg: ProjectConfig, material: Material, cat: Catalogue) -> str:
                        for p in cat.numeric_params(it["assetId"]))
         luts.append(f"  {it['assetId']} | {it.get('description', '')[:70]} | params: {ps}")
     trans = ", ".join(it["assetId"] for it in cat.of_kind("transition"))
+    brand, script = cfg.brand, cfg.script_text()
+
+    brand_block = ""
+    if brand.has_text:
+        brand_block = "BRAND (the video is for this business: let shot choice, pacing and the script reflect it)\n"
+        brand_block += f"- name: {brand.name}\n" if brand.name else ""
+        brand_block += f"- tagline: {brand.tagline}\n" if brand.tagline else ""
+        brand_block += ("- context:\n" + "\n".join("    " + ln for ln in brand.context.splitlines()) + "\n"
+                        if brand.context else "")
+        brand_block += ("- Only describe what the footage actually shows. If the brand mentions things the\n"
+                        "  footage does not contain, do not imply the video shows them.\n")
+
+    if script:
+        script_block = f"""USER SCRIPT (this is the user's intent: FOLLOW it, do not invent your own narrative)
+<<<
+{script}
+>>>
+- Split it into beats in its own order (timecodes, if present, are the intended timing).
+- For each beat pick the closest matching usable footage. If the footage has nothing for a beat,
+  say so in "beats" (empty "clips" and a Vietnamese "note" naming what is missing) and use the
+  closest match only if one is reasonable. Never pretend footage shows something it does not,
+  and never skip a beat silently.
+"""
+        script_rule = ('"script": "<Vietnamese: how the edit follows the user script, beat by beat>",\n'
+                       ' "beats": [{"beat": "<beat text from the user script>", "clips": [1, 2], '
+                       '"note": "<Vietnamese, empty if fully covered>"}],')
+    else:
+        script_block = ""
+        script_rule = '"script": "<2-4 sentences in Vietnamese: what the edit shows, in order>",'
+
+    if brand.logo is None:
+        trans_rule = "5. Transitions are optional, at most one per cut; plain cuts are fine. Use only ids from the list."
+    elif brand.logo_mode == "always":
+        trans_rule = ("5. NO transitions: a logo overlay is on screen for the whole video, and the renderer draws\n"
+                      "   transitions on top of it, hiding it. Use plain cuts; reply \"transitions\": [].")
+    else:
+        trans_rule = ("5. Transitions are optional, at most one per cut, but NONE in the last "
+                      "3 s: a logo overlay is\n   shown there and the renderer would hide it under a transition.")
 
     return f"""You are planning a short video edit from raw footage. Only the text index below is
 available; you cannot see the footage. Reply with ONE JSON object and nothing else.
@@ -127,6 +165,7 @@ BRIEF
 - target duration: {b.duration:g} s (total of all clips should be within ±10 %)
 - aspect {b.aspect} ({b.orientation}), {b.fps} fps, platform: {b.platform}
 {('- notes: ' + b.notes) if b.notes else ''}
+{brand_block}{script_block}
 MATERIAL (times are source seconds; shots marked UNUSABLE must never be used)
 {chr(10).join(lines)}
 
@@ -138,7 +177,7 @@ RULES (keep it simple: this is a first, crude cut)
    A "blurry" flag means clearly soft footage: use it only if nothing else fits.
 3. One LUT for the whole piece, chosen from the list below; params only from that LUT, inside its ranges.
 4. Fade in at the start and fade out at the end: 0.3-1.0 s each.
-5. Transitions are optional, at most one per cut; plain cuts are fine. Use only ids from the list.
+{trans_rule}
 6. If the material cannot make a watchable video for this brief, do NOT invent one: reply
    {{"reject": "<reason in Vietnamese>"}}.
 
@@ -153,7 +192,7 @@ REPLY FORMAT
  "transitions": [{{"after_clip": 1, "id": "<transition id>", "frames": 8}}],
  "fades": {{"in": 0.5, "out": 0.8}},
  "confidence": 0.0-1.0,
- "script": "<2-4 sentences in Vietnamese: what the edit shows, in order>",
+ {script_rule}
  "warnings": ["<Vietnamese, optional>"]}}
 "after_clip": N puts the transition on the cut between clip N and clip N+1 (1-based).
 """
@@ -225,9 +264,15 @@ def assemble(reply: dict, cfg: ProjectConfig, material: Material, cat: Catalogue
     plan["script"] = reply.get("script") if isinstance(reply.get("script"), str) else ""
     warn.extend(f"model: {w}" for w in reply.get("warnings") or [] if isinstance(w, str))
     plan["tier"] = "full"                           # provisional; decided below
+    if cfg.script_text():
+        plan["script_source"] = "user"
+        warn.extend(_beat_warnings(reply.get("beats")))     # count as issues: they lower the tier
+    else:
+        plan["script_source"] = "planner"
 
+    shots = {f: ix["shots"] for f, ix in material.indexes.items()}
     # pass 1: clips only, so transitions can be tied to the clips that survived
-    validate_plan(plan, cat, {f: ix["shots"] for f, ix in material.indexes.items()})
+    validate_plan(plan, cat, shots, cfg.brand)
     if plan["tier"] == "reject":
         return plan
     kept = plan["clips"]
@@ -247,7 +292,7 @@ def assemble(reply: dict, cfg: ProjectConfig, material: Material, cat: Catalogue
             continue
         plan["transitions"].append({"at": cuts[pos[id(orig)]], "id": t["id"], "frames": frames})
     # pass 2: transitions (clips are already valid and stay unchanged)
-    validate_plan(plan, cat, {f: ix["shots"] for f, ix in material.indexes.items()})
+    validate_plan(plan, cat, shots, cfg.brand)
 
     total = sum(c["out"] - c["in"] for c in plan["clips"])
     if abs(total - b.duration) > DURATION_TOLERANCE * b.duration:
@@ -259,15 +304,34 @@ def assemble(reply: dict, cfg: ProjectConfig, material: Material, cat: Catalogue
     return plan
 
 
+def _beat_warnings(beats) -> list[str]:
+    """The user script must never be ignored silently: every beat the footage cannot cover
+    becomes a warning that names it. A reply without a beat report is itself a warning."""
+    if not isinstance(beats, list) or not beats:
+        return ["kịch bản: model không báo cáo đã theo kịch bản của bạn thế nào (thiếu 'beats'); "
+                "kiểm tra kỹ kế hoạch so với kịch bản"]
+    out = []
+    for b in beats:
+        if not isinstance(b, dict):
+            continue
+        text = str(b.get("beat") or "").strip()[:120] or "?"
+        note = str(b.get("note") or "").strip()
+        if not b.get("clips"):
+            out.append(f"kịch bản: không có cảnh phù hợp cho \"{text}\"" + (f" ({note})" if note else ""))
+        elif note:
+            out.append(f"kịch bản: \"{text}\" chỉ khớp gần đúng: {note}")
+    return out
+
+
 # ------------------------------------------------------------------------ entry
 
 def make_plan(cfg: ProjectConfig, index_dir: Path, provider: VisionProvider) -> dict:
     cat = Catalogue.load(cfg.catalogue)
-    material = load_material(index_dir, cfg.media_dir)
+    material = load_material(index_dir, cfg.footage_dir)
     b = cfg.brief
     if not material.indexes:
         return _finish(_reject(b, "Không có chỉ mục video hợp lệ nào. Chạy M1 trên thư mục video trước "
-                               "(và kiểm tra media_dir trong config.yaml).", material.warnings, material, 0))
+                               "(và kiểm tra footage_dir trong config.yaml).", material.warnings, material, 0))
     have, need = material.usable_seconds, cfg.min_material_ratio * b.duration
     if have < need:
         return _finish(_reject(

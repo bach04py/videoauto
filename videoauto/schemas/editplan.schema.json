@@ -67,6 +67,7 @@
       }
     },
     "script": { "type": "string" },
+    "script_source": { "description": "user = followed config script_file; planner = written by the model", "enum": ["user", "planner"] },
     "warnings": { "type": "array", "items": { "type": "string" } },
     "sources": {
       "description": "Source files the plan may use, from the M1 indexes. The builder checks sha256 before importing.",

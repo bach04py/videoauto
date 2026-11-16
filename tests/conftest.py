@@ -51,12 +51,14 @@ class FakeProvider(VisionProvider):
     def __init__(self, script: dict[int, object] | None = None):
         self.calls = 0
         self.script = script or {}
+        self.describe_prompts: list[str] = []      # caption prompts, to check what they contain
 
     def image_reference(self, image: Path) -> str:
         return f"The image {image.name}"
 
     def describe(self, image: Path, prompt: str) -> str:
         self.calls += 1
+        self.describe_prompts.append(prompt)
         action = self.script.get(self.calls)
         if isinstance(action, Exception):
             raise action

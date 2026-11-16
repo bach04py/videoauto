@@ -34,9 +34,15 @@ class FakeOcc:
             elif "import_folder" in args:
                 data = {"applied": True, "ops": [{"result": {"ok": True, "imported": [
                     {"id": f"asset-{p.name}", "name": p.name} for p in sorted(self.media.iterdir())]}}]}
-            elif "edit_item" in args and tool_args.get("adds", [{}])[0].get("type") == "video":
+            elif "edit_item" in args and tool_args.get("adds", [{}])[0].get("type") in ("video", "image"):
                 data = {"applied": True, "ops": [{"result": {"ok": True, "results": [
                     {"placed": {"itemId": f"item{self.n}"}}]}}]}
+            elif "import_asset" in args:
+                data = {"applied": True, "ops": [{"result": {"ok": True, "imported": [
+                    {"id": "logo-asset", "name": Path(tool_args["path"]).name, "kind": "image"}]}}]}
+            elif "edit_track" in args:
+                data = {"applied": True, "ops": [{"result": {"ok": True, "created": [
+                    {"id": "track_v2", "alias": "V2"}]}}]}
             elif args[0] == "render":
                 Path(args[args.index("--out") + 1]).write_bytes(b"\0" * 2048)
                 data = {"frames": 1}

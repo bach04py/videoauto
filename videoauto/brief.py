@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -47,14 +47,48 @@ class OccConfig:
     video_bitrate_mbps: float = 10.0
 
 
+LOGO_POSITIONS = ("top-left", "top-right", "bottom-left", "bottom-right")
+LOGO_MODES = ("always", "end")
+LOGO_END_SECONDS = 3.0
+
+
+@dataclass
+class Brand:
+    name: str = ""
+    tagline: str = ""
+    context: str = ""
+    logo: Path | None = None
+    logo_size: tuple[int, int] | None = None     # (width, height) in pixels, read at load time
+    logo_position: str = "bottom-right"
+    logo_scale: float = 0.22
+    logo_opacity: float = 0.85
+    logo_margin: float = 0.04
+    logo_mode: str = "always"
+
+    @property
+    def has_text(self) -> bool:
+        return bool(self.name or self.tagline or self.context)
+
+
 @dataclass
 class ProjectConfig:
     path: Path
     brief: Brief
-    media_dir: Path | None
+    footage_dir: Path | None
     catalogue: Path
     min_material_ratio: float
     occ: OccConfig
+    brand: Brand = field(default_factory=Brand)
+    script_file: Path | None = None
+
+    def script_text(self) -> str:
+        """The user's script, or "" when script_file is unset, missing or empty."""
+        if self.script_file is None or not self.script_file.is_file():
+            return ""
+        try:
+            return self.script_file.read_text(encoding="utf-8-sig").strip()
+        except (OSError, UnicodeDecodeError) as e:
+            raise UserError(f"Không đọc được script_file '{self.script_file}' ({e}). Lưu tệp dạng văn bản UTF-8.") from None
 
 
 def _rel(base: Path, value: str | None) -> Path | None:
@@ -138,6 +172,54 @@ def load_project_config(path: Path | None = None) -> ProjectConfig:
         video_bitrate_mbps=_bitrate(o.get("video_bitrate_mbps", 10)),
     )
     catalogue = _rel(base, raw.get("catalogue") or "catalogue.json")
-    return ProjectConfig(path=path, brief=brief, media_dir=_rel(base, raw.get("media_dir")),
+    footage = raw.get("footage_dir") or raw.get("media_dir")          # media_dir: older name
+    return ProjectConfig(path=path, brief=brief, footage_dir=_rel(base, footage),
                          catalogue=catalogue,
-                         min_material_ratio=float(raw.get("min_material_ratio", 0.6)), occ=occ)
+                         min_material_ratio=float(raw.get("min_material_ratio", 0.6)), occ=occ,
+                         brand=_brand(base, raw.get("brand")),
+                         script_file=_rel(base, raw.get("script_file")))
+
+
+def _num(section: dict, key: str, default: float, lo: float, hi: float, hint: str = "") -> float:
+    value = section.get(key, default)
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        v = float("nan")
+    if not lo <= v <= hi:
+        raise UserError(f"brand.{key} = {value!r} không hợp lệ: phải là số trong khoảng {lo:g}–{hi:g}.{hint}")
+    return v
+
+
+def _brand(base: Path, raw) -> Brand:
+    if not raw:
+        return Brand()
+    if not isinstance(raw, dict):
+        raise UserError("brand trong config.yaml phải là một bảng khoá: giá trị (xem README, mục Brand).")
+    text = {k: str(raw.get(k) or "").strip() for k in ("name", "tagline", "context")}
+    b = Brand(**text)
+    if not raw.get("logo"):
+        return b
+    b.logo = _rel(base, raw["logo"])
+    if not b.logo.is_file():
+        raise UserError(f"Không tìm thấy logo '{b.logo}' (brand.logo trong config.yaml). Kiểm tra đường dẫn, "
+                        "hoặc xoá dòng logo nếu không cần logo.")
+    import cv2
+    import numpy as np
+    img = cv2.imdecode(np.fromfile(str(b.logo), np.uint8), cv2.IMREAD_UNCHANGED)
+    if img is None or b.logo.suffix.lower() != ".png":
+        raise UserError(f"Logo '{b.logo.name}' phải là tệp PNG đọc được (nên có nền trong suốt).")
+    b.logo_size = (img.shape[1], img.shape[0])
+    b.logo_position = str(raw.get("logo_position", b.logo_position))
+    if b.logo_position not in LOGO_POSITIONS:
+        raise UserError(f"brand.logo_position = '{b.logo_position}' không hợp lệ. Chọn một trong: "
+                        f"{', '.join(LOGO_POSITIONS)}.")
+    b.logo_mode = str(raw.get("logo_mode", b.logo_mode))
+    if b.logo_mode not in LOGO_MODES:
+        raise UserError(f"brand.logo_mode = '{b.logo_mode}' không hợp lệ. Chọn 'always' (suốt video) hoặc "
+                        f"'end' ({LOGO_END_SECONDS:g} giây cuối).")
+    b.logo_scale = _num(raw, "logo_scale", b.logo_scale, 0.05, 0.5,
+                        " Đây là tỉ lệ chiều rộng logo so với khung hình (0.22 = 22%).")
+    b.logo_opacity = _num(raw, "logo_opacity", b.logo_opacity, 0.05, 1.0)
+    b.logo_margin = _num(raw, "logo_margin", b.logo_margin, 0.0, 0.25)
+    return b

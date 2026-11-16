@@ -36,7 +36,13 @@ def load(rep):
     return [json.loads(p.read_text(encoding="utf-8")) for p in rep.written]
 
 
-def test_click_track_bpm_and_beats(cfg, tmp_path):
+@pytest.fixture
+def librosa():
+    """Music analysis is the optional [music] extra: skip, don't fail, without it."""
+    return pytest.importorskip("librosa", reason="install the [music] extra: pip install -e .[music]")
+
+
+def test_click_track_bpm_and_beats(cfg, tmp_path, librosa):
     music = tmp_path / "proj" / "music"
     music.mkdir(parents=True)
     click_track(music / "click128.wav", 128, 12.0)
@@ -52,7 +58,7 @@ def test_click_track_bpm_and_beats(cfg, tmp_path):
     assert max(m["energy"]["values"]) == 1.0
 
 
-def test_real_soundtrack_and_cache(cfg, tmp_path, sunset):
+def test_real_soundtrack_and_cache(cfg, tmp_path, sunset, librosa):
     music = tmp_path / "proj" / "music"
     music.mkdir(parents=True)
     shutil.copy(sunset, music / "sunset_track.mp4")     # a video file inside music/ is music
@@ -88,7 +94,7 @@ def test_missing_librosa_fails_music_only(cfg, tmp_path, sunset, monkeypatch):
     assert [json.loads(p.read_text(encoding="utf-8"))["kind"] for p in rep.written] == ["video"]
 
 
-def test_silence_has_no_bpm(cfg, tmp_path):
+def test_silence_has_no_bpm(cfg, tmp_path, librosa):
     music = tmp_path / "proj" / "music"
     music.mkdir(parents=True)
     subprocess.run([shutil.which("ffmpeg"), "-v", "error", "-f", "lavfi", "-i",

@@ -80,6 +80,12 @@ def test_bad_logo_stops_run_before_any_work(tmp_path, gym, capsys):
     assert p.calls == 0 and not (tmp_path / "out" / "index").exists()
 
 
+def test_config_saved_with_bom_loads(tmp_path):
+    p = write_cfg(tmp_path, **BRAND)
+    p.write_bytes(b"\xef\xbb\xbf" + p.read_bytes())          # what Windows Notepad may write
+    assert load_project_config(p).brand.name == BRAND["name"]
+
+
 def test_valid_brand_loads(tmp_path):
     make_logo(tmp_path / "logo.png")
     cfg = load_project_config(write_cfg(tmp_path, logo="logo.png", logo_position="top-left",

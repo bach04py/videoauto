@@ -140,7 +140,8 @@ def load_project_config(path: Path | None = None) -> ProjectConfig:
     if not path.exists():
         raise UserError(f"Không tìm thấy '{path}'. Tạo config.yaml (xem README, mục M2) hoặc dùng --config.")
     try:
-        raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        # utf-8-sig: Windows Notepad may save config.yaml with a BOM
+        raw = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
     except yaml.YAMLError as e:
         raise UserError(f"config.yaml sai cú pháp YAML: {e}") from None
     if not isinstance(raw, dict):

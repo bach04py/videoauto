@@ -48,6 +48,11 @@ def load_material(index_dir: Path, media_dir: Path | None) -> Material:
         for p in media_dir.rglob("*"):
             if p.is_file() and "music" not in (x.lower() for x in p.relative_to(media_dir).parts[:-1]):
                 media.setdefault(p.name, []).append(p)
+    # Warnings are how the user learns the footage could not cover part of the script, so routine
+    # cache leftovers must not bury them: indexes whose content is no longer in the footage folder
+    # (a clip replaced or removed) are counted in ONE line. Only a real ambiguity gets its own line.
+    orphans = 0
+    candidates: dict[str, list[tuple[dict[str, Any], Path | None]]] = {}
     for p in sorted(index_dir.glob("*.json")):
         try:
             ix = json.loads(p.read_text(encoding="utf-8"))
@@ -59,16 +64,31 @@ def load_material(index_dir: Path, media_dir: Path | None) -> Material:
             continue
         if ix["kind"] != "video":
             continue                                    # music is not used in this slice
-        name = ix["file"]
-        if name in m.indexes:
-            m.warnings.append(f"bỏ qua chỉ mục thứ hai của '{name}': trùng tên tệp")
-            continue
+        found: Path | None = None
         if media_dir is not None:
-            found = [q for q in media.get(name, []) if sha256_of(q) == ix["sha256"]]
-            if not found:
-                m.warnings.append(f"bỏ qua '{name}': không có tệp khớp nội dung trong footage_dir")
+            found = next((q for q in media.get(ix["file"], []) if sha256_of(q) == ix["sha256"]), None)
+            if found is None:
+                orphans += 1                            # its content is no longer in the folder
                 continue
-        m.indexes[name] = ix
+        candidates.setdefault(ix["file"], []).append((ix, found))
+
+    for name, cands in candidates.items():
+        m.indexes[name] = cands[0][0]
+        if len(cands) < 2:
+            continue
+        # same file name, different content, and (with a footage folder) BOTH versions present
+        if media_dir is not None:
+            where = ", ".join(str(f.relative_to(media_dir)) for _, f in cands)
+            m.warnings.append(f"'{name}': {len(cands)} tệp cùng tên nhưng khác nội dung trong thư mục video "
+                              f"({where}); kế hoạch chỉ dùng {cands[0][1].relative_to(media_dir)}. Đổi tên "
+                              "một tệp nếu muốn dùng cả hai.")
+        else:
+            m.warnings.append(f"'{name}': {len(cands)} chỉ mục cùng tên nhưng khác nội dung; kế hoạch dùng "
+                              f"bản {cands[0][0]['sha256'][:12]}…, không kiểm tra được đó có phải bản đang có "
+                              "trong thư mục video (chưa đặt footage_dir).")
+    if orphans:
+        m.warnings.append(f"bỏ qua {orphans} chỉ mục cũ không còn tệp tương ứng trong thư mục video "
+                          f"(dọn khi chắc chắn: python -m videoauto.index --prune --out {index_dir})")
     return m
 
 

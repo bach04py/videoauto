@@ -484,6 +484,7 @@ python -m videoauto.index <folder> --out output/index
 python -m videoauto.plan  output/index --out output/plan.json        # footage_dir/script_file from config.yaml
 python -m videoauto.build output/plan.json --out output/final.mp4    # both accept --footage; plan accepts --script
 python -m videoauto.index <folder> --out output/index --calibrate-blur  # local blur report, no model calls
+python -m videoauto.index [<folder>] --prune --out output/index        # list, confirm, remove old indexes
 ```
 
 Add `--debug` to any command for a full Python traceback.
@@ -550,6 +551,13 @@ builds, also after a restart; a replaced or re-exported clip is hashed and, if i
 indexed again. A file rewritten with the same size **and** the same modification time would be
 missed. Cameras and editors do not do that; only a tool that deliberately restores the old time
 could.
+
+**Old indexes are kept, not deleted.** When a clip is replaced or removed, its old index stays in
+`.index/`. The planner skips it and says so in a single line,
+`bỏ qua 15 chỉ mục cũ không còn tệp tương ứng trong thư mục video`, rather than one warning per
+file. Nothing is deleted automatically: if the footage folder is on a network or external drive that
+is briefly unreachable, an automatic clean-up would throw away indexes that cost model calls to
+rebuild. To clean up on purpose, see **Old indexes** under **Troubleshooting**.
 
 **4. What happens to a script.** For `tap-nguc.txt` dropped into the scripts folder:
 1. it waits until the file size has not changed for 3 s (an editor may still be saving it);
@@ -686,6 +694,25 @@ copies (`90` = turn counter-clockwise; use `-90` if they come out upside down):
 ```
 ffmpeg -display_rotation 90 -i C0144.MP4 -map 0:v:0 -map 0:a:0 -c copy upright/C0144.MP4
 ```
+
+**Old indexes (`bỏ qua N chỉ mục cũ không còn tệp tương ứng trong thư mục video`)**
+The index folder still holds indexes for clips that were replaced or removed. They are skipped and
+do no harm. To remove them, run the clean-up explicitly:
+```
+python -m videoauto.index --prune --out D:\video\xuat\.index
+python -m videoauto.index D:\quay\thu-vien --prune --out output\index    # name the footage folder
+```
+Without a folder argument, the footage folder is the watcher's saved one when `--out` is the
+watcher's `.index`, otherwise `footage_dir` from `config.yaml`. The command lists every index it
+would remove and deletes only after you answer `y`; Enter means no. It **refuses to run** when the
+footage folder is missing or contains no video, because that usually means the drive is not
+connected, not that the library is gone. An index whose clip comes back later is simply rebuilt,
+which costs model calls again.
+
+One case still gets its own warning: two clips with the **same file name but different content**
+both in the footage folder (e.g. `ngay1\C0140.MP4` and `ngay2\C0140.MP4`). The plan refers to clips
+by name, so only one can be used; the warning names both and says which one the plan used. Rename
+one of them to use both.
 
 **A clip is skipped with `Không đọc được tệp …`**
 The file could not be decoded by ffmpeg. The run continues with the other clips; check the file

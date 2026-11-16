@@ -29,18 +29,26 @@ def _setup_io(verbose: bool) -> None:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m videoauto.index",
                                  description="Lập chỉ mục video/nhạc thành JSON.")
-    ap.add_argument("target", type=Path, help="tệp hoặc thư mục")
+    ap.add_argument("target", type=Path, nargs="?", default=None,
+                    help="tệp hoặc thư mục (với --prune: thư mục video để so sánh, tuỳ chọn)")
     ap.add_argument("--out", type=Path, default=Path(".index"), help="thư mục cache (mặc định .index/)")
     ap.add_argument("--config", type=Path, default=None, help="tệp videoauto.toml")
     ap.add_argument("--provider", choices=["claude", "openai-compatible"], default=None)
     ap.add_argument("--calibrate-blur", action="store_true",
                     help="chỉ phân tích cục bộ (không gọi model): in bảng độ nét từng shot + contact sheet")
+    ap.add_argument("--prune", action="store_true",
+                    help="liệt kê rồi (sau khi hỏi) xoá các chỉ mục không còn tệp tương ứng trong thư mục video")
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--debug", action="store_true", help="hiện traceback đầy đủ khi lỗi")
     args = ap.parse_args(argv)
     _setup_io(args.verbose or args.debug)
 
     try:
+        if args.prune:
+            from .prune import prune
+            return prune(args.target, args.out)
+        if args.target is None:
+            ap.error("thiếu tệp hoặc thư mục cần lập chỉ mục")
         from .indexer import Indexer, collect
         cfg = load_config(args.config)
         if args.provider:

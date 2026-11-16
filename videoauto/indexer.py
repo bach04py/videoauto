@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from . import audio, frames, keyframes, quality, schema
-from .cache import Cache, sha256_of
+from .cache import Cache, load_hash_memo, save_hash_memo, sha256_of
 from .crop import detect_crop
 from .errors import LimitReached, ProviderUnavailable, UserError
 from .probe import probe
@@ -79,6 +79,7 @@ class Indexer:
                  cells_per_sheet: int | None = None):
         self.cfg = cfg
         self.cache = Cache(out_dir)
+        load_hash_memo(self.cache.dir)
         self.provider = provider or make_provider(cfg["vision"])
         self.transcriber = Transcriber(cfg["whisper"])
         self._tmp = tempfile.TemporaryDirectory(prefix="videoauto_")
@@ -109,6 +110,7 @@ class Indexer:
             self.report.model_calls = self.captioner.stats.calls
             self.report.shots_per_call = list(self.captioner.stats.shots_per_call)
             self._tmp.cleanup()
+            save_hash_memo(self.cache.dir)
         return self.report
 
     def _index_one(self, src: Source) -> None:

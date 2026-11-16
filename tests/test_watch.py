@@ -18,7 +18,7 @@ from conftest import FakeProvider
 from test_builder import FakeOcc
 from test_planner import GOOD, write_config
 from videoauto import run as run_mod
-from videoauto import watch
+from videoauto import cache, watch
 from videoauto.config import load_config
 from videoauto.indexer import Indexer, collect
 
@@ -56,7 +56,7 @@ def ws(tmp_path, monkeypatch, gym, sunset):
     write_config(tmp_path, footage)
     monkeypatch.chdir(tmp_path)
     return {"root": tmp_path, "footage": footage, "scripts": scripts, "output": out,
-            "work": out.parent}
+            "work": out}                               # work folders live inside the output folder
 
 
 def stdin(monkeypatch, text: str, tty: bool = True):
@@ -376,3 +376,62 @@ def test_ctrl_c_during_a_build_leaves_nothing_in_processing(ws, cached_index, mo
     assert not list((ws["work"] / ".index").glob("*.tmp"))
     assert "BỎ DỞ" in runs_log(ws)[0]
     assert "Đã bỏ dở dung.txt" in capsys.readouterr().out
+
+
+def test_same_script_name_twice_never_overwrites_the_earlier_video(ws, cached_index, capsys):
+    out = ws["output"]
+    with Running(ws, cached_index) as r:
+        (ws["scripts"] / "tap-nguc.txt").write_text("lần một\n", encoding="utf-8")
+        until(lambda: (ws["work"] / "done" / "tap-nguc.txt").exists())
+        first = {x: (out / f"tap-nguc{x}").stat().st_mtime_ns for x in watch.OUTPUT_SUFFIXES}
+        (ws["scripts"] / "tap-nguc.txt").write_text("lần hai\n", encoding="utf-8")
+        until(lambda: (ws["work"] / "done" / "tap-nguc-2.txt").exists())
+        assert r.builds() == 2
+    for x in watch.OUTPUT_SUFFIXES:
+        assert (out / f"tap-nguc{x}").stat().st_mtime_ns == first[x]       # untouched
+        assert (out / f"tap-nguc-2{x}").exists()                             # its own set
+    plan2 = json.loads((out / "tap-nguc-2.plan.json").read_text(encoding="utf-8"))
+    assert plan2["script_source"] == "user"
+    assert (ws["work"] / "done" / "tap-nguc-2.txt").read_text(encoding="utf-8") == "lần hai\n"
+    assert "video mới đặt tên tap-nguc-2.mp4" in capsys.readouterr().out
+    assert [line.split(" | ")[1:3] for line in runs_log(ws)] == [["tap-nguc.txt", "OK"]] * 2
+
+
+def test_unchanged_library_is_not_hashed_again(ws, cached_index, monkeypatch):
+    hashed: list[str] = []
+    real = cache._hash_file
+
+    def counting(path):
+        hashed.append(Path(path).name)
+        return real(path)
+
+    monkeypatch.setattr(cache, "_hash_file", counting)
+    with Running(ws, cached_index):
+        (ws["scripts"] / "a.txt").write_text("một\n", encoding="utf-8")
+        until(lambda: (ws["work"] / "done" / "a.txt").exists())
+        assert sorted(hashed) == ["gym.mp4", "sunset.mp4"]     # once each, shared by index/plan/build
+        hashed.clear()
+        (ws["scripts"] / "b.txt").write_text("hai\n", encoding="utf-8")
+        until(lambda: (ws["work"] / "done" / "b.txt").exists())
+        assert hashed == []                                     # second run: no hash calls at all
+
+    # a restart: the memo comes back from .index/hashes.memo, still no hash calls
+    monkeypatch.setattr(cache, "_memo", {})
+    rep = Indexer(load_config(), ws["work"] / ".index", provider=FakeProvider()).run(
+        collect(ws["footage"], ws["work"] / ".index"))
+    assert hashed == [] and rep.cache_hits == 2
+
+    # a file whose mtime changed is hashed again; same content, so still a cache hit
+    gym = ws["footage"] / "gym.mp4"
+    st = gym.stat()
+    os.utime(gym, ns=(st.st_atime_ns, st.st_mtime_ns + 5_000_000_000))
+    rep = Indexer(load_config(), ws["work"] / ".index", provider=FakeProvider()).run(
+        collect(ws["footage"], ws["work"] / ".index"))
+    assert hashed == ["gym.mp4"] and rep.cache_hits == 2 and rep.model_calls == 0
+
+    # a changed file (new size) is re-indexed: the sha256 is still the identity check
+    before = cache.sha256_of(gym)
+    hashed.clear()
+    with open(gym, "ab") as f:
+        f.write(b"\0" * 16)
+    assert cache.sha256_of(gym) != before and hashed == ["gym.mp4"]

@@ -4,7 +4,7 @@ Start once from a terminal: it checks the prerequisites, asks for three folders 
 output), then keeps running and builds one video for every new script (.txt) dropped into the
 scripts folder. Footage is a standing library: it is indexed once (cached) and reused.
 
-Beside the output folder it keeps:
+Inside the output folder, next to the videos, it keeps:
     processing/   the script currently being built (at most one)
     done/         scripts that produced a video
     failed/       scripts that failed, each with <name>.loi.txt saying why
@@ -104,8 +104,14 @@ def has_video(folder: Path) -> bool:
         return False
 
 
+WORK_DIRS = ("processing", "done", "failed", ".index", ".logs")
+OUTPUT_SUFFIXES = (".mp4", ".mp4.build.json", ".plan.json")
+
+
 def work_root(output: Path) -> Path:
-    return output.parent
+    """Where processing/, done/, failed/, .index/ and .logs/ live: inside the output folder the
+    user chose, never anywhere they did not name."""
+    return output
 
 
 def check_footage(p: Path) -> str | None:
@@ -138,9 +144,9 @@ def check_output(p: Path, footage: Path, scripts: Path) -> str | None:
         return ("Thư mục xuất video không được nằm trong thư mục video nguồn: video đã dựng sẽ bị "
                 "lập chỉ mục như cảnh quay.")
     root = work_root(p)
-    for name in ("processing", "done", "failed"):
-        if _same(scripts, root / name):
-            return (f"Thư mục kịch bản trùng với thư mục làm việc '{root / name}' cạnh thư mục xuất. "
+    for name in WORK_DIRS:
+        if _inside(scripts, root / name):
+            return (f"Thư mục kịch bản nằm trong thư mục làm việc '{root / name}' của thư mục xuất. "
                     "Chọn thư mục xuất khác.")
     return None
 
@@ -252,11 +258,10 @@ def _validate_one(key: str, p: Path, got: dict[str, Path], interactive: bool) ->
 
 
 def print_summary(paths: dict[str, Path]) -> None:
-    root = work_root(paths["output"])
     print("Tóm tắt:")
     for key, label in QUESTIONS:
         print(f"  {label + ':':24} {paths[key]}")
-    print(f"  {'Thư mục làm việc:':24} {root} (processing, done, failed, .index, .logs)")
+    print(f"  Trong thư mục xuất còn có: {', '.join(WORK_DIRS)}")
 
 
 def setup_paths(no_prompt: bool) -> dict[str, Path]:
@@ -342,13 +347,25 @@ def is_script(p: Path) -> bool:
     return p.suffix.lower() == ".txt" and not p.name.startswith((".", "~"))
 
 
-def unique(folder: Path, stem: str, suffix: str = ".txt") -> Path:
-    """folder/stem.txt, or stem-2.txt, stem-3.txt, … when that name (or its .loi.txt) is taken."""
+def free_stem(stem: str, taken) -> str:
+    """stem, or stem-2, stem-3, … : the first one for which taken(candidate) is false."""
     n, cand = 1, stem
-    while (folder / f"{cand}{suffix}").exists() or (folder / f"{cand}.loi.txt").exists():
+    while taken(cand):
         n += 1
         cand = f"{stem}-{n}"
-    return folder / f"{cand}{suffix}"
+    return cand
+
+
+def unique(folder: Path, stem: str, suffix: str = ".txt") -> Path:
+    """folder/stem.txt, or stem-2.txt, stem-3.txt, … when that name (or its .loi.txt) is taken."""
+    return folder / (free_stem(stem, lambda c: (folder / f"{c}{suffix}").exists()
+                               or (folder / f"{c}.loi.txt").exists()) + suffix)
+
+
+def output_stem(output: Path, stem: str) -> str:
+    """A name none of whose files (video, .mp4.build.json, .plan.json) exist yet: a second
+    tap-nguc.txt gives tap-nguc-2.mp4, never an overwritten tap-nguc.mp4."""
+    return free_stem(stem, lambda c: any((output / f"{c}{x}").exists() for x in OUTPUT_SUFFIXES))
 
 
 class Watcher:
@@ -508,9 +525,10 @@ class Watcher:
 
         self.current = script
         self.runs += 1
-        stem = script.stem
+        stem = output_stem(self.output, script.stem)
         video = self.output / f"{stem}.mp4"
         plan_path = self.output / f"{stem}.plan.json"
+        self._stem = stem
         started = time.time()
         t0 = time.monotonic()
         res = PipelineResult(stage="read")
@@ -527,8 +545,8 @@ class Watcher:
             text = self._read_script(script)
             pcfg = self.env.pcfg
             pcfg.footage_dir, pcfg.script_file = self.footage, script
-            if video.exists():
-                say(f"  {video.name} đã có: sẽ ghi đè bằng bản mới")
+            if stem != script.stem:
+                say(f"  {script.stem}.mp4 đã có: video mới đặt tên {video.name} (không ghi đè)")
             sources = collect(self.footage, self.index_dir)
             log.info("kịch bản %s (%d ký tự), %d tệp nguồn", script.name, len(text), len(sources))
             run_pipeline(pcfg, self.env.vcfg, self.env.provider, self.env.occ, sources, self.index_dir,
@@ -542,13 +560,13 @@ class Watcher:
             self._flog.error("lỗi ở bước %s: %s", res.stage, getattr(e, "message", e),
                              exc_info=not isinstance(e, UserError))
             what, todo = describe_failure(e, res.stage, logfile)
-            self._remove_partial(video, started)
+            self._remove(video)                  # the name was free: anything there is this run's
             self._to_failed(script, STAGE_VI.get(res.stage, res.stage), what, todo, started=started,
-                            logfile=logfile, calls=res.model_calls, t0=t0)
+                            logfile=logfile, calls=res.model_calls, t0=t0, stem=stem)
             return False
         else:
             secs = time.monotonic() - t0
-            dest = self._archive(script, self.done)
+            dest = self._archive(script, self.done, stem)
             say(f"XONG {script.name} → {video} trong {secs:.0f}s, {res.model_calls} lượt gọi model "
                 f"(kịch bản chuyển vào {dest.parent.name}/)")
             self._runlog(started, script.name, "OK", secs, res.model_calls)
@@ -579,7 +597,8 @@ class Watcher:
         if script is None:
             return
         _ignore_sigint()
-        self._remove_partial(self.output / f"{script.stem}.mp4", self._started)
+        for x in OUTPUT_SUFFIXES:                # free the name again: the rebuild reuses it
+            self._remove(self.output / f"{self._stem}{x}")
         self._clean_tmp()
         dest = self.scripts / script.name
         if dest.exists():
@@ -602,23 +621,22 @@ class Watcher:
             self._set_recovered(names)
 
     @staticmethod
-    def _remove_partial(video: Path, started: float | None) -> None:
-        if started is None:
-            return
+    def _remove(path: Path) -> None:
         try:
-            if video.exists() and video.stat().st_mtime >= started - 1:
-                video.unlink()
+            path.unlink(missing_ok=True)
         except OSError:
             pass
 
-    def _archive(self, script: Path, folder: Path) -> Path:
-        dest = unique(folder, script.stem)
+    def _archive(self, script: Path, folder: Path, stem: str | None = None) -> Path:
+        """Archived under the video's name when possible (tap-nguc-2.txt <-> tap-nguc-2.mp4)."""
+        dest = unique(folder, stem or script.stem)
         os.replace(script, dest)
         return dest
 
     def _to_failed(self, script: Path, stage: str, what: str, todo: str, started: float | None,
-                   logfile: Path | None = None, calls: int = 0, t0: float | None = None) -> None:
-        dest = self._archive(script, self.failed)
+                   logfile: Path | None = None, calls: int = 0, t0: float | None = None,
+                   stem: str | None = None) -> None:
+        dest = self._archive(script, self.failed, stem)
         reason = dest.with_name(dest.stem + ".loi.txt")
         when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         lines = [f"Thời gian: {when}", f"Kịch bản: {script.name}", f"Bước lỗi: {stage}",
@@ -770,7 +788,7 @@ def _print_paths() -> int:
     for key, label in QUESTIONS:
         print(f"  {label + ':':24} {saved.get(key, '(chưa có)')}")
     if saved.get("output"):
-        print(f"  {'Thư mục làm việc:':24} {work_root(_resolve(clean_path(saved['output'])))}")
+        print(f"  Trong thư mục xuất còn có: {', '.join(WORK_DIRS)}")
     return 0
 
 

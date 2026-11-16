@@ -35,8 +35,10 @@ các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ 
 
 **Chạy liên tục**: `python -m videoauto.watch` hỏi ba thư mục (video nguồn, kịch bản, xuất video),
 lưu vào `videoauto.local.yaml` nếu bạn đồng ý, rồi chạy mãi: mỗi tệp kịch bản `.txt` mới thả vào thư
-mục kịch bản thành một video (`tap-nguc.txt` → `tap-nguc.mp4`), lần lượt từng cái một. Kịch bản xong
-chuyển vào `done/`, lỗi chuyển vào `failed/` kèm tệp `.loi.txt` ghi lý do và cách xử lý. Khi chạy lúc
+mục kịch bản thành một video (`tap-nguc.txt` → `tap-nguc.mp4`), lần lượt từng cái một; video cũ
+không bao giờ bị ghi đè (lần sau thành `tap-nguc-2.mp4`). Kịch bản xong chuyển vào `done/`, lỗi
+chuyển vào `failed/` kèm tệp `.loi.txt` ghi lý do và cách xử lý; các thư mục này nằm trong thư mục
+xuất video. Khi chạy lúc
 đăng nhập (Task Scheduler) hoặc dạng dịch vụ (NSSM) phải thêm `--no-prompt`. Xem mục 6.
 
 Chưa làm được: phụ đề theo lời nói, nhạc nền; phần nhận giọng nói chưa được kiểm thử.
@@ -527,7 +529,8 @@ created if missing and must be writable; the three folders must differ; the scri
 be inside the footage folder (a script would be indexed as a source), and neither may the output
 folder (finished videos would be indexed as footage).
 
-**3. Folders.** Beside the output folder (in its parent) the watcher keeps:
+**3. Folders.** Everything goes **inside the output folder** you chose, next to the videos; the
+watcher never writes anywhere you did not name:
 
 | Folder | What it holds |
 |---|---|
@@ -537,16 +540,28 @@ folder (finished videos would be indexed as footage).
 | `.index/` | the index cache shared by every build |
 | `.logs/` | `runs.log` (one line per run: time, script, result, duration, model calls) and one full log per run |
 
-So with output `D:\video\xuat` they are `D:\video\processing`, `D:\video\done`, and so on. Pick an
-output folder that has a parent of its own, not a drive root.
+So with output `D:\video\xuat` they are `D:\video\xuat\processing`, `D:\video\xuat\done`, and so on.
+
+**Footage is hashed once.** The index cache is keyed by each file's sha256, and that stays the
+identity check. Reading a 4K library to hash it takes seconds per GB, though, so videoauto remembers
+each file's hash together with its path, size and modification time (`.index/hashes.memo`) and
+reads the file again only when one of those changed. An unchanged library costs no hashing on later
+builds, also after a restart; a replaced or re-exported clip is hashed and, if its content differs,
+indexed again. A file rewritten with the same size **and** the same modification time would be
+missed. Cameras and editors do not do that; only a tool that deliberately restores the old time
+could.
 
 **4. What happens to a script.** For `tap-nguc.txt` dropped into the scripts folder:
 1. it waits until the file size has not changed for 3 s (an editor may still be saving it);
 2. it moves to `processing/` at once, so it can never be picked up twice;
 3. index (new clips only) → plan → build, exactly as `videoauto.run`, with this script as `script_file`;
 4. `tap-nguc.mp4`, `tap-nguc.mp4.build.json` and `tap-nguc.plan.json` are written into the output
-   folder (a video with the same name is overwritten);
-5. the script moves to `done/`, or to `failed/` with `tap-nguc.loi.txt`, and the next one starts.
+   folder. **Nothing is ever overwritten:** if `tap-nguc.mp4` (or its `.plan.json` or
+   `.mp4.build.json`) already exists, the new video is `tap-nguc-2.mp4` with its own
+   `tap-nguc-2.plan.json` and `tap-nguc-2.mp4.build.json`, then `-3`, and so on;
+5. the script moves to `done/` (as `tap-nguc-2.txt` in that case, matching its video), or to
+   `failed/` with `tap-nguc.loi.txt`, and the next one starts. A failed build keeps its `.plan.json`
+   / `.build.json` for diagnosis, so the retry gets the next free name.
 
 Only `.txt` files are watched; anything else in the folder is ignored. Builds run **strictly one at
 a time** and the rest wait in a queue: OpenChatCut is a single instance and the render is

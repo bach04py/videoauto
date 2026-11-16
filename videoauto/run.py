@@ -10,7 +10,9 @@ import argparse
 import logging
 import sys
 import time
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 from .cli import guarded, setup_io
 
@@ -42,15 +44,11 @@ def main(argv: list[str] | None = None, provider=None, occ=None) -> int:
 
 def _run(args, provider, occ) -> int:
     from .brief import load_project_config
-    from .build import finish_build
-    from .builder.builder import Builder
     from .builder.occ import Occ
     from .config import load_config
-    from .errors import PlanRejected, UserError
-    from .indexer import Indexer, collect
-    from .plan import log_plan, save_plan
+    from .errors import UserError
+    from .indexer import collect
     from .planner.catalogue import Catalogue
-    from .planner.planner import make_plan
     from .tools import check_ffmpeg
     from .vision import make_provider
 
@@ -92,16 +90,56 @@ def _run(args, provider, occ) -> int:
     log.info("thương hiệu: %s; logo: %s; kịch bản: %s", b.name or "(không)",
              f"{b.logo.name} ({b.logo_position}, {b.logo_scale:g}, {b.logo_mode})" if b.logo else "(không)",
              f"theo {pcfg.script_file.name} ({len(script)} ký tự)" if script else "model tự viết")
-    times: dict[str, float] = {}
+    res = run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir, plan_path, video, log_stage=True)
+    log.info("━━ XONG trong %.0fs (lập chỉ mục %.0fs, kế hoạch %.0fs, dựng %.0fs); %d lượt gọi model",
+             time.monotonic() - t_all, res.times["index"], res.times["plan"], res.times["build"],
+             res.model_calls)
+    log.info("   video:     %s", video.resolve())
+    log.info("   kế hoạch:  %s", plan_path.resolve())
+    log.info("   báo cáo:   %s", res.report.resolve())
+    log.info("   chỉ mục:   %s", index_dir.resolve())
+    return 0
+
+
+@dataclass
+class PipelineResult:
+    """Filled in as the pipeline goes, so a caller still sees the stage and calls after a failure."""
+    stage: str = ""                                   # "index" | "plan" | "build" | "done"
+    model_calls: int = 0
+    times: dict[str, float] = field(default_factory=dict)
+    report: Path | None = None
+
+
+def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path: Path, video: Path,
+                 result: PipelineResult | None = None, on_stage: Callable[[str], None] | None = None,
+                 log_stage: bool = False) -> PipelineResult:
+    """index -> plan -> build for already-checked config, provider and occ. Raises on failure;
+    `result` (if passed) keeps the stage reached and the model calls spent so far."""
+    from .build import finish_build
+    from .builder.builder import Builder
+    from .errors import PlanRejected, UserError
+    from .indexer import Indexer
+    from .plan import log_plan, save_plan
+    from .planner.planner import make_plan
+
+    res = result or PipelineResult()
+    folder = pcfg.footage_dir
+
+    def stage(key: str, n: int, title: str) -> None:
+        res.stage = key
+        if log_stage:
+            _stage(n, title)
+        if on_stage:
+            on_stage(key)
 
     # ---- 1. index
-    _stage(1, f"Lập chỉ mục {folder} → {index_dir}")
+    stage("index", 1, f"Lập chỉ mục {folder} → {index_dir}")
     t = time.monotonic()
     rep = Indexer(vcfg, index_dir, provider=provider).run(sources)
-    times["index"] = time.monotonic() - t
-    index_calls = rep.model_calls
+    res.times["index"] = time.monotonic() - t
+    res.model_calls += rep.model_calls
     log.info("lập chỉ mục: %d tệp mới, %d trúng cache, %d lỗi, %d lượt gọi model, %.1fs",
-             len(rep.written), rep.cache_hits, len(rep.failed), index_calls, times["index"])
+             len(rep.written), rep.cache_hits, len(rep.failed), rep.model_calls, res.times["index"])
     if rep.stopped:
         raise rep.stopped
     for path, msg in rep.failed:
@@ -110,30 +148,24 @@ def _run(args, provider, occ) -> int:
         raise UserError("Không lập chỉ mục được tệp nào, nên không thể lập kế hoạch. Xem các lỗi ở trên.")
 
     # ---- 2. plan
-    _stage(2, f"Lập kế hoạch dựng → {plan_path}")
+    stage("plan", 2, f"Lập kế hoạch dựng → {plan_path}")
     t = time.monotonic()
     plan = make_plan(pcfg, index_dir, provider)
+    res.model_calls += plan["model_calls"]
     save_plan(plan, plan_path)
-    times["plan"] = time.monotonic() - t
-    log_plan(plan, plan_path, times["plan"])
+    res.times["plan"] = time.monotonic() - t
+    log_plan(plan, plan_path, res.times["plan"])
     if plan["tier"] == "reject":
         raise PlanRejected(f"Kế hoạch bị từ chối, không dựng video: {plan['reason']}")
 
     # ---- 3. build
-    _stage(3, f"Dựng video bằng OpenChatCut → {video}")
+    stage("build", 3, f"Dựng video bằng OpenChatCut → {video}")
     t = time.monotonic()
     brep = Builder(pcfg, occ).build(plan, video)
-    times["build"] = time.monotonic() - t
-    report = finish_build(brep, video)
-
-    log.info("━━ XONG trong %.0fs (lập chỉ mục %.0fs, kế hoạch %.0fs, dựng %.0fs); %d lượt gọi model",
-             time.monotonic() - t_all, times["index"], times["plan"], times["build"],
-             index_calls + plan["model_calls"])
-    log.info("   video:     %s", video.resolve())
-    log.info("   kế hoạch:  %s", plan_path.resolve())
-    log.info("   báo cáo:   %s", report.resolve())
-    log.info("   chỉ mục:   %s", index_dir.resolve())
-    return 0
+    res.times["build"] = time.monotonic() - t
+    res.report = finish_build(brep, video)
+    res.stage = "done"
+    return res
 
 
 if __name__ == "__main__":

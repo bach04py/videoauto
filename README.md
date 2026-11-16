@@ -33,7 +33,13 @@ Cần cài: Python 3.12, Node 24, ffmpeg, Claude Code CLI (đã đăng nhập), 
 các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ sai nhất). Mọi thông báo lỗi của công cụ
 đều bằng tiếng Việt và nói rõ cần làm gì; xem mục **Troubleshooting**.
 
-Chưa làm được: phụ đề theo lời nói, nhạc nền, theo dõi thư mục tự động; phần nhận giọng nói chưa được kiểm thử.
+**Chạy liên tục**: `python -m videoauto.watch` hỏi ba thư mục (video nguồn, kịch bản, xuất video),
+lưu vào `videoauto.local.yaml` nếu bạn đồng ý, rồi chạy mãi: mỗi tệp kịch bản `.txt` mới thả vào thư
+mục kịch bản thành một video (`tap-nguc.txt` → `tap-nguc.mp4`), lần lượt từng cái một. Kịch bản xong
+chuyển vào `done/`, lỗi chuyển vào `failed/` kèm tệp `.loi.txt` ghi lý do và cách xử lý. Khi chạy lúc
+đăng nhập (Task Scheduler) hoặc dạng dịch vụ (NSSM) phải thêm `--no-prompt`. Xem mục 6.
+
+Chưa làm được: phụ đề theo lời nói, nhạc nền; phần nhận giọng nói chưa được kiểm thử.
 Chỉ mới chạy thử trên Windows 11.
 
 ---
@@ -482,6 +488,130 @@ Add `--debug` to any command for a full Python traceback.
 
 ---
 
+## 6. Chạy liên tục (folder watcher)
+
+```powershell
+python -m videoauto.watch
+```
+
+Start it once from a terminal in the videoauto folder (virtual environment active). It stays running
+and builds **one video for every new script** (`.txt`) that appears in the scripts folder. The
+footage folder is a standing library, not a trigger: adding clips does not start a build, but every
+build first indexes any clip not yet in the cache (already-indexed clips cost zero model calls).
+`brief`, `brand`, `openchatcut` and `catalogue` still come from `config.yaml`; its `footage_dir`
+and `script_file` are not used by the watcher.
+
+**1. Startup checks.** ffmpeg, Node, the OpenChatCut repo, `catalogue.json` and model access are
+checked once, before any question. A missing one prints the same `Lỗi: …` message as
+`videoauto.run` (see **Troubleshooting**) and exits with code 2.
+
+**2. Three questions** (Vietnamese, in this order):
+
+```
+1. Thư mục video nguồn [D:\quay\thu-vien]:
+2. Thư mục kịch bản [D:\kich-ban]:
+3. Thư mục xuất video [D:\video\xuat]:
+Tóm tắt: …
+Lưu lại cho lần sau? [Y/n]
+```
+
+The first time there is no `[default]`. Later runs show the saved value: Enter keeps it, typing a
+path replaces it. Answers are saved to `videoauto.local.yaml` in the current folder (git-ignored;
+`config.yaml` stays the committed example), and only when you answer yes.
+`--paths` prints the saved paths and exits; `--reset` forgets them.
+
+Each answer is checked as you type it and asked again if it is wrong, so nothing fails later:
+surrounding quotes (drag-and-drop) and a trailing `\` are removed; the footage folder must exist and
+contain at least one video; a missing scripts folder is offered for creation; the output folder is
+created if missing and must be writable; the three folders must differ; the scripts folder must not
+be inside the footage folder (a script would be indexed as a source), and neither may the output
+folder (finished videos would be indexed as footage).
+
+**3. Folders.** Beside the output folder (in its parent) the watcher keeps:
+
+| Folder | What it holds |
+|---|---|
+| `processing/` | the script being built right now (at most one) |
+| `done/` | scripts that produced a video |
+| `failed/` | scripts that failed, each with `<name>.loi.txt` saying what failed and what to do |
+| `.index/` | the index cache shared by every build |
+| `.logs/` | `runs.log` (one line per run: time, script, result, duration, model calls) and one full log per run |
+
+So with output `D:\video\xuat` they are `D:\video\processing`, `D:\video\done`, and so on. Pick an
+output folder that has a parent of its own, not a drive root.
+
+**4. What happens to a script.** For `tap-nguc.txt` dropped into the scripts folder:
+1. it waits until the file size has not changed for 3 s (an editor may still be saving it);
+2. it moves to `processing/` at once, so it can never be picked up twice;
+3. index (new clips only) → plan → build, exactly as `videoauto.run`, with this script as `script_file`;
+4. `tap-nguc.mp4`, `tap-nguc.mp4.build.json` and `tap-nguc.plan.json` are written into the output
+   folder (a video with the same name is overwritten);
+5. the script moves to `done/`, or to `failed/` with `tap-nguc.loi.txt`, and the next one starts.
+
+Only `.txt` files are watched; anything else in the folder is ignored. Builds run **strictly one at
+a time** and the rest wait in a queue: OpenChatCut is a single instance and the render is
+memory-heavy (a parallel run was killed for lack of memory on the development laptop). A script left
+in `processing/` by a crash goes back to the scripts folder once at the next start; if it is found
+in `processing/` a second time it goes to `failed/`. Ctrl+C abandons the current build cleanly: the
+script goes back to the scripts folder (it is rebuilt at the next start), a half-rendered video is
+deleted and no half-written index file stays behind.
+
+A failure never stops the watcher. It is printed immediately as a block:
+
+```
+========================================================================
+!! LỖI  2026-11-16 18:40:02  tap-nguc.txt
+   Bước lỗi:   lập kế hoạch dựng
+   Lỗi:        Kế hoạch bị từ chối, không dựng video: …
+   Cách xử lý: Thêm cảnh quay phù hợp vào thư mục video nguồn hoặc sửa kịch bản cho khớp …
+   Kịch bản đã chuyển vào: D:\video\failed\tap-nguc.txt
+   Lý do ghi tại:          D:\video\failed\tap-nguc.loi.txt
+========================================================================
+```
+
+To retry, fix the cause and copy the script from `failed/` back into the scripts folder. An empty
+script, or one not saved as UTF-8, fails at once with that reason.
+
+### Starting it at logon (later)
+
+Started without a terminal, the watcher cannot ask anything, so it must run with `--no-prompt` (it
+also switches to that mode by itself when stdin is not a terminal, including `< NUL`). Run it once in
+a terminal first and answer **Y** to save the paths. In `--no-prompt` mode a missing or invalid saved
+path exits with code 2 and a message naming the path, e.g.
+`Lỗi: 'Thư mục kịch bản' đã lưu (D:\kich-ban) không dùng được: … Hãy chạy python -m videoauto.watch một lần trong cửa sổ terminal…`
+
+The working folder matters: `config.yaml` and `videoauto.local.yaml` are read from it.
+
+**Task Scheduler** (runs as you, at logon, with your Claude login):
+
+```powershell
+$py  = "C:\path\to\videoauto\.venv\Scripts\python.exe"
+$act = New-ScheduledTaskAction -Execute $py -Argument "-m videoauto.watch --no-prompt" `
+         -WorkingDirectory "C:\path\to\videoauto"
+$trg = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+Register-ScheduledTask -TaskName "videoauto watch" -Action $act -Trigger $trg
+```
+
+ffmpeg and Node must be findable from that task. The scheduler does not read your PowerShell
+profile, so if Node comes from fnm, set `openchatcut.node` in `config.yaml` to the full `node.exe`
+path. The status lines are not visible there; read `.logs/runs.log` and `failed/*.loi.txt` instead.
+
+**NSSM** (a Windows service that is restarted if it stops):
+
+```powershell
+nssm install videoauto-watch "C:\path\to\videoauto\.venv\Scripts\python.exe" "-m videoauto.watch --no-prompt"
+nssm set videoauto-watch AppDirectory "C:\path\to\videoauto"
+nssm set videoauto-watch ObjectName ".\<your-user>" "<password>"
+nssm set videoauto-watch AppStdout "C:\path\to\videoauto\watch.out.log"
+nssm set videoauto-watch AppStderr "C:\path\to\videoauto\watch.out.log"
+nssm start videoauto-watch
+```
+
+The service must run as **your** user (`ObjectName`), not LocalSystem: the Claude CLI login and fnm
+live in your profile. Neither setup has been tested yet.
+
+---
+
 ## Troubleshooting
 
 All messages are printed as `Lỗi: …` with the fix in the message.
@@ -557,7 +687,7 @@ plays in a normal video player.
 - Overlay templates keep their own font: keyword pop falls back to a serif face.
 - No music: files in `music/` are analysed (BPM, beats) but never placed in the edit; the output
   carries the source clips' own sound.
-- No folder watcher: you run the command yourself.
+- The watcher (`videoauto.watch`) has not yet been run at logon or as a service.
 - Speech transcription (Whisper) is wired in but untested on real speech.
 - Planning is minimal: shot choice and order, one LUT for the whole piece, fades, optional transitions.
   Footage whose orientation differs from the target (e.g. landscape into 9:16) is letterboxed, not

@@ -13,24 +13,23 @@ from videoauto.vision.base import VisionProvider
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def _find(*patterns: str) -> Path:
-    for pat in patterns:
-        hits = sorted(FIXTURES.glob(pat))
-        if hits:
-            return hits[0]
-    pytest.skip(f"fixture missing: {patterns}")
+def _find(name: str) -> Path:
+    p = FIXTURES / name
+    if not p.exists():
+        pytest.skip(f"fixture missing: tests/fixtures/{name} (videos are not committed)")
+    return p
 
 
 @pytest.fixture(scope="session")
 def gym() -> Path:
-    """Silent vertical gym clip, pillarboxed in 1920x1080, with a black title card."""
-    return _find("gym.mp4", "澄澈回响*.mp4")
+    """Real source clip: vertical 474x900, ~15.5 s, no text, no edits."""
+    return _find("gym.mp4")
 
 
 @pytest.fixture(scope="session")
 def sunset() -> Path:
     """10 s sunset timelapse with music, no speech, single shot."""
-    return _find("sunset.mp4", "Stunning Sunset*.mp4")
+    return _find("sunset.mp4")
 
 
 @pytest.fixture(autouse=True, scope="session")

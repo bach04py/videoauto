@@ -34,13 +34,30 @@ def gym_index(gym, tmp_path_factory):
 
 
 def test_gym_index_is_valid_and_sensible(gym_index):
+    """Real source: vertical 474x900, one continuous take, no audio stream."""
     assert schema.errors(gym_index) == []
-    assert gym_index["kind"] == "video" and gym_index["has_speech"] is False
+    assert (gym_index["width"], gym_index["height"], gym_index["orientation"]) == (474, 900, "vertical")
+    assert gym_index["duration"] == pytest.approx(15.54, abs=0.05)
+    assert gym_index["has_speech"] is False and gym_index["audio"]["has_audio"] is False
     assert gym_index["audio"]["has_music"] is None
-    s01 = gym_index["shots"][0]
-    assert "black" in s01["flags"] and s01["end"] == pytest.approx(1.5, abs=0.1)   # title card
-    assert all("silent" in s["flags"] for s in gym_index["shots"])                 # silent track
-    assert all(s["camera"] == "static" for s in gym_index["shots"])
+    assert len(gym_index["shots"]) == 1
+    shot = gym_index["shots"][0]
+    assert shot["flags"] == ["silent"]                # sharp subject + soft background is NOT blurry
+    assert len(shot["keyframes"]) == 2                # > 8 s
+    assert gym_index["quality"]["usable_shots"] == 1
+
+
+def test_blur_metric_separates_sharp_from_blurred(gym, tmp_path):
+    import cv2
+    import numpy as np
+    from videoauto import keyframes, quality
+    from videoauto.config import DEFAULTS
+    sharp = keyframes.extract(gym, 5.0, tmp_path / "sharp.jpg", 768)
+    img = cv2.imdecode(np.fromfile(str(sharp), np.uint8), cv2.IMREAD_COLOR)
+    blurred = tmp_path / "blurred.jpg"
+    cv2.imencode(".jpg", cv2.GaussianBlur(img, (0, 0), 1.5))[1].tofile(str(blurred))
+    thr = DEFAULTS["quality"]["blur_threshold"]
+    assert quality.sharpness(sharp) > thr > quality.sharpness(blurred)
 
 
 # ---------------------------------------------------------------- 1. cache hit: zero calls
@@ -69,7 +86,8 @@ MUTATIONS = {
     "bad sha": lambda ix: ix.update(sha256="xyz"),
     "extra key": lambda ix: ix.update(surprise=True),
     "quality counts wrong": lambda ix: ix["quality"].update(rejected=7),
-    "shots not contiguous": lambda ix: ix["shots"][-1].update(start=ix["shots"][-1]["start"] + 0.5),
+    "shots leave a gap": lambda ix: ix["shots"][-1].update(start=ix["shots"][-1]["start"] + 0.5),
+    "shot ends before it starts": lambda ix: ix["shots"][0].update(end=0.0),
     "has_speech lies": lambda ix: ix.update(has_speech=True),
     "wrong schema_version": lambda ix: ix.update(schema_version=2),
 }

@@ -28,6 +28,8 @@ def errors(index: Any) -> list[str]:
     if errs or not isinstance(index, dict) or index.get("kind") != "video":
         return errs
     shots = index["shots"]
+    if shots and shots[0]["start"] != 0:
+        errs.append("shots/0: first shot must start at 0")
     for n, s in enumerate(shots, 1):
         if s["id"] != f"s{n:02d}":
             errs.append(f"shots/{n-1}/id: expected s{n:02d}, got {s['id']}")

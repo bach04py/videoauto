@@ -64,10 +64,18 @@ def is_blank(image_path: Path) -> bool:
 
 
 def sharpness(image_path: Path) -> float:
-    """Variance of Laplacian on the image resized to 480 px wide (resolution-independent)."""
+    """Variance of Laplacian of the SHARPEST 3x3 tile, image resized to 480 px wide.
+
+    Whole-frame variance punishes shallow depth of field (sharp subject, soft background):
+    clean source footage scored 38-88 whole-frame but 76-323 on its sharpest tile, while a
+    sigma=1.5 Gaussian blur of the same frames scored 9-15 on its sharpest tile.
+    """
     img = cv2.imdecode(np.fromfile(str(image_path), np.uint8), cv2.IMREAD_GRAYSCALE)
     if img is None:
         return 0.0
     h, w = img.shape
-    img = cv2.resize(img, (480, max(1, round(480 * h / w))), interpolation=cv2.INTER_AREA)
-    return float(cv2.Laplacian(img, cv2.CV_64F).var())
+    img = cv2.resize(img, (480, max(3, round(480 * h / w))), interpolation=cv2.INTER_AREA)
+    h, w = img.shape
+    return max(float(cv2.Laplacian(img[y * h // 3:(y + 1) * h // 3, x * w // 3:(x + 1) * w // 3],
+                                   cv2.CV_64F).var())
+               for y in range(3) for x in range(3))

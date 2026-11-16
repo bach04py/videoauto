@@ -91,7 +91,7 @@ claude auth login
 ```
 
 Every model call (captions and the plan) goes through `claude -p` and counts against your Claude
-plan's usage. A 16-clip folder took 7 calls in total (see **Run it**).
+plan's usage. A 17-clip folder took 8 calls in total (see **Run it**).
 
 ---
 
@@ -231,7 +231,7 @@ kiểm tra môi trường…                       # checks ffmpeg, Node, OpenCh
 ━━ [1/3] Lập chỉ mục …                     # index every clip; captions batched 9 keyframes per call
 ━━ [2/3] Lập kế hoạch dựng …               # ONE model call -> plan.json
 ━━ [3/3] Dựng video bằng OpenChatCut …     # occ: project, import, clips, LUT, transitions, fades, render
-━━ XONG trong 572s (…); 7 lượt gọi model
+━━ XONG trong 532s (lập chỉ mục 358s, kế hoạch 12s, dựng 162s); 8 lượt gọi model
 ```
 
 What appears in `output/`:
@@ -244,9 +244,10 @@ What appears in `output/`:
 | `index/<sha256>.json` | one index per source file (shots, captions, sharpness, motion, flags) |
 | `index/frames/` | the keyframes the captions were made from |
 
-Measured on one Windows 11 laptop (no GPU) with 16 clips (4K, 2.3 GB): indexing about 6.5 minutes
-with 6 caption calls; planning about 15 s with 1 call; building about 2–3 minutes (each `occ`
-command costs about 2–3 s of start-up; the render of 15 s at 1080x1920 about 40–90 s).
+Measured on one Windows 11 laptop (no GPU) with 17 clips (15 of them 4K, 2.3 GB in total):
+indexing 358 s with 7 caption calls; planning 12 s with 1 call; building 162 s, of which importing
+2.3 GB into OpenChatCut and the render take most (each other `occ` command costs about 2–3 s of
+start-up). Total 532 s and 8 model calls for a 15 s, 20 MB video.
 
 Running again on the same folder reuses the cached indexes (`cache: TRÚNG …`, zero caption calls),
 then makes one new plan call and a new build.
@@ -343,6 +344,10 @@ plays in a normal video player.
 - Planning is minimal: shot choice and order, one LUT for the whole piece, fades, optional transitions.
   Footage whose orientation differs from the target (e.g. landscape into 9:16) is letterboxed, not
   reframed.
+- The per-shot `motion` value saturates (0.83–1.00 on every shot of a real 4K gym shoot), so it
+  does not yet distinguish calm from busy shots.
+- Shot choice leans heavily on `sharpness`: on a 17-clip test the plan used exactly the five
+  sharpest shots. Sharpness also depends on content, so detail close-ups tend to rank low.
 - Developed and tested on Windows 11 only.
 
 ---

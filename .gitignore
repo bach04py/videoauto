@@ -11,6 +11,7 @@ tests/fixtures/
 *.[mM][oO][vV]
 *.[mM][kK][vV]
 *.[mM][tT][sS]
+!openchatcut/*.mts
 catalogue.json
 .occ-data/
 output/

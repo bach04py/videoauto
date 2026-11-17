@@ -242,7 +242,8 @@ class Builder:
         seen: set[str] = set()
         for n, o in enumerate(overlays, 1):
             tpl = cat.items.get(o["template"]) or {}
-            props = {**o["fields"], **ov.brand_colour_props(tpl, self.cfg.brand.colors)}
+            # same contrast check as validate_overlays, which already put its notes in the warnings
+            props = {**o["fields"], **ov.readable_brand_props(tpl, self.cfg.brand.colors)[0]}
             item, error = self._overlay(pid, call, track, n, o, props, fps, seen)
             recs.append({**o, "props": props, "itemId": item, "ok": error is None, "error": error})
             if error:

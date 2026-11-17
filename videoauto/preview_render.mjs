@@ -7,12 +7,16 @@
 // Nothing in the OpenChatCut repo is changed; its packages are resolved from job.repo, so this
 // file can live inside videoauto. No network calls except the font loads Remotion itself makes.
 //
-// job.json: { repo, out, concurrency, frameCandidates, minTextPx, title, colors,
+// job.json: { mode, repo, out, concurrency, frameCandidates, minTextPx, title, colors,
 //             templates: [{ n, id, source, name, group, overrides, fill, text }] }
 //   overrides: props set on top of the template defaults (brand colours + sample text)
 //   fill:      the text props that carry the sample text; the frame is chosen by rendering them
 //              as a zero-width space too and keeping the first candidate where text is visible.
-// Writes <out>/frames/NNN.png, <out>/sheets/*.png and <out>/render-results.json.
+// mode "preview" (default): writes <out>/frames/NNN.png, <out>/sheets/*.png, <out>/render-results.json.
+// mode "measure": brand-independent colour attribution (no brand colours in overrides). For the
+//   pixels of the sample text it finds which colour prop paints the text and which paints what is
+//   behind it (else the fixed colour, or "video" where the overlay is transparent), by rendering
+//   every colour prop once with a probe colour. Writes <out>/colour-measure.json.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
@@ -67,6 +71,41 @@ function diffCount(a, b, threshold = 40) {
 
 const rawOf = async (png) => (await sharp(png).ensureAlpha().raw().toBuffer());
 
+/** Premultiplied difference of pixel i between two RGBA buffers. */
+function pdiff(a, b, i) {
+  const o = i * 4; const aa = a[o + 3] / 255; const ba = b[o + 3] / 255;
+  let d = Math.abs(a[o + 3] - b[o + 3]);
+  for (let c = 0; c < 3; c++) d += Math.abs(a[o + c] * aa - b[o + c] * ba);
+  return d;
+}
+
+const T_TEXT = 80;     // text pixel: sample vs zero-width render differ by more than this
+const T_CHANGE = 60;   // a probe colour changed this pixel
+const PROBES = ['#00ff00', '#ff00ff'];
+
+function hexRgb(v) {
+  const m = /^#([0-9a-f]{6})/i.exec(String(v ?? '').trim());
+  return m ? [0, 2, 4].map((k) => parseInt(m[1].slice(k, k + 2), 16)) : null;
+}
+
+/** The probe colour farther from the prop's default, so the change always shows. */
+function probeFor(def) {
+  const d = hexRgb(def);
+  if (!d) return PROBES[0];
+  const dist = (p) => hexRgb(p).reduce((s, v, k) => s + Math.abs(v - d[k]), 0);
+  return dist(PROBES[0]) >= dist(PROBES[1]) ? PROBES[0] : PROBES[1];
+}
+
+function median(values) {
+  const v = Float64Array.from(values).sort();
+  return v.length ? v[v.length >> 1] : 0;
+}
+
+function medianColour(buf, idx) {
+  const ch = [0, 1, 2, 3].map((c) => Math.round(median(idx.map((i) => buf[i * 4 + c]))));
+  return `rgba(${ch[0]},${ch[1]},${ch[2]},${(ch[3] / 255).toFixed(2)})`;
+}
+
 async function main() {
   mkdirSync(join(OUT, 'frames'), { recursive: true });
   mkdirSync(join(OUT, 'sheets'), { recursive: true });
@@ -105,9 +144,14 @@ async function main() {
         const f = Math.round((dur - 1) * fraction);
         const png = await still(tpl, props, f);
         // No text field to fill: nothing to compare, take the first candidate.
-        const textPx = t.fill.length ? diffCount(await rawOf(png), await rawOf(await still(tpl, blank, f))) : null;
-        if (!best || (textPx ?? 0) > (best.textPx ?? 0)) best = { frame: f, png, textPx };
+        const blankPng = t.fill.length ? await still(tpl, blank, f) : null;
+        const textPx = blankPng ? diffCount(await rawOf(png), await rawOf(blankPng)) : null;
+        if (!best || (textPx ?? 0) > (best.textPx ?? 0)) best = { frame: f, png, blankPng, textPx };
         if (textPx === null || textPx >= job.minTextPx) break;
+      }
+      if (job.mode === 'measure') {
+        results[index] = { ...base, ...(await measure(tpl, props, blank, best)) };
+        return;
       }
       const file = `frames/${pad3(t.n)}.png`;
       writeFileSync(join(OUT, file), best.png);
@@ -131,6 +175,57 @@ async function main() {
   } finally {
     await browser.close({ silent: true }).catch(() => undefined);
     await disposeServeBundle().catch(() => undefined);
+  }
+  if (job.mode === 'measure') {
+    writeFileSync(join(OUT, 'colour-measure.json'), JSON.stringify({
+      elapsedSeconds: Math.round((Date.now() - started) / 1000), results,
+    }, null, 1));
+    return;
+  }
+
+  /** Who paints each sample-text pixel, and who paints what is behind it. */
+  async function measure(tpl, props, blank, best) {
+    const colourKeys = (tpl.propSchema ?? []).filter((s) => s.type === 'color').map((s) => s.key);
+    const defaults = Object.fromEntries(colourKeys.map((k) => [k, tpl.props?.[k] ?? null]));
+    const out = { frame: best.frame, textPx: best.textPx, defaults, groups: [] };
+    if (!best.blankPng) return { ...out, status: 'no_text_field' };
+    const S0 = await rawOf(best.png); const Z0 = await rawOf(best.blankPng);
+    const mask = [];
+    for (let i = 0; i < S0.length / 4; i++) if (pdiff(S0, Z0, i) > T_TEXT) mask.push(i);
+    if (mask.length < job.minTextPx) return { ...out, status: 'text_not_visible' };
+    const textSrc = new Int16Array(mask.length).fill(-1); const textBest = new Float32Array(mask.length);
+    const bdSrc = new Int16Array(mask.length).fill(-1); const bdBest = new Float32Array(mask.length);
+    for (const [ki, key] of colourKeys.entries()) {
+      const probe = probeFor(defaults[key]);
+      const S = await rawOf(await still(tpl, { ...props, [key]: probe }, best.frame));
+      const Z = await rawOf(await still(tpl, { ...blank, [key]: probe }, best.frame));
+      for (let j = 0; j < mask.length; j++) {
+        const i = mask[j]; const ds = pdiff(S, S0, i); const dz = pdiff(Z, Z0, i);
+        if (dz > T_CHANGE && dz > bdBest[j]) { bdBest[j] = dz; bdSrc[j] = ki; }
+        if (ds > T_CHANGE && dz <= T_CHANGE && ds > textBest[j]) { textBest[j] = ds; textSrc[j] = ki; }
+      }
+    }
+    const groups = new Map();
+    for (let j = 0; j < mask.length; j++) {
+      const i = mask[j];
+      const bd = bdSrc[j] >= 0 ? `p${bdSrc[j]}` : Z0[i * 4 + 3] < 128 ? 'video' : 'fixed';
+      const k = `${textSrc[j]}|${bd}`;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(i);
+    }
+    const minPx = Math.max(150, Math.round(mask.length * 0.03));
+    for (const [k, idx] of groups) {
+      if (idx.length < minPx) continue;
+      const [ts, bd] = k.split('|');
+      out.groups.push({
+        px: idx.length,
+        text: Number(ts) >= 0 ? { param: colourKeys[Number(ts)] } : { fixed: medianColour(S0, idx) },
+        backdrop: bd === 'video' ? { video: true } : bd === 'fixed' ? { fixed: medianColour(Z0, idx) }
+          : { param: colourKeys[Number(bd.slice(1))] },
+      });
+    }
+    out.groups.sort((a, b) => b.px - a.px);
+    return { ...out, status: 'ok' };
   }
   await buildSheets(results);
   writeFileSync(join(OUT, 'render-results.json'), JSON.stringify({

@@ -180,11 +180,12 @@ def validate_overlays(plan: dict, cat: Catalogue, brand, total_frames: int,
     """Keep only overlays that are safe to render; returns their [start, end) frame windows.
 
     Rules (each failure drops the overlay with a Vietnamese warning, nothing is guessed):
-    vi_ok template only; template orientation matches the target; every non-empty text field
-    is one of the script's TEXT lines, verbatim, each line used once (no invented text, and no
+    vi_ok template only; template orientation matches the target (unknown size refused); every
+    non-empty text field is one of the script's TEXT lines, verbatim, each line used once (no invented text, and no
     TEXT lines -> no overlays); fields over MAX_TEXT characters are shortened at a word
     boundary with a warning; inside the timeline, at least MIN_OVERLAY long; no overlap with
-    another overlay; not in the logo's corner while the logo is on screen."""
+    another overlay; not in the logo's corner while the logo is on screen. Brand colours that
+    would make the text unreadable are not applied (readable_brand_props); each one is a warning."""
     fps = plan["target"]["fps"]
     lines = [ov.norm(t) for t in plan.get("text_lines") or []]
     # a line already cut to MAX_TEXT (plan.json validated again by the builder) still counts as verbatim
@@ -203,8 +204,9 @@ def validate_overlays(plan: dict, cat: Catalogue, brand, total_frames: int,
             warn.append(f"bỏ {tag}: template không đạt kiểm tra font tiếng Việt (vi_ok khác true: "
                         f"{tpl.get('vi_status', 'chưa kiểm tra')})")
             continue
-        if ov.orientation(tpl) not in (None, want):
-            warn.append(f"bỏ {tag}: template {tpl['width']}x{tpl['height']} không hợp khung {plan['target']['aspect']}")
+        if ov.orientation(tpl) != want:      # unknown size is refused too: it could be stretched
+            size = f"{tpl.get('width')}x{tpl.get('height')}" if ov.orientation(tpl) else "không rõ kích thước"
+            warn.append(f"bỏ {tag}: template {size} không hợp khung {plan['target']['aspect']}")
             continue
         names = ov.text_params(tpl)
         extra = set(o["fields"]) - set(names)
@@ -247,6 +249,8 @@ def validate_overlays(plan: dict, cat: Catalogue, brand, total_frames: int,
                 fields[k] = ov.shorten(v)
                 warn.append(f"{tag}: chữ \"{v}\" dài {len(v)} ký tự (tối đa {ov.MAX_TEXT}), "
                             f"rút gọn thành \"{fields[k]}\" để không bị cắt")
+        if brand is not None:
+            warn.extend(f"{tag}: {note}" for note in ov.readable_brand_props(tpl, brand.colors)[1])
         used.update(allowed[v] for v in fields.values() if v)
         kept.append({"template": o["template"], "at": round(start / fps, 4),
                      "duration": round((end - start) / fps, 4), "fields": fields})

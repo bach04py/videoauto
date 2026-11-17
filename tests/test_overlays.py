@@ -9,7 +9,7 @@ import unicodedata
 import pytest
 
 from test_brand import BRAND, go, make_logo, write_cfg
-from test_planner import BIGCAP, CATALOGUE, GOOD, KEYPOP, LOOSE, NOTVI, TR, WIDE, base_plan, clip
+from test_planner import BIGCAP, CATALOGUE, GOOD, KEYPOP, LOOSE, NOTVI, TR, WIDE, _p, _tpl, base_plan, clip
 from videoauto.brief import Brand, load_project_config
 from videoauto.errors import UserError
 from videoauto.planner import overlays as ov
@@ -269,3 +269,119 @@ def footage(tmp_path, gym, sunset):
     shutil.copy(gym, d / "gym.mp4")
     shutil.copy(sunset, d / "sunset.mp4")
     return d
+
+
+# ---------------------------------------------------------------- 6. readable brand colours
+
+def _g(text, backdrop, px=1000):
+    return {"px": px, "text": text, "backdrop": backdrop}
+
+
+LIGHT_CHART = _tpl("light-chart", 1080, 1920, True, [
+    _p("title", "text", "x"), _p("textColor", "color", "#ffffff"), _p("accentColor", "color", "#38bdf8")])
+DONUT = _tpl("donut", 1080, 1920, True, [_p("title", "text", "x"), _p("cardColor", "color", "#ffffff"),
+                                          _p("bgColor", "color", "#E8E6F0")])
+TABLE = {
+    # real default text colour is dark although the catalogue says #ffffff (code fallback)
+    "light-chart": {"defaults": {"textColor": "#26224d", "accentColor": "#38bdf8", "bgGradientStart": "#f6f5ff"},
+                    "groups": [_g({"param": "textColor"}, {"param": "bgGradientStart"})]},
+    # text colour fixed in the template code, card behind it is a brand (ink) field
+    "donut": {"defaults": {"cardColor": "#ffffff", "bgColor": "#E8E6F0"},
+              "groups": [_g({"fixed": "rgba(59,66,67,1.00)"}, {"param": "cardColor"})]},
+    "ss-keyword-pop": {"defaults": {"accentColor": "#ff4d6d", "textColor": "#ffffff"},
+                       "groups": [_g({"param": "textColor"}, {"video": True}),
+                                  _g({"param": "accentColor"}, {"video": True})]},
+    "ss-big-caption": {"defaults": {"bgColor": "rgba(0,0,0,0.72)", "textColor": "#ffffff"},
+                       "groups": [_g({"param": "textColor"}, {"param": "bgColor"})]},
+}
+
+
+def test_brand_text_colour_too_close_to_its_backdrop_keeps_the_template_colour():
+    props, notes = ov.readable_brand_props(LIGHT_CHART, COLORS, TABLE)
+    assert props == {"accentColor": "#ED1C24"}              # white text on #f6f5ff dropped
+    assert len(notes) == 1 and "textColor (chữ)" in notes[0] and "1.1:1" in notes[0]
+
+
+def test_brand_backdrop_under_fixed_text_keeps_the_template_colour():
+    props, notes = ov.readable_brand_props(DONUT, COLORS, TABLE)
+    assert props == {"bgColor": "#1A1A1A"}                  # not behind text: brand applies
+    assert "cardColor (nền sau chữ)" in notes[0]
+
+
+def test_readable_pairs_and_text_over_video_keep_brand_colours():
+    assert ov.readable_brand_props(KEYPOP, COLORS, TABLE) == (
+        {"accentColor": "#ED1C24", "textColor": "#FFFFFF"}, [])
+    # white on 72 % ink, judged over black and over white video: still >= 3:1
+    assert ov.readable_brand_props(BIGCAP, COLORS, TABLE) == (
+        {"bgColor": "rgba(26,26,26,0.72)", "textColor": "#FFFFFF", "accentColor": "#ED1C24"}, [])
+
+
+def test_template_never_measured_keeps_its_own_colours():
+    props, notes = ov.readable_brand_props(LIGHT_CHART, COLORS, {})
+    assert props == {} and "chưa được đo" in notes[0]
+    assert ov.readable_brand_props(LIGHT_CHART, {}, TABLE) == ({}, [])
+
+
+def test_template_designed_low_contrast_is_not_blamed_on_the_brand():
+    faint = {"light-chart": {"defaults": {"textColor": "#cccccc"},
+                             "groups": [_g({"param": "textColor"}, {"fixed": "#bbbbbb"})]}}
+    # a faint watermark by design (1.2:1); brand white (about 2:1) is still under 3:1 but better
+    # than the template's own colour, so it is applied without a note
+    assert ov.readable_brand_props(LIGHT_CHART, {"on_accent": "#FFFFFF"}, faint) == ({"textColor": "#FFFFFF"}, [])
+
+
+def test_contrast_ratio():
+    assert round(ov.contrast((255, 255, 255, 1), (0, 0, 0, 1)), 1) == 21.0
+    assert ov.contrast((255, 255, 255, 1), (0, 0, 0, 0)) < 1.1     # transparent over white video
+    assert ov.parse_colour("#0f172aee")[3] == pytest.approx(0xee / 255)
+    assert ov.parse_colour("rgba(14, 166, 124, 0.2)") == (14, 166, 124, 0.2)
+    assert ov.parse_colour("linear-gradient(red, blue)") is None
+
+
+def test_unreadable_brand_colour_is_a_plan_warning_and_the_overlay_stays(monkeypatch):
+    monkeypatch.setattr(ov, "colour_table", lambda: TABLE)
+    cat = Catalogue([*CATALOGUE["items"], LIGHT_CHART])
+    p = base_plan(clips=[clip(0, 5), clip(5, 10)], text_lines=LINES,
+                  overlays=[over(0.5, tpl=LIGHT_CHART, field="title")])
+    w = "\n".join(validate_plan(p, cat, brand=Brand(colors=COLORS)))
+    assert len(p["overlays"]) == 1
+    assert "giữ màu template cho textColor" in w and "tương phản" in w
+
+
+def test_builder_does_not_force_an_unreadable_brand_colour(tmp_path, footage, monkeypatch):
+    # keyword pop drawn on a white card: brand white text would vanish, so it keeps its own
+    table = {**TABLE, "ss-keyword-pop": {"defaults": {"accentColor": "#ff4d6d", "textColor": "#1a1a1a"},
+                                         "groups": [_g({"param": "textColor"}, {"fixed": "#ffffff"})]}}
+    monkeypatch.setattr(ov, "colour_table", lambda: table)
+    code, _, occ, plan, _ = run_with_colours(tmp_path, footage)
+    assert code == 0
+    props = {r.label: r.tool_args for r in occ.history}["overlay 1 props"]["props"]
+    assert props["accentColor"] == "#ED1C24" and "textColor" not in props
+    assert any("giữ màu template cho textColor" in w for w in plan["warnings"])
+
+
+# ---------------------------------------------------------------- 7. orientation
+
+def _cfg(aspect):
+    from types import SimpleNamespace
+    from videoauto.brief import Brief
+    return SimpleNamespace(brief=Brief(15, aspect, 30, "tiktok", ""), brand=Brand())
+
+
+def test_planner_offers_only_templates_of_the_target_orientation():
+    from videoauto.planner.planner import overlay_templates
+    nosize = _tpl("no-size", None, None, True, [_p("title", "text", "x")])
+    cat = Catalogue([*CATALOGUE["items"], nosize])
+    vertical = {t["id"] for t in overlay_templates(_cfg("9:16"), cat)}
+    assert "wide-title" not in vertical and "no-size" not in vertical
+    assert {"ss-keyword-pop", "ss-big-caption", "vertical-unknown"} <= vertical
+    assert {t["id"] for t in overlay_templates(_cfg("16:9"), cat)} == {"wide-title"}
+
+
+def test_template_of_unknown_size_is_refused():
+    nosize = _tpl("no-size", None, None, True, [_p("title", "text", "x")])
+    cat = Catalogue([*CATALOGUE["items"], nosize])
+    p = base_plan(clips=[clip(0, 5), clip(5, 10)], text_lines=LINES,
+                  overlays=[over(0.5, tpl=nosize, field="title")])
+    w = "\n".join(validate_plan(p, cat, brand=None))
+    assert p["overlays"] == [] and "không rõ kích thước" in w and "không hợp khung 9:16" in w

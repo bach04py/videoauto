@@ -1,0 +1,3821 @@
+{
+ "generated_by": "python -m videoauto.templates --measure-colours",
+ "sample_text": "ĐỐT MỠ ĐÓN TẾT",
+ "min_contrast": 3.0,
+ "templates": {
+  "0273f371-8c99-4d7f-b51e-096edd9d2188": {
+   "name": "Pie Chart - Customer Satisfaction",
+   "frame": 53,
+   "defaults": {
+    "bgGradientStart": "#fdf6f3",
+    "bgGradientEnd": "#f9eae4",
+    "ringColor": null,
+    "trackColor": "rgba(232,101,74,0.16)",
+    "lineColor": "rgba(69,32,26,0.45)"
+   },
+   "groups": [
+    {
+     "px": 11791,
+     "text": {
+      "fixed": "rgba(69,32,26,1.00)"
+     },
+     "backdrop": {
+      "param": "bgGradientStart"
+     }
+    },
+    {
+     "px": 1096,
+     "text": {
+      "fixed": "rgba(98,71,59,1.00)"
+     },
+     "backdrop": {
+      "param": "bgGradientEnd"
+     }
+    }
+   ]
+  },
+  "0280ff3f-b1af-498b-9069-b849929f8df9": {
+   "name": "Simple Name Card",
+   "frame": 53,
+   "defaults": {
+    "cardColor": "#eff3ff",
+    "nameColor": "#010109",
+    "subtitleColor": "#404450",
+    "borderColor": "#010109"
+   },
+   "groups": [
+    {
+     "px": 3546,
+     "text": {
+      "param": "nameColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 904,
+     "text": {
+      "param": "subtitleColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    }
+   ]
+  },
+  "033ce93d-219c-4100-9b53-83adf2e19d39": {
+   "name": "Line Chart - Stock Price",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#212038",
+    "lineColorStart": "#f174b7",
+    "lineColorEnd": "#c26cd2",
+    "textColor": "#FFFFFF",
+    "gridColor": "rgba(255, 255, 255, 0.1)"
+   },
+   "groups": [
+    {
+     "px": 19866,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "0371e3ac-0449-4e8d-a5df-c758ccdbba44": {
+   "name": "Line Chart - User Growth",
+   "frame": 53,
+   "defaults": {
+    "line1Color": "#24bbff",
+    "line2Color": "#009c9c",
+    "bgColor": "#E8E6F0",
+    "cardColor": "#FFFFFF",
+    "titleColor": "#2D2D35"
+   },
+   "groups": [
+    {
+     "px": 11315,
+     "text": {
+      "param": "titleColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 4425,
+     "text": {
+      "fixed": "rgba(136,136,136,1.00)"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 1688,
+     "text": {
+      "param": "line1Color"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 1373,
+     "text": {
+      "param": "cardColor"
+     },
+     "backdrop": {
+      "param": "line1Color"
+     }
+    }
+   ]
+  },
+  "03decebd-7066-4257-b21c-250151c5c8d2": {
+   "name": "Product Specs Panel",
+   "frame": 53,
+   "defaults": {
+    "panelColor": "#201301",
+    "accentColor": "#ffffff",
+    "textColor": "#ffffff",
+    "brandColor": "#a0aab5"
+   },
+   "groups": [
+    {
+     "px": 34952,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "panelColor"
+     }
+    },
+    {
+     "px": 1762,
+     "text": {
+      "param": "brandColor"
+     },
+     "backdrop": {
+      "param": "panelColor"
+     }
+    }
+   ]
+  },
+  "05ae4e10-0bf7-4611-bd7e-135b9e2c8ee9": {
+   "name": "Progress Bar",
+   "frame": 53,
+   "defaults": {
+    "topBarColor": "#ff7865",
+    "progressColor": "#8dccf0"
+   },
+   "groups": [
+    {
+     "px": 7570,
+     "text": {
+      "fixed": "rgba(255,225,221,1.00)"
+     },
+     "backdrop": {
+      "param": "topBarColor"
+     }
+    },
+    {
+     "px": 2541,
+     "text": {
+      "fixed": "rgba(0,0,0,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    }
+   ]
+  },
+  "0d0b9a79-bcc9-4c55-82f3-5a12a2a2a6ce": {
+   "name": "MindSpace — Self-Check Questions",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#ffffff",
+    "bgBaseColor": "#000d1f",
+    "bgAccent1": "#32445b",
+    "bgAccent2": "#1a3043"
+   },
+   "groups": [
+    {
+     "px": 10403,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgAccent1"
+     }
+    }
+   ]
+  },
+  "0f42b597-2b83-4e6c-9a7b-19f9b0b0ef98": {
+   "name": "Reconstruction Era — Bullet Points List",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#F3EBE1",
+    "textColor": "#382a19"
+   },
+   "groups": [
+    {
+     "px": 14160,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "10d5638b-dc0f-4362-8cf8-f6bb14340331": {
+   "name": "Distressed Paper Lower Third",
+   "frame": 53,
+   "defaults": {
+    "paperColor": "#eaf2ff",
+    "inkColor": "#131a27"
+   },
+   "groups": [
+    {
+     "px": 128805,
+     "text": {
+      "param": "paperColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 13228,
+     "text": {
+      "param": "inkColor"
+     },
+     "backdrop": {
+      "param": "paperColor"
+     }
+    },
+    {
+     "px": 12564,
+     "text": {
+      "param": "inkColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "1b06459e-b43f-4a46-9e0f-dd3f67202373": {
+   "name": "Photo Lower Third",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#f3afa3",
+    "photoBgColor": "#8ed5ff",
+    "textColor": "#000000",
+    "borderColor": "#000000",
+    "bgColor": "#FFFFFF"
+   },
+   "groups": [
+    {
+     "px": 2752,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "1b401c0b-0bd3-47e0-a64f-93f470e2fb6c": {
+   "name": "Group Project — Data Chart",
+   "frame": 53,
+   "defaults": {
+    "ringColor": "#ffffff",
+    "trackColor": "rgba(255, 255, 255, 0.15)",
+    "bgColor": "#000c07"
+   },
+   "groups": [
+    {
+     "px": 18296,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(70,90,24,1.00)"
+     }
+    }
+   ]
+  },
+  "1c49b2f1-3dce-4953-afd1-674ae0a285e8": {
+   "name": "Bar Chart - Monthly Targets",
+   "frame": 53,
+   "defaults": {
+    "bgGradientStart": "#f0fbf7",
+    "bgGradientEnd": "#e2f5ee",
+    "actualColor": "#0ea67c",
+    "targetColor": "rgba(14,166,124,0.20)",
+    "gridColor": "rgba(16,58,45,0.10)",
+    "textColor": "#123a2e"
+   },
+   "groups": [
+    {
+     "px": 10876,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgGradientStart"
+     }
+    }
+   ]
+  },
+  "1ed40a68-6303-427a-94f9-5197a0af7869": {
+   "name": "Location Title Card",
+   "frame": 53,
+   "defaults": {
+    "headerColor": "#b4e926",
+    "cardColor": "#FFFFFF",
+    "textColor": "#000000",
+    "iconColor": "#009e9e"
+   },
+   "groups": [
+    {
+     "px": 13587,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 4116,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "headerColor"
+     }
+    },
+    {
+     "px": 2069,
+     "text": {
+      "fixed": "rgba(106,106,106,0.16)"
+     },
+     "backdrop": {
+      "param": "textColor"
+     }
+    }
+   ]
+  },
+  "23f4a551-32fa-4cf7-ae35-abaa9c3d093c": {
+   "name": "Timeline Progress Bar",
+   "frame": 53,
+   "defaults": {
+    "color": "#edf4ff"
+   },
+   "groups": [
+    {
+     "px": 7741,
+     "text": {
+      "param": "color"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 618,
+     "text": {
+      "fixed": "rgba(0,3,9,0.32)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "264faf42-2010-4812-94c6-b3c389204815": {
+   "name": "Reconstruction Era — Data Chart",
+   "frame": 53,
+   "defaults": {
+    "color1": "#8f3d3d",
+    "color2": "#d17248",
+    "color3": "#008ac1",
+    "color4": "#8a303c",
+    "textColor": "#4d322e",
+    "bgColor": "#F3EBE1"
+   },
+   "groups": [
+    {
+     "px": 14671,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "2995a5a5-7240-4c9a-8528-c167b8dce239": {
+   "name": "Breaking News Title Card",
+   "frame": 53,
+   "defaults": {
+    "headerColor": "#ff1d08",
+    "cardColor": "#FFFFFF",
+    "shadowColor": "#000000",
+    "textColor": "#000000",
+    "tickerColor": "#FFFFFF"
+   },
+   "groups": [
+    {
+     "px": 24825,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 8547,
+     "text": {
+      "param": "tickerColor"
+     },
+     "backdrop": {
+      "param": "headerColor"
+     }
+    },
+    {
+     "px": 1784,
+     "text": {
+      "param": "headerColor"
+     },
+     "backdrop": {
+      "param": "tickerColor"
+     }
+    }
+   ]
+  },
+  "29c9bddc-0e29-4665-bc2a-bf966aeaac6b": {
+   "name": "Creative Watercolor — Company Introduction",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#e8decb",
+    "textColor": "#3a2e2a",
+    "accentColor1": "#d69589",
+    "accentColor2": "#a7bdb7"
+   },
+   "groups": [
+    {
+     "px": 8772,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "2c38ab81-0d44-485f-9981-a3e36ef785b6": {
+   "name": "Group Project — Chapter Title Card",
+   "frame": 53,
+   "defaults": {
+    "titleColor": "#ffffff",
+    "subtitleColor": "#ffffff",
+    "bgColor": "#060018"
+   },
+   "groups": [
+    {
+     "px": 35278,
+     "text": {
+      "param": "titleColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(92,95,173,1.00)"
+     }
+    },
+    {
+     "px": 15987,
+     "text": {
+      "fixed": "rgba(68,69,127,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(94,95,173,1.00)"
+     }
+    },
+    {
+     "px": 2095,
+     "text": {
+      "param": "subtitleColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(139,41,132,1.00)"
+     }
+    }
+   ]
+  },
+  "323a20f6-e2d2-4efb-8053-ec3e315fc6ec": {
+   "name": "MindSpace — Chapter Three: Boundaries",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#007f5d",
+    "accentColor": "#00c3c1",
+    "bloomColor": "#008f69"
+   },
+   "groups": [
+    {
+     "px": 36943,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(0,6,4,1.00)"
+     }
+    }
+   ]
+  },
+  "33e13fa9-76d1-4483-94dc-e3f1217c0f1f": {
+   "name": "Art Deco Newsletter — Style Showcase HQ",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#29485e",
+    "goldColor": "#e899bf",
+    "creamColor": "#ffdde9"
+   },
+   "groups": [
+    {
+     "px": 26153,
+     "text": {
+      "param": "goldColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 10166,
+     "text": {
+      "param": "creamColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 1473,
+     "text": {
+      "param": "bgColor"
+     },
+     "backdrop": {
+      "param": "goldColor"
+     }
+    }
+   ]
+  },
+  "34151422-9674-4a31-a2a7-ade3932e0aef": {
+   "name": "News info card",
+   "frame": 53,
+   "defaults": {
+    "sourceColor": "#a73f95",
+    "highlightColor": "#e6e2ff",
+    "backgroundColor": "#e8e6e0"
+   },
+   "groups": [
+    {
+     "px": 67090,
+     "text": {
+      "fixed": "rgba(17,17,17,1.00)"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    },
+    {
+     "px": 22122,
+     "text": {
+      "param": "sourceColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "3515f6e1-019d-408d-9396-59cdea42abb1": {
+   "name": "Bullet Points Overlay - Dark Neon",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#0A0A0A"
+   },
+   "groups": [
+    {
+     "px": 9420,
+     "text": {
+      "fixed": "rgba(104,104,104,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(28,28,28,1.00)"
+     }
+    }
+   ]
+  },
+  "366dffd3-b6f4-4e47-a05c-37921e5b2852": {
+   "name": "MindSpace — Chapter Two: Acceptance",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#9d5800",
+    "accentColor": "#d0a400",
+    "bloomColor": "#b16300"
+   },
+   "groups": [
+    {
+     "px": 31029,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(9,3,1,1.00)"
+     }
+    },
+    {
+     "px": 5909,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "bloomColor"
+     }
+    }
+   ]
+  },
+  "3cc81aaa-2429-4be0-acc1-5e39dd946836": {
+   "name": "Creative Watercolor — Timeline",
+   "frame": 53,
+   "defaults": {
+    "lineColor": "#394d3e",
+    "accentColor1": "#7ea46f",
+    "accentColor2": "#ceb9a8",
+    "bgColor": "#F5E6E6"
+   },
+   "groups": [
+    {
+     "px": 12038,
+     "text": {
+      "param": "lineColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "3e399f3e-d0f3-4bfd-a4e7-304f32d0dfd9": {
+   "name": "Donut Chart - Regional Sales",
+   "frame": 53,
+   "defaults": {
+    "kpiColor": "#ee7e13",
+    "ringAColor": "#a07d00",
+    "ringBColor": "#42abe1",
+    "ringCColor": "#ee7e13",
+    "bgColor": "#E8E6F0"
+   },
+   "groups": [
+    {
+     "px": 64336,
+     "text": {
+      "fixed": "rgba(181,142,70,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    }
+   ]
+  },
+  "408fe497-5d7c-4301-b0dc-008fa2a0fcf2": {
+   "name": "MindSpace — Chapter One: Awareness",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#9642a6",
+    "accentColor": "#f678bb",
+    "bloomColor": "#a551b5"
+   },
+   "groups": [
+    {
+     "px": 36920,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(9,2,12,1.00)"
+     }
+    }
+   ]
+  },
+  "4103210c-e3ee-4589-8626-307036bc61a3": {
+   "name": "Work-Life — Style Showcase HQ",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#545e83",
+    "textColor": "#FFFFFF",
+    "textSecondaryColor": "rgba(255, 255, 255, 0.7)",
+    "accentCopper": "#8582f2",
+    "accentAmber": "#c79cff",
+    "accentTan": "#a296db"
+   },
+   "groups": [
+    {
+     "px": 69572,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 5936,
+     "text": {
+      "param": "textSecondaryColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "442ab610-d550-44e7-901a-aa5d23fef8a9": {
+   "name": "AI video script builder",
+   "frame": 53,
+   "defaults": {
+    "highlightColor": "#d96dc4",
+    "primaryColor": "#d96dc4"
+   },
+   "groups": [
+    {
+     "px": 8632,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    },
+    {
+     "px": 7244,
+     "text": {
+      "param": "highlightColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    },
+    {
+     "px": 4274,
+     "text": {
+      "fixed": "rgba(103,102,111,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    }
+   ]
+  },
+  "4444d0ce-ac02-4831-ad25-dd90b6aea350": {
+   "name": "Group Project — Timeline",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#030c20",
+    "textColor": "#FFFFFF",
+    "accentColor": "#FFFFFF"
+   },
+   "groups": [
+    {
+     "px": 15478,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "452d340f-f4f4-4747-bec6-018cf639d10e": {
+   "name": "Bar Chart - Category Sales",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#212038",
+    "barColor1": "#ce63ba",
+    "barColor2": "#a594eb",
+    "barColor3": "#0093cc",
+    "barColor4": "#efa200",
+    "barColor5": "#00b6a0"
+   },
+   "groups": [
+    {
+     "px": 26158,
+     "text": {
+      "fixed": "rgba(244,244,245,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "476fed54-d5de-4a5d-85ce-b9c12dc15abb": {
+   "name": "Name card animation",
+   "frame": 53,
+   "defaults": {
+    "color1": "#10eed1",
+    "color2": "#08a24b",
+    "color3": "#c9ac5b"
+   },
+   "groups": [
+    {
+     "px": 25683,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "4792b7a4-126f-48ac-9a0c-7dfcd9a2891b": {
+   "name": "Bullet Points Overlay - Japanese Pastel",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#F8F3E9"
+   },
+   "groups": [
+    {
+     "px": 7237,
+     "text": {
+      "fixed": "rgba(179,155,158,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(242,205,216,1.00)"
+     }
+    }
+   ]
+  },
+  "47caa17c-0e24-4447-b549-766163e8efe0": {
+   "name": "Countdown Timer Title Card",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#86b000",
+    "bgColor": "#FFFFFF",
+    "textColor": "#000000",
+    "headerTextColor": "#FFFFFF"
+   },
+   "groups": [
+    {
+     "px": 7225,
+     "text": {
+      "param": "headerTextColor"
+     },
+     "backdrop": {
+      "param": "accentColor"
+     }
+    },
+    {
+     "px": 3662,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 1251,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "param": "headerTextColor"
+     }
+    }
+   ]
+  },
+  "49e0b581-862b-42fc-bb6b-a17d0c3d1668": {
+   "name": "Chapter title card — icon + letter-by-letter reveal with motion blur exit",
+   "frame": 53,
+   "defaults": {
+    "highlightColor": "#fc83bc",
+    "textColor": "#1A1A1A",
+    "backgroundColor": "#f8f5ee",
+    "waveColor": "#eee9de"
+   },
+   "groups": [
+    {
+     "px": 35389,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    },
+    {
+     "px": 6758,
+     "text": {
+      "param": "highlightColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "4a1c2bc0-9798-4ef4-bbf9-0517cc5ca787": {
+   "name": "Group Project — Team Members",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#040e22"
+   },
+   "groups": [
+    {
+     "px": 31902,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 2095,
+     "text": {
+      "param": "bgColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(207,218,222,1.00)"
+     }
+    }
+   ]
+  },
+  "4de08f53-df3a-47ed-bd45-e541386b27fa": {
+   "name": "Finance Explainer — Poll Card Progress Bars",
+   "frame": 53,
+   "defaults": {
+    "badgeColor": "#00b3b3",
+    "barColorWinner": "#aae356",
+    "barColorOthers": "#cccccc"
+   },
+   "groups": [
+    {
+     "px": 11003,
+     "text": {
+      "fixed": "rgba(0,0,0,1.00)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 4416,
+     "text": {
+      "fixed": "rgba(86,86,86,1.00)"
+     },
+     "backdrop": {
+      "param": "barColorOthers"
+     }
+    },
+    {
+     "px": 2000,
+     "text": {
+      "fixed": "rgba(0,0,0,1.00)"
+     },
+     "backdrop": {
+      "param": "barColorWinner"
+     }
+    }
+   ]
+  },
+  "58b32a8f-8d9e-4521-85d6-277dfb37fd68": {
+   "name": "Vertical timeline animation",
+   "frame": 53,
+   "defaults": {
+    "dotColor": "#f385dd",
+    "textColor": "#FFFFFF"
+   },
+   "groups": [
+    {
+     "px": 9357,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "5957f338-1913-4571-8f5d-07304f691bec": {
+   "name": "Tech Trends 2026 — Team Members",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#271906",
+    "bgColor": "#f4f6f9",
+    "blobColor1": "#d19100",
+    "blobColor2": "#f5a46c"
+   },
+   "groups": [
+    {
+     "px": 6863,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "5e58a6dd-e2f0-49bd-8377-9dd352bd2aac": {
+   "name": "Median Age Bar Chart - Speckled Paper Texture with Growing Bars",
+   "frame": 53,
+   "defaults": {
+    "womenColor": "#e9b5e6",
+    "menColor": "#df78c8",
+    "bgColor": "#e8e4de"
+   },
+   "groups": [
+    {
+     "px": 15797,
+     "text": {
+      "fixed": "rgba(26,26,26,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "614fbd3c-90b1-4e2b-b52d-e78876757b4b": {
+   "name": "Quote card slide-in with word-by-word reveal",
+   "frame": 53,
+   "defaults": {
+    "cardColor": "#85c486",
+    "textColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 8435,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    }
+   ]
+  },
+  "630caca9-93c5-459c-bae6-6c0bd0338124": {
+   "name": "MindSpace — Ribbon Statement",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#ffffff",
+    "ribbonColorStart": "#b42e45",
+    "ribbonColorMid": "#c94346",
+    "ribbonColorEnd": "#f4773b",
+    "bgBaseColor": "#000d1f"
+   },
+   "groups": [
+    {
+     "px": 24470,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgBaseColor"
+     }
+    },
+    {
+     "px": 12841,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "ribbonColorMid"
+     }
+    }
+   ]
+  },
+  "63ea06e3-3c00-4a22-920d-5b7e8df2b21b": {
+   "name": "Hand-Drawn Paper Lower Third",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#a4ddff",
+    "textColor": "#1a1a1a"
+   },
+   "groups": [
+    {
+     "px": 25749,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(250,250,250,1.00)"
+     }
+    },
+    {
+     "px": 886,
+     "text": {
+      "fixed": "rgba(249,249,249,1.00)"
+     },
+     "backdrop": {
+      "param": "textColor"
+     }
+    }
+   ]
+  },
+  "6439d0c9-4297-4d3c-9b07-3132668de166": {
+   "name": "Creative Watercolor — Team Members",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#F6EBEA",
+    "color1": "#84bf88",
+    "color2": "#d7b499",
+    "color3": "#b1d8f0"
+   },
+   "groups": [
+    {
+     "px": 10534,
+     "text": {
+      "fixed": "rgba(46,37,35,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "6cb35207-77ab-4538-8b60-9fe32f493460": {
+   "name": "Creative Watercolor — Chapter Title Card",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#c7dff1",
+    "textColor": "#1b2735",
+    "washPink": "#4eb9dd",
+    "washBlue": "#ba91a2",
+    "washPeach": "#93d0f7",
+    "washFlower": "#ddf0f8"
+   },
+   "groups": [
+    {
+     "px": 15651,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "6ce4db2a-66d0-4c28-b869-6227800d8fa9": {
+   "name": "Tech Trends 2026 — Timeline",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#F7F8FA",
+    "lineColor": "#222222",
+    "textColor": "#333333",
+    "descColor": "#555555",
+    "gradientColor1": "rgba(205,138,0,1)",
+    "gradientColor2": "rgba(245,180,137,1)"
+   },
+   "groups": [
+    {
+     "px": 8838,
+     "text": {
+      "param": "lineColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 2998,
+     "text": {
+      "param": "descColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "6d14754c-1e8a-4920-85ff-953203b42afe": {
+   "name": "Line Chart - App Performance",
+   "frame": 53,
+   "defaults": {
+    "bgGradientStart": "#f4f8fd",
+    "bgGradientEnd": "#e9f1fa",
+    "elementColor": "#1f7ae0"
+   },
+   "groups": [
+    {
+     "px": 10620,
+     "text": {
+      "param": "elementColor"
+     },
+     "backdrop": {
+      "param": "bgGradientStart"
+     }
+    },
+    {
+     "px": 912,
+     "text": {
+      "param": "elementColor"
+     },
+     "backdrop": {
+      "param": "bgGradientEnd"
+     }
+    }
+   ]
+  },
+  "6d5ae7e6-e458-40ef-8633-383bfc0e8279": {
+   "name": "Finance Explainer — Chapter Title Card (Light)",
+   "frame": 53,
+   "defaults": {
+    "highlightColor": "#c4ff15"
+   },
+   "groups": [
+    {
+     "px": 57894,
+     "text": {
+      "fixed": "rgba(17,17,17,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(230,228,223,1.00)"
+     }
+    }
+   ]
+  },
+  "6d784a29-b0d8-4228-8489-b0f75bf34c0e": {
+   "name": "Company Introduction — Split Layout",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#ebf5ff",
+    "leftPanelColor": "rgba(5,16,27, 0.75)",
+    "titleColor": "#2a343f",
+    "bodyColor": "#616d7a"
+   },
+   "groups": [
+    {
+     "px": 22914,
+     "text": {
+      "param": "titleColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "75dae426-6c04-4ffd-9de5-9a4c5959d87c": {
+   "name": "Minimal Gradient — Timeline",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#2C2C2A",
+    "lineColor": "#2C2C2A",
+    "blobColor1": "rgba(156,228,197, 0.6)",
+    "blobColor2": "rgba(166,246,244, 0.4)",
+    "bgColor": "#F8F7F5"
+   },
+   "groups": [
+    {
+     "px": 8968,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 1069,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "blobColor2"
+     }
+    }
+   ]
+  },
+  "76002b44-e277-4db9-80ca-a5c9e0cb15f3": {
+   "name": "Team Members — Leadership Grid",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#e7f8f1",
+    "boxColor": "#1d2e28",
+    "frameColor": "#c4d5ce",
+    "textColor": "#03150f",
+    "textSecColor": "#4b5953"
+   },
+   "groups": [
+    {
+     "px": 17228,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 2311,
+     "text": {
+      "param": "textSecColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "77c25412-0768-4c6f-a56d-3d78b5481ff0": {
+   "name": "Group Project — Company Introduction",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#00191c",
+    "blobColor1": "#005750",
+    "blobColor2": "#007a36",
+    "blobColor3": "#008c73"
+   },
+   "groups": [
+    {
+     "px": 28817,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "blobColor3"
+     }
+    },
+    {
+     "px": 4789,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "blobColor1"
+     }
+    }
+   ]
+  },
+  "79b030e8-cd48-4065-8beb-4cd3644ab9fe": {
+   "name": "Bullet Points Overlay - Soft Coral",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#FAF3E8"
+   },
+   "groups": [
+    {
+     "px": 4863,
+     "text": {
+      "fixed": "rgba(250,243,232,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(201,116,205,1.00)"
+     }
+    }
+   ]
+  },
+  "7c8eb54a-f237-4334-b6ba-c55421c3d35a": {
+   "name": "Tip List Title Card",
+   "frame": 53,
+   "defaults": {
+    "headerColor": "#bee6ff",
+    "cardBgColor": "#FFFFFF",
+    "textColor": "#000000"
+   },
+   "groups": [
+    {
+     "px": 18320,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardBgColor"
+     }
+    },
+    {
+     "px": 10782,
+     "text": {
+      "fixed": "rgba(217,217,217,1.00)"
+     },
+     "backdrop": {
+      "param": "cardBgColor"
+     }
+    },
+    {
+     "px": 5306,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "headerColor"
+     }
+    }
+   ]
+  },
+  "7d205758-dac2-4df5-9735-7ad781d792af": {
+   "name": "Bar chart growth animation",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#f385dd",
+    "barDarkColor": "#4A4A4A"
+   },
+   "groups": [
+    {
+     "px": 5249,
+     "text": {
+      "fixed": "rgba(34,34,34,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    }
+   ]
+  },
+  "7e87da3a-f175-4c83-bf8b-e59e4ba24269": {
+   "name": "Reconstruction Era — Chapter Title Card",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#F3EBE1",
+    "titleColor": "#293219",
+    "accentColor": "#3a8080"
+   },
+   "groups": [
+    {
+     "px": 20336,
+     "text": {
+      "param": "titleColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "7e9f53fa-3036-47a6-a27f-48acf2e49e48": {
+   "name": "Principle card — dot background, text left-slide",
+   "frame": 53,
+   "defaults": {
+    "backgroundColor": "#f8f5ee",
+    "dotColor": "#eee9de",
+    "textColor": "#1A1A1A",
+    "badgeBgColor": "#fc83bc",
+    "badgeColor": "#E8E3D8"
+   },
+   "groups": [
+    {
+     "px": 16582,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "badgeColor"
+     }
+    },
+    {
+     "px": 3706,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "7ec411f4-9c96-49b5-86b1-1685a81b7d82": {
+   "name": "News Broadcast Title Card",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#F1F5F9",
+    "primaryColor": "#131b02",
+    "accentColor": "#008b8b"
+   },
+   "groups": [
+    {
+     "px": 54047,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "7fa3108f-346f-42ba-b707-b15e8282fe6e": {
+   "name": "Quote Title Card",
+   "frame": 53,
+   "defaults": {
+    "headerColor": "#db8476",
+    "cardBgColor": "#FFFFFF",
+    "borderColor": "#000000",
+    "shadowColor": "#000000"
+   },
+   "groups": [
+    {
+     "px": 7687,
+     "text": {
+      "param": "borderColor"
+     },
+     "backdrop": {
+      "param": "headerColor"
+     }
+    },
+    {
+     "px": 5666,
+     "text": {
+      "param": "borderColor"
+     },
+     "backdrop": {
+      "param": "cardBgColor"
+     }
+    },
+    {
+     "px": 909,
+     "text": {
+      "param": "headerColor"
+     },
+     "backdrop": {
+      "param": "borderColor"
+     }
+    }
+   ]
+  },
+  "82a91144-3342-4599-8fc0-a0b02f5d3933": {
+   "name": "Pie Chart - Market Segments",
+   "frame": 53,
+   "defaults": {
+    "bgGradientStart": "#f6f5fd",
+    "bgGradientEnd": "#eceafb",
+    "accentColor": "#4f46e5"
+   },
+   "groups": [
+    {
+     "px": 8996,
+     "text": {
+      "fixed": "rgba(35,32,74,1.00)"
+     },
+     "backdrop": {
+      "param": "bgGradientEnd"
+     }
+    },
+    {
+     "px": 2979,
+     "text": {
+      "fixed": "rgba(35,32,74,1.00)"
+     },
+     "backdrop": {
+      "param": "bgGradientStart"
+     }
+    },
+    {
+     "px": 2849,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "param": "bgGradientEnd"
+     }
+    }
+   ]
+  },
+  "83a77388-8670-4df0-bd5e-b4e3b59c92ce": {
+   "name": "Bullet Points Overlay",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#f2f5fb"
+   },
+   "groups": [
+    {
+     "px": 9222,
+     "text": {
+      "fixed": "rgba(153,160,174,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(219,227,242,1.00)"
+     }
+    }
+   ]
+  },
+  "847102e7-ec7f-4c4c-ad8a-f015f5b31fc7": {
+   "name": "Bar Chart - Department Headcount",
+   "frame": 53,
+   "defaults": {
+    "bgGradientStart": "#f6f5ff",
+    "bgGradientEnd": "#ebe9ff",
+    "barColor": "#6d5cff",
+    "trackColor": "rgba(109,92,255,0.14)",
+    "textColor": "#26224d"
+   },
+   "groups": [
+    {
+     "px": 10777,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgGradientStart"
+     }
+    }
+   ]
+  },
+  "847b9656-7989-42c6-ab6a-87a8efe0a20a": {
+   "name": "Numbered pebble-badge list with word reveal",
+   "frame": 53,
+   "defaults": {
+    "badge1Color": "#f674b3",
+    "badge2Color": "#32ade8",
+    "badge3Color": "#64c4b0",
+    "textColor": "#1a1a1a",
+    "backgroundColor": "#f8f5ee",
+    "bandColor": "#eee9de",
+    "numberColor": "#1a1a1a"
+   },
+   "groups": [
+    {
+     "px": 10039,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "86b95e5b-18d1-4074-9dbc-22229237a8ee": {
+   "name": "Retention Graph Card — White Luminance Variant",
+   "frame": 53,
+   "defaults": {
+    "lineColor": "rgba(255,255,255,0.95)",
+    "fillColorStart": "rgba(255,255,255,0.18)",
+    "fillColorEnd": "rgba(255,255,255,0)",
+    "bgColorOuter": "#0a0a0e"
+   },
+   "groups": [
+    {
+     "px": 9237,
+     "text": {
+      "fixed": "rgba(248,248,248,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(22,22,29,1.00)"
+     }
+    }
+   ]
+  },
+  "8744f05e-4976-4430-a14e-85a167301c14": {
+   "name": "Dark Tech — Callout Tag",
+   "frame": 53,
+   "defaults": {
+    "boxColor": "#131a27",
+    "textColor": "#edf4ff"
+   },
+   "groups": [
+    {
+     "px": 48201,
+     "text": {
+      "param": "boxColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 16946,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "874f586e-280e-4ea1-b224-a2213ca3c25e": {
+   "name": "Typewriter indicator animation",
+   "frame": 53,
+   "defaults": {
+    "highlightColor": "#e6e2ff",
+    "backgroundColor": "#2d2f3a"
+   },
+   "groups": [
+    {
+     "px": 34628,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "8833541d-1d2a-4281-bec2-9139e3d9c6aa": {
+   "name": "Celebrity Quote Flashcards",
+   "frame": 53,
+   "defaults": {
+    "cardBackgroundColor": "#ffffff",
+    "textColor": "#231411",
+    "glowColor": "#a35836",
+    "accentColor": "#cf777d"
+   },
+   "groups": [
+    {
+     "px": 4703,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardBackgroundColor"
+     }
+    },
+    {
+     "px": 2918,
+     "text": {
+      "fixed": "rgba(101,101,101,1.00)"
+     },
+     "backdrop": {
+      "param": "cardBackgroundColor"
+     }
+    },
+    {
+     "px": 585,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(51,36,35,1.00)"
+     }
+    },
+    {
+     "px": 274,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "param": "cardBackgroundColor"
+     }
+    }
+   ]
+  },
+  "893c85e4-940f-4cbc-b0fc-2db3a2f48392": {
+   "name": "Story Quote Card",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#E8E4DC",
+    "primaryColor": "#1C1C1A",
+    "accentColor": "#b2867e"
+   },
+   "groups": [
+    {
+     "px": 89220,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 28579,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "924424d1-3f6d-4693-819c-c0cfae1aaf11": {
+   "name": "Retention Graph",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#009d8a",
+    "lineColor": "rgba(208,249,248,0.96)",
+    "glowColorMain": "rgba(0,195,194,0.85)",
+    "glowColorSoft": "rgba(0,153,136,0.5)",
+    "fillColorStart": "rgba(0,184,172,0.45)",
+    "fillColorEnd": "rgba(0,63,52,0)",
+    "bgColorCenter": "rgba(85,125,129,0.78)",
+    "bgColorOuter": "#0a0a0d"
+   },
+   "groups": [
+    {
+     "px": 9153,
+     "text": {
+      "fixed": "rgba(247,248,248,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(0,48,41,1.00)"
+     }
+    }
+   ]
+  },
+  "935cd0e3-39a1-4b7d-bc0e-90145cc98cd2": {
+   "name": "Gradient Layered Text Page",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#FFFFFF",
+    "bgBlue": "#3b5f79",
+    "bgAmber": "#2d536c",
+    "bgOrange": "#0b283f",
+    "bgGray": "#0E0E14",
+    "bgPurple": "#0A0A0F",
+    "bgTeal": "#0A0A0F"
+   },
+   "groups": [
+    {
+     "px": 2209,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "bgBlue"
+     }
+    },
+    {
+     "px": 841,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "bgGray"
+     }
+    },
+    {
+     "px": 285,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(18,21,29,1.00)"
+     }
+    }
+   ]
+  },
+  "97d3b441-1916-48bc-a11c-9af4ff6fb0be": {
+   "name": "Pie Chart - Resource Allocation",
+   "frame": 53,
+   "defaults": {
+    "bgGradientStart": "#f2f8fe",
+    "bgGradientEnd": "#e6f1fb"
+   },
+   "groups": [
+    {
+     "px": 11316,
+     "text": {
+      "fixed": "rgba(20,53,80,1.00)"
+     },
+     "backdrop": {
+      "param": "bgGradientStart"
+     }
+    }
+   ]
+  },
+  "988db173-b9f1-484e-bbed-9e33c238ff4a": {
+   "name": "White bold serif text slide-in reveal animation",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#f3f2ff",
+    "shadowColor": "rgba(2,1,8, 0.6)"
+   },
+   "groups": [
+    {
+     "px": 93473,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 12343,
+     "text": {
+      "param": "shadowColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "99e8292a-f939-469e-82c8-3ff5334ae41b": {
+   "name": "Dark Tech — Spec Sheet",
+   "frame": 251,
+   "defaults": {
+    "neonColor": "#34b860",
+    "dotColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 60101,
+     "text": {
+      "param": "neonColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(26,26,26,1.00)"
+     }
+    },
+    {
+     "px": 15948,
+     "text": {
+      "fixed": "rgba(171,171,171,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(26,26,26,1.00)"
+     }
+    }
+   ]
+  },
+  "9b186c75-5a70-429d-bcfb-a09805172ef9": {
+   "name": "Donut Chart - Budget Allocation",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#E8E6F0",
+    "cardColor": "#ffffff",
+    "seg1Color": "#2eeacf",
+    "seg2Color": "#009c47",
+    "seg3Color": "#d4a800",
+    "seg4Color": "#009dd9",
+    "seg5Color": "#bf5cb8"
+   },
+   "groups": [
+    {
+     "px": 15366,
+     "text": {
+      "fixed": "rgba(59,66,67,1.00)"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    }
+   ]
+  },
+  "9c22e1ef-0735-46a9-9e63-c4f276aa6592": {
+   "name": "MindSpace — Chapter Five: Growth",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#007792",
+    "accentColor": "#64b3ff",
+    "bloomColor": "#00819e"
+   },
+   "groups": [
+    {
+     "px": 33842,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(1,7,12,1.00)"
+     }
+    },
+    {
+     "px": 3082,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "bloomColor"
+     }
+    }
+   ]
+  },
+  "9c9d88f8-9123-4a5a-8236-cbeca6925318": {
+   "name": "Reconstruction Era — Highlight Quote",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#22323b",
+    "bgColor": "#F3EBE1"
+   },
+   "groups": [
+    {
+     "px": 13905,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "9d11fc67-dc78-4d78-b797-f0d76c816858": {
+   "name": "Savings Plan Sidebar",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#0077c9",
+    "bgColor": "#e4edff",
+    "cardBgColor": "#E5E5E5"
+   },
+   "groups": [
+    {
+     "px": 17873,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 8551,
+     "text": {
+      "fixed": "rgba(10,26,38,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 1879,
+     "text": {
+      "fixed": "rgba(103,128,144,1.00)"
+     },
+     "backdrop": {
+      "param": "cardBgColor"
+     }
+    },
+    {
+     "px": 1558,
+     "text": {
+      "param": "cardBgColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(103,128,144,1.00)"
+     }
+    },
+    {
+     "px": 1022,
+     "text": {
+      "fixed": "rgba(249,252,254,1.00)"
+     },
+     "backdrop": {
+      "param": "primaryColor"
+     }
+    }
+   ]
+  },
+  "9d2bedfe-7840-4bfa-80d4-7e27074071bc": {
+   "name": "Community Welcome Screen",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#FFFFFF",
+    "bgBlue": "#3e654c",
+    "bgAmber": "#34583e"
+   },
+   "groups": [
+    {
+     "px": 2217,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "bgBlue"
+     }
+    },
+    {
+     "px": 1126,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(18,18,23,1.00)"
+     }
+    }
+   ]
+  },
+  "9e4ffbcc-ec05-4a3b-b54f-0ffe7f571efd": {
+   "name": "Bar Chart - Sales by Region",
+   "frame": 53,
+   "defaults": {
+    "bgGradientStart": "#2f5044",
+    "bgGradientEnd": "#465c54",
+    "barColor": "#ffffff",
+    "trackColor": "rgba(255, 255, 255, 0.15)",
+    "textColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 15538,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgGradientStart"
+     }
+    }
+   ]
+  },
+  "9f4d7811-0ee5-4b92-b8cb-35e980edf8ac": {
+   "name": "Dark Tech — Comparison Table",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#131a27",
+    "dotColor": "#edf4ff",
+    "titleColor": "#98a1b0",
+    "accentLineColor": "#edf4ff"
+   },
+   "groups": [
+    {
+     "px": 19259,
+     "text": {
+      "fixed": "rgba(148,155,168,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 8754,
+     "text": {
+      "param": "titleColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 2008,
+     "text": {
+      "param": "bgColor"
+     },
+     "backdrop": {
+      "param": "accentLineColor"
+     }
+    },
+    {
+     "px": 2008,
+     "text": {
+      "param": "accentLineColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "a75ac7ba-db04-4266-93b9-9ebd0614dc06": {
+   "name": "Finance Explainer — Chapter Marker Notebook",
+   "frame": 53,
+   "defaults": {
+    "highlightColor": "#ffd8fb",
+    "textColor": "#111111"
+   },
+   "groups": [
+    {
+     "px": 98215,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(244,240,230,1.00)"
+     }
+    }
+   ]
+  },
+  "a7b5e885-25ae-4970-9d5e-d451e9d8da7a": {
+   "name": "Bar Chart - Monthly Sales",
+   "frame": 53,
+   "defaults": {
+    "backgroundColor": "#E8E6F0",
+    "cardColor": "#FFFFFF",
+    "accentColor1": "#ffaced",
+    "accentColor2": "#6d72e5",
+    "kpiColor": "#ffaced",
+    "titleColor": "#333333"
+   },
+   "groups": [
+    {
+     "px": 9456,
+     "text": {
+      "param": "titleColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 1412,
+     "text": {
+      "fixed": "rgba(139,135,152,1.00)"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    }
+   ]
+  },
+  "a9f9348f-eb15-4064-b5d8-f164dd82cb9b": {
+   "name": "Glowing Ring MG — bullet list reveal",
+   "frame": 53,
+   "defaults": {
+    "ringColor": "#f6f0ff"
+   },
+   "groups": [
+    {
+     "px": 4747,
+     "text": {
+      "fixed": "rgba(148,142,157,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(83,78,91,1.00)"
+     }
+    }
+   ]
+  },
+  "aa69b6e7-ef97-4baf-8594-c614d4d12117": {
+   "name": "Keyword typing animation",
+   "frame": 53,
+   "defaults": {
+    "highlightColor": "#ff8e7c",
+    "textColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 116885,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 40044,
+     "text": {
+      "param": "highlightColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 7823,
+     "text": {
+      "fixed": "rgba(0,0,0,0.00)"
+     },
+     "backdrop": {
+      "param": "highlightColor"
+     }
+    }
+   ]
+  },
+  "b18138db-db81-4e97-8eec-30e69ca071b3": {
+   "name": "Finance Explainer — Bar Chart Diverging Animated",
+   "frame": 53,
+   "defaults": {
+    "seriesAPos": "#b87f00",
+    "seriesANeg": "#f38c4f",
+    "seriesBPos": "#986300",
+    "seriesBNeg": "#bd6900",
+    "bgColor": "#e8e6e0",
+    "textColor": "#302F25",
+    "gridColor": "#cbdce7"
+   },
+   "groups": [
+    {
+     "px": 11418,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 1085,
+     "text": {
+      "param": "seriesBNeg"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 1078,
+     "text": {
+      "param": "seriesAPos"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "b30d07d4-30ba-4db6-8970-093b1cfcecf7": {
+   "name": "Lower Third - Ball Swipe Typewriter Reveal",
+   "frame": 53,
+   "defaults": {
+    "blueBallColor": "#f15fa9",
+    "redBallColor": "#0098d3",
+    "bgColor": "#f5f2ed",
+    "mainColor": "#1a1a1a",
+    "subColor": "#3a3a3a",
+    "lineColor": "#999999"
+   },
+   "groups": [
+    {
+     "px": 50687,
+     "text": {
+      "param": "bgColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 8699,
+     "text": {
+      "param": "mainColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 2915,
+     "text": {
+      "param": "mainColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 2563,
+     "text": {
+      "param": "lineColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "b5cb1e75-4e94-4f37-b5c6-4c309320b2bd": {
+   "name": "Minimal Gradient — Team Members",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#222222",
+    "bgColor": "#FFFDF8",
+    "accentColor1": "#cfcbe9",
+    "accentColor2": "#eccfe5"
+   },
+   "groups": [
+    {
+     "px": 31430,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "b6ed6fcb-f11c-4209-8f45-9217ccb9d03c": {
+   "name": "Divided Name Lower Third",
+   "frame": 53,
+   "defaults": {
+    "cardColor": "#edf4ff",
+    "textColor": "#1f2633",
+    "lineColor": "#848d9c",
+    "accentColor": "#2d3340"
+   },
+   "groups": [
+    {
+     "px": 20891,
+     "text": {
+      "param": "cardColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 9200,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    }
+   ]
+  },
+  "b820ad1e-f2e5-4a49-93de-28add26db506": {
+   "name": "Lower Third - Minimal Flat",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#00873d"
+   },
+   "groups": [
+    {
+     "px": 59042,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 3562,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "bf565cad-9797-470c-909a-e91e5f5ba0a8": {
+   "name": "X Quote Card",
+   "frame": 53,
+   "defaults": {},
+   "groups": [
+    {
+     "px": 6690,
+     "text": {
+      "fixed": "rgba(115,132,116,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    }
+   ]
+  },
+  "c1d4287a-a6b4-4710-a1dd-bc6420554923": {
+   "name": "Tech Trends 2026 — Data Chart",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#1A1A1A",
+    "gradientStart": "#dd84ca",
+    "gradientEnd": "#a88fff",
+    "bgColor": "#F8F9FA"
+   },
+   "groups": [
+    {
+     "px": 8097,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "c480c5c8-9812-49ab-a04b-1dfef0405aa8": {
+   "name": "Alert Card",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#ff69b4",
+    "primaryColor": "#000000",
+    "backgroundColor": "#FFFFFF"
+   },
+   "groups": [
+    {
+     "px": 12089,
+     "text": {
+      "fixed": "rgba(255,249,252,1.00)"
+     },
+     "backdrop": {
+      "param": "accentColor"
+     }
+    },
+    {
+     "px": 4771,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    },
+    {
+     "px": 1661,
+     "text": {
+      "fixed": "rgba(124,124,124,1.00)"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "c63df7ef-fc63-491b-ae4b-30a34d88d8ae": {
+   "name": "Bar Chart - Quarterly Revenue Comparison",
+   "frame": 53,
+   "defaults": {
+    "productAColor": "#3dbefd",
+    "productBColor": "#00bdbe",
+    "bgColor": "#E8E6F0",
+    "titleColor": "#333333"
+   },
+   "groups": [
+    {
+     "px": 11144,
+     "text": {
+      "param": "titleColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    },
+    {
+     "px": 2867,
+     "text": {
+      "fixed": "rgba(136,136,136,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    },
+    {
+     "px": 2856,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "productAColor"
+     }
+    },
+    {
+     "px": 2804,
+     "text": {
+      "param": "productAColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    },
+    {
+     "px": 2394,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "productBColor"
+     }
+    },
+    {
+     "px": 2112,
+     "text": {
+      "param": "productBColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    }
+   ]
+  },
+  "c70deeb4-4dbd-4b99-b755-ef391932da88": {
+   "name": "Paper texture text pop-up animation",
+   "frame": 53,
+   "defaults": {
+    "highlightColor": "#97c600",
+    "textColor": "#1A1A1A",
+    "bgColor": "#F0EFED"
+   },
+   "groups": [
+    {
+     "px": 54166,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 21370,
+     "text": {
+      "param": "highlightColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "c8675840-2115-4060-be44-0d6be2fc8827": {
+   "name": "Dial Chapter Card",
+   "frame": 53,
+   "defaults": {
+    "themeColor": "#a65246",
+    "bgColor": "#F5F0E8",
+    "trackColor": "#cc9161"
+   },
+   "groups": [
+    {
+     "px": 38312,
+     "text": {
+      "param": "themeColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "ccbf5be2-d5a7-45f5-835a-016ad845cc33": {
+   "name": "Progress Bar Title Card",
+   "frame": 53,
+   "defaults": {
+    "headerColor": "#ff7c69",
+    "progressColor": "#a2dcff",
+    "cardColor": "#FFFFFF",
+    "accentColor": "#000000",
+    "textColor": "#000000"
+   },
+   "groups": [
+    {
+     "px": 5849,
+     "text": {
+      "fixed": "rgba(0,0,0,1.00)"
+     },
+     "backdrop": {
+      "param": "accentColor"
+     }
+    },
+    {
+     "px": 5703,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "headerColor"
+     }
+    },
+    {
+     "px": 4732,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 3586,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 1694,
+     "text": {
+      "param": "cardColor"
+     },
+     "backdrop": {
+      "param": "accentColor"
+     }
+    },
+    {
+     "px": 1231,
+     "text": {
+      "param": "headerColor"
+     },
+     "backdrop": {
+      "param": "accentColor"
+     }
+    }
+   ]
+  },
+  "ce7beafd-29bf-45cd-aa55-4e51346bfef6": {
+   "name": "MindSpace — Chapter Four: Healing",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#007893",
+    "accentColor": "#5cb0ff",
+    "bloomColor": "#0087a6"
+   },
+   "groups": [
+    {
+     "px": 36935,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(0,6,9,1.00)"
+     }
+    }
+   ]
+  },
+  "d03ead86-a81b-4638-98d3-2fae21c1715b": {
+   "name": "Bar Chart - Monthly User Growth",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#212038",
+    "barColorStart": "#bd53aa",
+    "barColorEnd": "#a191e6"
+   },
+   "groups": [
+    {
+     "px": 16557,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "d2154a1c-35fa-4685-bbe6-e577adab14bb": {
+   "name": "MindSpace — Weekly Progress Bar Chart",
+   "frame": 53,
+   "defaults": {
+    "barColor": "#00baa3",
+    "textColor": "#FFFFFF",
+    "bgBaseColor": "#001014",
+    "bgGlowColor": "#4c7475"
+   },
+   "groups": [
+    {
+     "px": 61916,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgBaseColor"
+     }
+    }
+   ]
+  },
+  "d82c1bd4-4654-4f92-809d-32eba00a88f0": {
+   "name": "Benchmark Score Comparison",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#000000",
+    "subtextColor": "#666666",
+    "backgroundColor": "#e8e8e8",
+    "singleColorStart": "#00a490",
+    "singleColorEnd": "#85e09a",
+    "multiColorStart": "#a28000",
+    "multiColorEnd": "#00aced"
+   },
+   "groups": [
+    {
+     "px": 14140,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    },
+    {
+     "px": 990,
+     "text": {
+      "param": "subtextColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "d9970c80-3703-4aa6-a4b1-882d7ce0e906": {
+   "name": "Chapter page number icon animation",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#f385dd",
+    "textColor": "#111111",
+    "bgColor": "#EBEBEB"
+   },
+   "groups": [
+    {
+     "px": 32588,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 6953,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(255,255,255,1.00)"
+     }
+    },
+    {
+     "px": 1695,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "dbbdb754-7b3f-49c9-afd6-c4fea2afeec3": {
+   "name": "Reconstruction Era — Lower Third Name Tag",
+   "frame": 53,
+   "defaults": {
+    "panelColor": "#F5EFE6",
+    "textColor": "#3a2b19",
+    "borderColor": "#6f5c3c"
+   },
+   "groups": [
+    {
+     "px": 4327,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "panelColor"
+     }
+    }
+   ]
+  },
+  "dcdf9f3a-2878-4788-af40-69007b040f8c": {
+   "name": "Principle card with diagonal band grow animation",
+   "frame": 53,
+   "defaults": {
+    "backgroundColor": "#f8f5ee",
+    "curveColor": "#eee9de",
+    "cardColor": "#ffffff",
+    "textColor": "#0d0c0a",
+    "iconPrimaryColor": "#6cdc89",
+    "iconSecondaryColor": "#57a368",
+    "iconStrokeColor": "#16311b"
+   },
+   "groups": [
+    {
+     "px": 13380,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    },
+    {
+     "px": 651,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 528,
+     "text": {
+      "param": "cardColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "dd96bb2f-ec3c-466b-84b6-23c5735339b7": {
+   "name": "Data Chart — Investment Portfolio Allocation",
+   "frame": 53,
+   "defaults": {
+    "color1": "#edf4ff",
+    "color2": "#c3cddd",
+    "color3": "#808998",
+    "color4": "#3e4450",
+    "bgColor": "#0a111e"
+   },
+   "groups": [
+    {
+     "px": 12994,
+     "text": {
+      "param": "color1"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 1846,
+     "text": {
+      "fixed": "rgba(146,155,170,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "dde936b2-bdc0-411d-800e-9fbfc34e3827": {
+   "name": "Takeaway lower-third overlay",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#0092ce",
+    "textColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 82236,
+     "text": {
+      "fixed": "rgba(255,255,255,0.24)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 28704,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "dfda4ffe-ab11-4da3-94e7-963a41d79fb4": {
+   "name": "Editorial Title Card",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#05121d",
+    "subtitleColor": "#4c575f",
+    "backgroundColor": "#e0edf8"
+   },
+   "groups": [
+    {
+     "px": 83802,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "ec5bfc1f-7826-40ad-9657-46b33ab730e6": {
+   "name": "Lower-third subtitle pop with gradient slide-up and keyword highlight",
+   "frame": 53,
+   "defaults": {
+    "primaryColor": "#ffffff",
+    "highlightColor": "#9ac244",
+    "gradientColor": "rgba(0,0,0,0.8)"
+   },
+   "groups": [
+    {
+     "px": 27090,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "param": "gradientColor"
+     }
+    },
+    {
+     "px": 23100,
+     "text": {
+      "param": "highlightColor"
+     },
+     "backdrop": {
+      "param": "gradientColor"
+     }
+    },
+    {
+     "px": 20193,
+     "text": {
+      "param": "primaryColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ef4231df-8e0a-43b8-9dfc-76bac9c1eeb9": {
+   "name": "Quote Card",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#030100",
+    "bgColor": "#faf3e5",
+    "borderColor": "#030100"
+   },
+   "groups": [
+    {
+     "px": 2848,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "f59761bb-89af-47ae-a79a-bbe0bf1a365c": {
+   "name": "Dual Person Title Card",
+   "frame": 53,
+   "defaults": {
+    "leftAvatarColor": "#baf125",
+    "rightAvatarColor": "#00bfbf",
+    "cardBgColor": "#FFFFFF",
+    "borderColor": "#000000"
+   },
+   "groups": [
+    {
+     "px": 10202,
+     "text": {
+      "param": "borderColor"
+     },
+     "backdrop": {
+      "param": "cardBgColor"
+     }
+    }
+   ]
+  },
+  "f7361a72-e5c6-4ed7-aebf-95fd541676d5": {
+   "name": "Benchmark Bar Chart - Pantone Warm",
+   "frame": 53,
+   "defaults": {
+    "textColor": "#333333",
+    "subtextColor": "#666666",
+    "backgroundColor": "#FAF5F0",
+    "singleColorStart": "#ef9b38",
+    "singleColorEnd": "#ebc77e",
+    "multiColorStart": "#da8246",
+    "multiColorEnd": "#f2a972"
+   },
+   "groups": [
+    {
+     "px": 14066,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    },
+    {
+     "px": 1007,
+     "text": {
+      "param": "subtextColor"
+     },
+     "backdrop": {
+      "param": "backgroundColor"
+     }
+    }
+   ]
+  },
+  "f9b5adcd-fc88-4f3b-b4f2-c74befe1317e": {
+   "name": "Pie Chart - User Sources",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "#00292d",
+    "color1Start": "#18d7d5",
+    "color1End": "#00bab9",
+    "color2Start": "#57c15d",
+    "color2End": "#009656",
+    "color3Start": "#c49c00",
+    "color3End": "#886b00",
+    "color4Start": "#53d3a5",
+    "color4End": "#339472",
+    "color5Start": "#57baff",
+    "color5End": "#009cc9"
+   },
+   "groups": [
+    {
+     "px": 34223,
+     "text": {
+      "fixed": "rgba(255,255,255,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "fc1c2614-8907-4dd4-b0ea-0ef7f272a3e0": {
+   "name": "Numbered list card — 4 items with circle stroke animation",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#c359af",
+    "textColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 15137,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(8,6,14,1.00)"
+     }
+    }
+   ]
+  },
+  "kb-beige-grid": {
+   "name": "口播·米色格纹（横）",
+   "frame": 143,
+   "defaults": {
+    "accentColor": "#ffd66e",
+    "bgColor": "#f6f1e6"
+   },
+   "groups": [
+    {
+     "px": 38395,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 25611,
+     "text": {
+      "fixed": "rgba(41,36,33,1.00)"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "kb-chalkboard": {
+   "name": "口播·黑板报（横）",
+   "frame": 143,
+   "defaults": {},
+   "groups": [
+    {
+     "px": 28268,
+     "text": {
+      "fixed": "rgba(243,239,228,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(46,58,51,1.00)"
+     }
+    }
+   ]
+  },
+  "kb-collage-split": {
+   "name": "口播·侧栏拼贴（横）",
+   "frame": 143,
+   "defaults": {
+    "accentColor": "#f7a8b8"
+   },
+   "groups": [
+    {
+     "px": 26189,
+     "text": {
+      "fixed": "rgba(44,38,32,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(250,245,235,1.00)"
+     }
+    },
+    {
+     "px": 1148,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(250,245,235,1.00)"
+     }
+    }
+   ]
+  },
+  "kb-cream-window": {
+   "name": "口播·奶油拍立得（竖）",
+   "frame": 143,
+   "defaults": {
+    "accentColor": "#f7a8b8"
+   },
+   "groups": [
+    {
+     "px": 45154,
+     "text": {
+      "fixed": "rgba(252,224,157,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(248,241,227,1.00)"
+     }
+    }
+   ]
+  },
+  "kb-kraft-corner": {
+   "name": "口播·牛皮纸圆窗（竖）",
+   "frame": 143,
+   "defaults": {},
+   "groups": [
+    {
+     "px": 107650,
+     "text": {
+      "fixed": "rgba(251,243,228,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(147,114,71,1.00)"
+     }
+    }
+   ]
+  },
+  "kb-latte-lines": {
+   "name": "口播·奶咖横线（横）",
+   "frame": 143,
+   "defaults": {
+    "accentColor": "#f4b268"
+   },
+   "groups": [
+    {
+     "px": 33945,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(239,229,211,1.00)"
+     }
+    },
+    {
+     "px": 27473,
+     "text": {
+      "fixed": "rgba(51,41,31,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(239,229,211,1.00)"
+     }
+    }
+   ]
+  },
+  "kb-parchment": {
+   "name": "口播·羊皮纸（横）",
+   "frame": 143,
+   "defaults": {},
+   "groups": [
+    {
+     "px": 28491,
+     "text": {
+      "fixed": "rgba(77,58,31,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(181,159,113,1.00)"
+     }
+    }
+   ]
+  },
+  "kb-split-dots": {
+   "name": "口播·点阵五五分（竖）",
+   "frame": 143,
+   "defaults": {
+    "accentColor": "#e8582e"
+   },
+   "groups": [
+    {
+     "px": 35557,
+     "text": {
+      "fixed": "rgba(58,52,46,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(250,246,238,1.00)"
+     }
+    },
+    {
+     "px": 26624,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(250,246,238,1.00)"
+     }
+    },
+    {
+     "px": 5703,
+     "text": {
+      "fixed": "rgba(255,253,246,1.00)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "kb-split-note": {
+   "name": "口播·便签五五分（竖）",
+   "frame": 143,
+   "defaults": {},
+   "groups": [
+    {
+     "px": 29116,
+     "text": {
+      "fixed": "rgba(56,48,31,1.00)"
+     },
+     "backdrop": {
+      "fixed": "rgba(253,240,184,1.00)"
+     }
+    },
+    {
+     "px": 15626,
+     "text": {
+      "fixed": "rgba(255,253,246,1.00)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-before-after": {
+   "name": "竖屏·前后对比条",
+   "frame": 53,
+   "defaults": {
+    "beforeColor": "#f87171",
+    "afterColor": "#4ade80",
+    "textColor": "#fafafa"
+   },
+   "groups": [
+    {
+     "px": 9292,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(15,23,42,0.88)"
+     }
+    },
+    {
+     "px": 1646,
+     "text": {
+      "param": "afterColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(15,23,42,0.88)"
+     }
+    },
+    {
+     "px": 1630,
+     "text": {
+      "param": "beforeColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(15,23,42,0.88)"
+     }
+    }
+   ]
+  },
+  "ss-big-caption": {
+   "name": "竖屏·大字幕条",
+   "frame": 53,
+   "defaults": {
+    "bgColor": "rgba(0,0,0,0.72)",
+    "textColor": "#ffffff",
+    "accentColor": "#38bdf8"
+   },
+   "groups": [
+    {
+     "px": 5761,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "ss-big-number": {
+   "name": "竖屏·数字大字报",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#60a5fa",
+    "textColor": "#f8fafc"
+   },
+   "groups": [
+    {
+     "px": 8720,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 1463,
+     "text": {
+      "fixed": "rgba(96,165,250,0.62)"
+     },
+     "backdrop": {
+      "param": "accentColor"
+     }
+    }
+   ]
+  },
+  "ss-chapter": {
+   "name": "竖屏·章节进度",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#818cf8",
+    "textColor": "#eef2ff",
+    "bgColor": "rgba(15,23,42,0.86)"
+   },
+   "groups": [
+    {
+     "px": 3674,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    }
+   ]
+  },
+  "ss-checklist": {
+   "name": "竖屏·清单勾选",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#4ade80",
+    "textColor": "#f0fdf4"
+   },
+   "groups": [
+    {
+     "px": 15447,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-cover-title": {
+   "name": "竖屏·封面大字",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#f43f5e",
+    "textColor": "#fafafa"
+   },
+   "groups": [
+    {
+     "px": 16808,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-cta-follow": {
+   "name": "竖屏·关注引导",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#fb7185",
+    "textColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 6053,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-episode-badge": {
+   "name": "竖屏·期数角标",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#94a3b8",
+    "textColor": "#f8fafc",
+    "bgColor": "rgba(15,23,42,0.9)"
+   },
+   "groups": [
+    {
+     "px": 24488,
+     "text": {
+      "param": "bgColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 1618,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 1194,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-keyword-pop": {
+   "name": "竖屏·重点词弹出",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#ff4d6d",
+    "textColor": "#ffffff"
+   },
+   "groups": [
+    {
+     "px": 45567,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 19458,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 9645,
+     "text": {
+      "fixed": "rgba(116,34,49,0.20)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-name-bar": {
+   "name": "竖屏·姓名条",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#22d3ee",
+    "bgColor": "rgba(15,23,42,0.88)",
+    "textColor": "#f1f5f9"
+   },
+   "groups": [
+    {
+     "px": 17532,
+     "text": {
+      "param": "bgColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 833,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "bgColor"
+     }
+    },
+    {
+     "px": 692,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-note-sticker": {
+   "name": "竖屏·便签贴纸",
+   "frame": 53,
+   "defaults": {
+    "paperColor": "#fef3c7",
+    "inkColor": "#292524",
+    "tapeColor": "#fbbf24"
+   },
+   "groups": [
+    {
+     "px": 2484,
+     "text": {
+      "param": "inkColor"
+     },
+     "backdrop": {
+      "param": "paperColor"
+     }
+    }
+   ]
+  },
+  "ss-price-tag": {
+   "name": "竖屏·价格标签",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#fb923c",
+    "textColor": "#fff7ed"
+   },
+   "groups": [
+    {
+     "px": 52616,
+     "text": {
+      "fixed": "rgba(28,25,23,0.92)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 9856,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 4083,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(28,25,23,0.92)"
+     }
+    },
+    {
+     "px": 2218,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  },
+  "ss-quote-card": {
+   "name": "竖屏·金句卡片",
+   "frame": 53,
+   "defaults": {
+    "cardColor": "#0f172aee",
+    "textColor": "#f8fafc",
+    "accentColor": "#a78bfa"
+   },
+   "groups": [
+    {
+     "px": 8440,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    }
+   ]
+  },
+  "ss-social-actions": {
+   "name": "竖屏·互动提示",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#fb7185",
+    "textColor": "#fff1f2"
+   },
+   "groups": [
+    {
+     "px": 6705,
+     "text": {
+      "fixed": "rgba(15,23,41,0.75)"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 5695,
+     "text": {
+      "fixed": "rgba(0,0,0,0.07)"
+     },
+     "backdrop": {
+      "fixed": "rgba(15,23,41,0.75)"
+     }
+    },
+    {
+     "px": 1813,
+     "text": {
+      "fixed": "rgba(0,0,0,0.13)"
+     },
+     "backdrop": {
+      "param": "accentColor"
+     }
+    },
+    {
+     "px": 1761,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 1269,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(15,23,41,0.75)"
+     }
+    },
+    {
+     "px": 1248,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    },
+    {
+     "px": 638,
+     "text": {
+      "param": "accentColor"
+     },
+     "backdrop": {
+      "fixed": "rgba(15,23,41,0.75)"
+     }
+    }
+   ]
+  },
+  "ss-step-list": {
+   "name": "竖屏·步骤条",
+   "frame": 53,
+   "defaults": {
+    "accentColor": "#2dd4bf",
+    "textColor": "#ecfdf5",
+    "cardColor": "rgba(15,23,42,0.82)"
+   },
+   "groups": [
+    {
+     "px": 10185,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "param": "cardColor"
+     }
+    },
+    {
+     "px": 5706,
+     "text": {
+      "param": "textColor"
+     },
+     "backdrop": {
+      "video": true
+     }
+    }
+   ]
+  }
+ }
+}

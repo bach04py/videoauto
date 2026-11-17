@@ -7,8 +7,11 @@ applies them.
 
 from __future__ import annotations
 
+import functools
+import json
 import re
 import unicodedata
+from pathlib import Path
 
 MAX_TEXT = 22             # characters per text field; longer overflowed in the Vietnamese font audit
 MIN_OVERLAY = 1.0         # seconds; shorter than this a line cannot be read
@@ -87,14 +90,138 @@ def _with_alpha(brand_hex: str, default) -> str:
     return brand_hex
 
 
-def brand_colour_props(template: dict, colors: dict[str, str]) -> dict[str, str]:
-    """Colour props for one template from brand.colors (role -> #RRGGBB)."""
+def brand_colour_props(template: dict, colors: dict[str, str],
+                       defaults: dict | None = None) -> dict[str, str]:
+    """Colour props for one template from brand.colors (role -> #RRGGBB), before any contrast
+    check. `defaults` (the template's real props, from the colour table) wins over the
+    catalogue's param defaults, which are the code fallbacks and can differ."""
     out = {}
     for p in template.get("params", []):
         role = _ROLE_OF.get(p["key"]) if p.get("type") == "color" else None
         if role and role in colors:
-            out[p["key"]] = _with_alpha(colors[role], p.get("default"))
+            d = (defaults or {}).get(p["key"], p.get("default"))
+            out[p["key"]] = _with_alpha(colors[role], d)
     return out
+
+
+# ---------------------------------------------------------------- contrast
+
+# Measured per template by `python -m videoauto.templates --measure-colours` (brand-independent):
+# for the pixels of the template's text, which colour prop (or fixed colour) paints the text and
+# which paints what is behind it ("video" where the overlay is transparent). See templates.py.
+COLOUR_TABLE = Path(__file__).with_name("overlay_colours.json")
+MIN_CONTRAST = 3.0      # WCAG AA for large text; overlay text is display-sized
+
+
+@functools.cache
+def colour_table() -> dict:
+    try:
+        return json.loads(COLOUR_TABLE.read_text(encoding="utf-8"))["templates"]
+    except (OSError, ValueError, KeyError):
+        return {}
+
+
+_HEX = re.compile(r"#([0-9a-fA-F]{3,8})")
+_RGB = re.compile(r"rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)")
+
+
+def parse_colour(value) -> tuple[float, float, float, float] | None:
+    """#rgb, #rgba, #rrggbb, #rrggbbaa, rgb(), rgba() -> (r, g, b, a), r/g/b 0-255, a 0-1."""
+    s = str(value or "").strip()
+    m = _HEX.fullmatch(s)
+    if m:
+        h = m.group(1)
+        if len(h) in (3, 4):
+            h = "".join(c * 2 for c in h)
+        if len(h) not in (6, 8):
+            return None
+        a = int(h[6:8], 16) / 255 if len(h) == 8 else 1.0
+        return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16), a
+    m = _RGB.fullmatch(s)
+    if m:
+        a = float(m.group(4)) if m.group(4) is not None else 1.0
+        return float(m.group(1)), float(m.group(2)), float(m.group(3)), min(1.0, a)
+    return None
+
+
+def _luminance(rgb) -> float:
+    def lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(c) for c in rgb[:3])
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _over(top, under_rgb):
+    a = top[3]
+    return tuple(top[i] * a + under_rgb[i] * (1 - a) for i in range(3))
+
+
+def contrast(text, backdrop) -> float:
+    """WCAG contrast ratio of text over backdrop (both (r,g,b,a)). A translucent backdrop is laid
+    over black and over white video, and the worse of the two counts."""
+    worst = 21.0
+    for video in ((0, 0, 0), (255, 255, 255)):
+        bd = _over(backdrop, video)
+        tx = _over(text, bd)
+        hi, lo = sorted((_luminance(tx), _luminance(bd)), reverse=True)
+        worst = min(worst, (hi + 0.05) / (lo + 0.05))
+    return worst
+
+
+def readable_brand_props(template: dict, colors: dict[str, str],
+                         table: dict | None = None) -> tuple[dict[str, str], list[str]]:
+    """Brand colour props that keep the template's text readable, plus Vietnamese notes for
+    every brand colour that was not applied.
+
+    For each measured text/backdrop pair: if the brand colours push it below MIN_CONTRAST and
+    below the template's own contrast, the brand colour on the text is dropped first, else the
+    one on the backdrop; the template's real default then stays. Text over transparent video
+    is not checked (there is nothing fixed to measure against). A template that was never
+    measured keeps all of its own colours: readability cannot be checked, so nothing is forced."""
+    if not colors:
+        return {}, []
+    info = (colour_table() if table is None else table).get(template.get("id") or template_key(template["assetId"]))
+    if not info:
+        wanted = brand_colour_props(template, colors)
+        return {}, ([f"giữ màu của template cho {', '.join(wanted)}: template chưa được đo màu chữ/nền "
+                     "nên không kiểm tra được độ tương phản"] if wanted else [])
+    defaults = info.get("defaults") or {}
+    props = brand_colour_props(template, colors, defaults)
+    notes = []
+
+    def colour(src, use):
+        if "fixed" in src:
+            return parse_colour(src["fixed"])
+        k = src["param"]
+        return parse_colour(use.get(k, defaults.get(k)))
+
+    for _ in range(4):                      # one colour dropped per failing pair and pass
+        changed = False
+        for g in info.get("groups", []):
+            if g["backdrop"].get("video"):
+                continue
+            mine = [s["param"] for s in (g["text"], g["backdrop"]) if s.get("param") in props]
+            if not mine:
+                continue
+            t, b = colour(g["text"], props), colour(g["backdrop"], props)
+            t0, b0 = colour(g["text"], {}), colour(g["backdrop"], {})
+            if None in (t, b, t0, b0):
+                k = mine[0]
+                notes.append(f"giữ màu template cho {k}: không đọc được màu chữ/nền để kiểm tra tương phản")
+            else:
+                c, c0 = contrast(t, b), contrast(t0, b0)
+                if c >= MIN_CONTRAST or c >= c0:
+                    continue
+                k = mine[0]                 # text side first: it is listed first
+                who = "chữ" if k == g["text"].get("param") else "nền sau chữ"
+                notes.append(f"giữ màu template cho {k} ({who}): màu thương hiệu {props[k]} chỉ cho "
+                             f"độ tương phản {c:.1f}:1 (cần ≥ {MIN_CONTRAST:g}:1; màu gốc {c0:.1f}:1)")
+            props.pop(k)
+            changed = True
+        if not changed:
+            break
+    return props, notes
 
 
 # ---------------------------------------------------------------- text

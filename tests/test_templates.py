@@ -9,6 +9,9 @@ import sys
 from videoauto import templates as tp
 
 COLORS = {"accent": "#ED1C24", "ink": "#1A1A1A", "on_accent": "#FFFFFF"}
+# measured colours for template "b": its title sits on the bgColor card, nothing on video
+TABLE = {"b": {"defaults": {"accentColor": "#00ff00", "bgColor": "rgba(0,0,0,0.72)", "textColor": "#000000"},
+               "groups": [{"px": 900, "text": {"fixed": "#ffffff"}, "backdrop": {"param": "bgColor"}}]}}
 
 
 def _p(key, type_, default=None):
@@ -36,38 +39,45 @@ ITEMS = [
 
 
 def test_only_vi_ok_templates_sorted_by_group_then_name():
-    items = tp.preview_items(ITEMS, COLORS)
+    items = tp.preview_items(ITEMS, COLORS, table=TABLE)
     assert [(it["n"], it["id"], it["group"]) for it in items] == [(1, "b", "lower-thirds"), (2, "a", "social-shorts")]
     assert items[1]["orientation"] == "vertical"
 
 
 def test_sample_text_goes_to_word_fields_only():
-    b = tp.preview_items(ITEMS, COLORS)[0]
+    b = tp.preview_items(ITEMS, COLORS, table=TABLE)[0]
     assert b["fill"] == ["titleText", "introText"]       # not units, data, years, URLs or empty fields
     assert b["overrides"]["titleText"] == tp.SAMPLE_TEXT == "ĐỐT MỠ ĐÓN TẾT"
     assert "unit" not in b["overrides"] and "dataValues" not in b["overrides"]
 
 
 def test_brand_colours_applied_keeping_alpha():
-    b = tp.preview_items(ITEMS, COLORS)[0]
+    b = tp.preview_items(ITEMS, COLORS, table=TABLE)[0]
     assert b["overrides"]["accentColor"] == "#ED1C24"
     assert b["overrides"]["bgColor"] == "rgba(26,26,26,0.72)"
     assert "shadowColor" not in b["overrides"]           # not a brand role: template default
+    assert b["colour_notes"] == []
+
+
+def test_unreadable_brand_colour_is_held_back_and_listed():
+    light = {"b": {**TABLE["b"], "groups": [{"px": 900, "text": {"fixed": "#202020"}, "backdrop": {"param": "bgColor"}}]}}
+    b = tp.preview_items(ITEMS, COLORS, table=light)[0]
+    assert "bgColor" not in b["overrides"] and "bgColor (nền sau chữ)" in b["colour_notes"][0]
 
 
 def test_no_brand_colours_means_template_defaults():
-    b = tp.preview_items(ITEMS, {})[0]
+    b = tp.preview_items(ITEMS, {}, table=TABLE)[0]
     assert set(b["overrides"]) == {"titleText", "introText"}
 
 
 def test_animation_and_shadow_outline_fields():
-    b = tp.preview_items(ITEMS, COLORS)[0]
+    b = tp.preview_items(ITEMS, COLORS, table=TABLE)[0]
     assert b["animation"] == ["wordDelay", "introAnimation"]          # introText is text, not a knob
     assert b["shadow_outline"] == ["shadowColor", "strokeWidth", "borderColor"]   # no radius, no bg glow
 
 
 def test_tsv(tmp_path):
-    items = tp.preview_items(ITEMS, COLORS)
+    items = tp.preview_items(ITEMS, COLORS, table=TABLE)
     results = {1: {"n": 1, "status": "ok", "frame": 53, "durationInFrames": 90, "sheet": "sheets/01-horizontal.png"},
                2: {"n": 2, "status": "error", "error": "boom"}}
     tp.write_tsv(tmp_path / "t.tsv", items, results)
@@ -76,6 +86,7 @@ def test_tsv(tmp_path):
     assert rows[0]["animation_fields"] == "wordDelay,introAnimation"
     assert rows[0]["shadow_outline_fields"] == "shadowColor,strokeWidth,borderColor"
     assert rows[0]["brand_colour_fields"] == "accentColor,bgColor"
+    assert rows[0]["kept_template_colour"] == ""
     assert rows[0]["frame"] == "53/90" and rows[0]["sheet"] == "sheets/01-horizontal.png"
     assert rows[1]["status"] == "error: boom" and rows[1]["name"] == "Alpha card"
 

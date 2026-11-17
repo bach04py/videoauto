@@ -7,6 +7,11 @@ shadow/outline fields each template exposes). No model calls: catalogue.json + O
 Remotion bundle only.
 
 Without --preview it only prints the vi_ok templates (n, id, name, group).
+
+--measure-colours (maintainers, after the templates change): renders every vi_ok template in
+its own colours and records, for the pixels of its text, which colour prop paints the text and
+which paints what is behind it. Written to videoauto/planner/overlay_colours.json, which the
+planner and builder use to keep brand colours from making text unreadable.
 """
 
 from __future__ import annotations
@@ -68,26 +73,31 @@ def sample_fields(tpl: dict) -> list[str]:
     return out
 
 
-def preview_items(items: list[dict], colors: dict[str, str], text: str = SAMPLE_TEXT) -> list[dict]:
-    """vi_ok templates sorted by group then name, numbered from 1, with the props to render."""
+def preview_items(items: list[dict], colors: dict[str, str], text: str = SAMPLE_TEXT,
+                  table: dict | None = None) -> list[dict]:
+    """vi_ok templates sorted by group then name, numbered from 1, with the props to render:
+    the same contrast-checked brand colours a build would use."""
     tpls = sorted((it for it in items if it.get("kind") == "template" and it.get("vi_ok")),
                   key=lambda it: (it.get("category") or "", it.get("name") or "", it["id"]))
     out = []
     for n, it in enumerate(tpls, 1):
         fill = sample_fields(it)
+        colour_props, colour_notes = ov.readable_brand_props(it, colors, table)
         out.append({
             "n": n, "id": it["id"], "assetId": it["assetId"], "name": it.get("name", ""),
             "group": it.get("category") or "", "source": it["source"],
             "orientation": ov.orientation(it) or "",
             "fill": fill,
-            "overrides": {**ov.brand_colour_props(it, colors), **{k: text for k in fill}},
+            "overrides": {**colour_props, **{k: text for k in fill}},
+            "colour_notes": colour_notes,
             "animation": animation_fields(it), "shadow_outline": shadow_outline_fields(it),
         })
     return out
 
 
 TSV_COLUMNS = ("n", "id", "name", "group", "orientation", "animation_fields", "shadow_outline_fields",
-               "text_fields_filled", "brand_colour_fields", "frame", "sheet", "status")
+               "text_fields_filled", "brand_colour_fields", "kept_template_colour", "frame", "sheet",
+               "status")
 
 
 def write_tsv(path: Path, items: list[dict], results: dict[int, dict]) -> None:
@@ -99,7 +109,7 @@ def write_tsv(path: Path, items: list[dict], results: dict[int, dict]) -> None:
             colour_keys = [k for k in it["overrides"] if k not in it["fill"]]
             w.writerow([it["n"], it["id"], it["name"], it["group"], it["orientation"],
                         ",".join(it["animation"]), ",".join(it["shadow_outline"]),
-                        ",".join(it["fill"]), ",".join(colour_keys),
+                        ",".join(it["fill"]), ",".join(colour_keys), " | ".join(it["colour_notes"]),
                         "" if r.get("frame") is None else f'{r["frame"]}/{r.get("durationInFrames", "")}',
                         r.get("sheet", ""), r.get("status", "not_rendered")
                         + (f': {r["error"]}' if r.get("error") else "")])
@@ -110,6 +120,8 @@ def main(argv: list[str] | None = None) -> int:
                                  description="Xem trước các template chữ dùng được với tiếng Việt (vi_ok).")
     ap.add_argument("--preview", action="store_true",
                     help="dựng 1 khung hình mỗi template, ghi contact sheet + templates.tsv")
+    ap.add_argument("--measure-colours", action="store_true",
+                    help="(bảo trì) đo màu chữ/nền của mọi template vi_ok, ghi planner/overlay_colours.json")
     ap.add_argument("--out", type=Path, default=Path("previews"), help="thư mục kết quả (mặc định previews/)")
     ap.add_argument("--text", default=SAMPLE_TEXT, help=f'câu mẫu (mặc định "{SAMPLE_TEXT}")')
     ap.add_argument("--only", default=None, help="chỉ các template có id bắt đầu bằng / tên chứa chuỗi này "
@@ -140,6 +152,8 @@ def _run(args) -> int:
         raise UserError("Không có template vi_ok nào khớp. Kiểm tra catalogue.json (cần trường vi_ok) "
                         "hoặc giá trị --only.")
 
+    if args.measure_colours:
+        return _measure(cfg, items, args)
     if not args.preview:
         for it in items:
             print(f'{it["n"]:>3}  {it["id"]}  {it["group"]:<22} {it["name"]}')
@@ -155,22 +169,7 @@ def _run(args) -> int:
     log.info("dựng %d template vi_ok, mỗi cái 1 khung → %s", len(items), out)
 
     t0 = time.monotonic()
-    with tempfile.TemporaryDirectory(prefix="videoauto_preview_") as tmp:
-        job = Path(tmp) / "job.json"
-        job.write_text(json.dumps({
-            "repo": str(cfg.occ.repo.resolve()), "out": str(out), "concurrency": max(1, args.concurrency),
-            "frameCandidates": FRAME_CANDIDATES, "minTextPx": MIN_TEXT_PX, "text": ov.norm(args.text),
-            "title": "videoauto overlay preview", "colors": colors,
-            "templates": [{k: it[k] for k in ("n", "id", "source", "name", "group", "overrides", "fill")}
-                          for it in items],
-        }, ensure_ascii=False), encoding="utf-8")
-        proc = subprocess.run([cfg.occ.node, str(RENDERER), str(job)], cwd=cfg.occ.repo,
-                              stderr=sys.stderr, stdout=sys.stderr)
-    results_path = out / "render-results.json"
-    if proc.returncode != 0 or not results_path.exists():
-        raise UserError(f"Dựng xem trước thất bại (node thoát mã {proc.returncode}). Xem log phía trên; "
-                        "kiểm tra OpenChatCut đã `npm install` và `occ render` chạy được.")
-    results = {r["n"]: r for r in json.loads(results_path.read_text(encoding="utf-8"))["results"] if r}
+    results = _render(cfg, out, "preview", items, args, colors=colors)
     write_tsv(out / "templates.tsv", items, results)
 
     ok = sum(r.get("status") == "ok" for r in results.values())
@@ -185,6 +184,57 @@ def _run(args) -> int:
         log.warning("lỗi #%d %s: %s", r["n"], r["id"], r.get("error"))
     print(out / "templates.tsv")
     return 0 if not failed else 1
+
+
+def _render(cfg, out: Path, mode: str, items: list[dict], args, colors: dict | None = None) -> dict[int, dict]:
+    """Run preview_render.mjs in the OpenChatCut repo; returns its results by n."""
+    from .errors import UserError
+    with tempfile.TemporaryDirectory(prefix="videoauto_preview_") as tmp:
+        job = Path(tmp) / "job.json"
+        job.write_text(json.dumps({
+            "mode": mode, "repo": str(cfg.occ.repo.resolve()), "out": str(out),
+            "concurrency": max(1, args.concurrency), "frameCandidates": FRAME_CANDIDATES,
+            "minTextPx": MIN_TEXT_PX, "text": ov.norm(args.text),
+            "title": "videoauto overlay preview", "colors": colors or {},
+            "templates": [{k: it[k] for k in ("n", "id", "source", "name", "group", "overrides", "fill")}
+                          for it in items],
+        }, ensure_ascii=False), encoding="utf-8")
+        proc = subprocess.run([cfg.occ.node, str(RENDERER), str(job)], cwd=cfg.occ.repo,
+                              stderr=sys.stderr, stdout=sys.stderr)
+    results_path = out / ("colour-measure.json" if mode == "measure" else "render-results.json")
+    if proc.returncode != 0 or not results_path.exists():
+        raise UserError(f"Dựng thất bại (node thoát mã {proc.returncode}). Xem log phía trên; "
+                        "kiểm tra OpenChatCut đã `npm install` và `occ render` chạy được.")
+    return {r["n"]: r for r in json.loads(results_path.read_text(encoding="utf-8"))["results"] if r}
+
+
+def _measure(cfg, items: list[dict], args) -> int:
+    """Brand-independent: template colours + sample text only. Writes planner/overlay_colours.json."""
+    from .builder.occ import Occ
+    Occ(cfg.occ).check()
+    plain = [{**it, "overrides": {k: ov.norm(args.text) for k in it["fill"]}} for it in items]
+    t0 = time.monotonic()
+    with tempfile.TemporaryDirectory(prefix="videoauto_measure_") as tmp:
+        log.info("đo màu chữ/nền của %d template vi_ok…", len(plain))
+        results = _render(cfg, Path(tmp), "measure", plain, args)
+    table = dict(ov.colour_table()) if args.only else {}     # --only updates entries, keeps the rest
+    for it in plain:
+        r = results.get(it["n"]) or {}
+        if r.get("status") == "ok":
+            table[it["id"]] = {"name": it["name"], "frame": r["frame"], "defaults": r["defaults"],
+                               "groups": r["groups"]}
+        else:
+            table.pop(it["id"], None)
+            log.warning("không đo được #%d %s: %s %s", it["n"], it["name"], r.get("status"), r.get("error", ""))
+    ov.COLOUR_TABLE.write_text(json.dumps({
+        "generated_by": "python -m videoauto.templates --measure-colours",
+        "sample_text": ov.norm(args.text), "min_contrast": ov.MIN_CONTRAST,
+        "templates": dict(sorted(table.items())),
+    }, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    ov.colour_table.cache_clear()
+    log.info("xong %.0fs: %d/%d template đã đo → %s", time.monotonic() - t0,
+             sum(1 for it in plain if it["id"] in table), len(plain), ov.COLOUR_TABLE)
+    return 0
 
 
 if __name__ == "__main__":

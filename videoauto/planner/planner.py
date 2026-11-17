@@ -228,7 +228,7 @@ def overlay_templates(cfg: ProjectConfig, cat: Catalogue) -> list[dict]:
     brand = cfg.brand
     out = []
     for it in cat.of_kind("template"):
-        if it.get("vi_ok") is not True or ov.orientation(it) not in (None, cfg.brief.orientation):
+        if it.get("vi_ok") is not True or ov.orientation(it) != cfg.brief.orientation:
             continue
         if not ov.text_params(it):
             continue

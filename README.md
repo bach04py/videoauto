@@ -342,7 +342,9 @@ broken rule drops that overlay with a Vietnamese warning (the plan tier drops to
 
 - **Vietnamese-safe templates only.** A template needs `"vi_ok": true` in `catalogue.json` (136 of
   235 pass OpenChatCut's Vietnamese font audit), and its orientation must match the target (no 16:9
-  template on a 9:16 video). For 9:16 the planner is offered the `social-shorts` group, with
+  template on a 9:16 video). This is checked twice: the planner is only shown matching templates,
+  and the validator drops any other, including a template whose size is unknown. Of the 136, only
+  20 are 9:16. For 9:16 the planner is offered the `social-shorts` group, with
   `竖屏·重点词弹出` (keyword pop, `ss-keyword-pop`) first as the default for a short line.
 - **Script text only, verbatim.** Every non-empty text field must equal one of the script's TEXT
   lines (compared after Unicode NFC normalisation, so a decomposed `ộ` still matches), and each line
@@ -379,12 +381,36 @@ fills a template's colour fields by **exact field name**:
 | `on_accent` | `textColor`, `titleColor`, `nameColor`, `headerTextColor` |
 
 Every other colour field keeps the template's default (e.g. `paperColor`, `gradientColor`,
-`primaryColor`, whose meaning differs between templates). Surfaces get `ink` and text gets
-`on_accent`, so light text stays on a dark surface and contrast survives the swap. When the default
-was translucent, the alpha is kept: `rgba(0,0,0,0.72)` becomes `rgba(26,26,26,0.72)` and
-`#0f172aee` becomes `#1A1A1AEE`. For keyword pop that means `accentColor` (text outline, glow and
-underline bar) = `#ED1C24` and `textColor` = `#FFFFFF`. Without `brand.colors`, templates keep their
-own colours.
+`primaryColor`, whose meaning differs between templates). When the default was translucent, the
+alpha is kept: `rgba(0,0,0,0.72)` becomes `rgba(26,26,26,0.72)` and `#0f172aee` becomes
+`#1A1A1AEE`. For keyword pop that means `accentColor` (text outline, glow and underline bar) =
+`#ED1C24` and `textColor` = `#FFFFFF`. Without `brand.colors`, templates keep their own colours.
+
+**Contrast check: a brand colour is never forced onto unreadable text.** Field names alone do not
+say what sits behind the text. Many templates draw text on a light card that is fixed in their
+code, and some fix the text colour in code while exposing the card colour. Blindly applying the
+roles above put white text on near-white cards, or ink cards under dark text. With the example
+colours (`#ED1C24` / `#1A1A1A` / `#FFFFFF`) that hit 30 of the 136 `vi_ok` templates. So before a brand colour
+is applied, videoauto checks each piece of the template's text against what is behind it. If the
+brand colours bring the contrast below **3:1** (WCAG AA for large text) *and* below the template's
+own contrast, that colour is not applied:
+- the brand colour on the text is dropped first;
+- otherwise the one on the backdrop is dropped;
+- the template's own colour stays.
+
+Each colour that is held back becomes a plan warning, for example
+`overlay 1 (…): giữ màu template cho textColor (chữ): màu thương hiệu #FFFFFF chỉ cho độ tương phản 1.1:1
+(cần ≥ 3:1; màu gốc 13.7:1)`. The overlay itself is kept. Text drawn straight over the video is not
+checked, because the video behind it is unknown. A translucent card is judged over both black and
+white video.
+
+What paints each template's text and its backdrop is **measured**, not guessed, in
+`videoauto/planner/overlay_colours.json`. The table does not depend on the brand. To make it, each
+template is rendered in its own colours, then once per colour field with that field set to a probe
+colour; the pixels that change show which field paints the text and which paints what is behind it.
+Rebuild it after OpenChatCut's templates change:
+`python -m videoauto.templates --measure-colours` (about 7 minutes; `--only <id>` re-measures one).
+A template missing from the table keeps all of its own colours, with a warning.
 
 **How it is built** (probed against `occ` before writing the code): `edit_track create` makes one
 video track for all overlays. It is created **before** the logo track, because `occ` stacks a new
@@ -435,7 +461,9 @@ first, then 45, 80, 30 and 95 %, and keeps the first frame where the text is vis
 - `previews/templates.tsv`: one row per template: `n` (the number on the sheet), `id`, `name`,
   `group`, `orientation`, `animation_fields` (timing knobs such as `wordDelay` and
   `animationSpeed`), `shadow_outline_fields` (`shadowColor`, `strokeWidth`, `borderColor`, glows),
-  the text and brand-colour fields that were filled, the frame, the sheet, and the status.
+  the text and brand-colour fields that were filled, `kept_template_colour` (brand colours held
+  back by the contrast check, and why), the frame, the sheet, and the status. The preview uses
+  exactly the colours a build would use.
 - `previews/frames/NNN.png`: the full-resolution transparent frame.
 
 The sample line goes only into text fields that hold words. Fields whose default is a number,

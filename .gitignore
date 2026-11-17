@@ -22,3 +22,4 @@ plan.json
 # python -m videoauto.watch: folders chosen on this machine
 videoauto.local.yaml
 *.tmp
+previews/

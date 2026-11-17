@@ -418,6 +418,32 @@ Two things this run showed that are not fixed:
 - White text with a thin outline is **hard to read over bright backgrounds** (a window, a lit
   ceiling). Choose calm, darker shots for TEXT beats if you can.
 
+#### Choosing a template by eye: `python -m videoauto.templates --preview`
+
+```
+python -m videoauto.templates --preview --out previews/
+```
+
+This renders **one frame** of every `vi_ok` template (the only ones a plan may use) with your
+`brand.colors` and the sample line `ĐỐT MỠ ĐÓN TẾT`, through OpenChatCut's own Remotion bundle.
+It makes no model calls and needs no footage. For each template it tries 60 % of the duration
+first, then 45, 80, 30 and 95 %, and keeps the first frame where the text is visible. Output:
+
+- `previews/sheets/NN-horizontal.png` and `NN-vertical.png`: labelled contact sheets on a grey
+  checkerboard, so transparent areas show. Each cell is labelled `#n name`, then group, id and
+  frame.
+- `previews/templates.tsv`: one row per template: `n` (the number on the sheet), `id`, `name`,
+  `group`, `orientation`, `animation_fields` (timing knobs such as `wordDelay` and
+  `animationSpeed`), `shadow_outline_fields` (`shadowColor`, `strokeWidth`, `borderColor`, glows),
+  the text and brand-colour fields that were filled, the frame, the sheet, and the status.
+- `previews/frames/NNN.png`: the full-resolution transparent frame.
+
+The sample line goes only into text fields that hold words. Fields whose default is a number,
+year, percentage, URL, a one- or two-character unit, or empty keep their default.
+`--text "..."` changes the line and `--only ss-keyword-pop,Quote` limits the run. Without
+`--preview`, the command only lists the templates. A full run takes a few minutes and needs
+network access for Google Fonts, like `occ render`.
+
 The model provider is configured separately and defaults to the Claude CLI; nothing to do if
 `claude auth status` shows you are logged in. To use an OpenAI-compatible endpoint instead, create
 `videoauto.toml`:

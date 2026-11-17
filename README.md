@@ -340,10 +340,11 @@ The planner places one overlay per TEXT line on its beat and records it in `plan
 The rules are enforced in `videoauto/planner/validate.py`, not only asked for in the prompt. Each
 broken rule drops that overlay with a Vietnamese warning (the plan tier drops to `basic`):
 
-- **Vietnamese-safe templates only.** A template needs `"vi_ok": true` in `catalogue.json` (136 of
-  235 pass OpenChatCut's Vietnamese font audit), and its orientation must match the target (no 16:9
+- **Vietnamese-safe templates only.** A template needs `"vi_ok": true` in `catalogue.json` (131 of
+  235 pass OpenChatCut's two Vietnamese font audits: M2, and M3, which checks that the second mark
+  of stacked letters such as Ố, Ớ and Ắ stays attached), and its orientation must match the target (no 16:9
   template on a 9:16 video). This is checked twice: the planner is only shown matching templates,
-  and the validator drops any other, including a template whose size is unknown. Of the 136, only
+  and the validator drops any other, including a template whose size is unknown. Of the 131, only
   20 are 9:16. For 9:16 the planner is offered the `social-shorts` group, with
   `竖屏·重点词弹出` (keyword pop, `ss-keyword-pop`) first as the default for a short line.
 - **Script text only, verbatim.** Every non-empty text field must equal one of the script's TEXT
@@ -390,7 +391,7 @@ alpha is kept: `rgba(0,0,0,0.72)` becomes `rgba(26,26,26,0.72)` and `#0f172aee` 
 say what sits behind the text. Many templates draw text on a light card that is fixed in their
 code, and some fix the text colour in code while exposing the card colour. Blindly applying the
 roles above put white text on near-white cards, or ink cards under dark text. With the example
-colours (`#ED1C24` / `#1A1A1A` / `#FFFFFF`) that hit 30 of the 136 `vi_ok` templates. So before a brand colour
+colours (`#ED1C24` / `#1A1A1A` / `#FFFFFF`) that hit 30 of the 131 `vi_ok` templates. So before a brand colour
 is applied, videoauto checks each piece of the template's text against what is behind it. If the
 brand colours bring the contrast below **3:1** (WCAG AA for large text) *and* below the template's
 own contrast, that colour is not applied:

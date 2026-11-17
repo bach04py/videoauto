@@ -46,6 +46,23 @@ class OccConfig:
     timeout: int
     max_fail_ratio: float
     video_bitrate_mbps: float = 10.0
+    gpu_encode: str = "auto"          # auto | on | off (see videoauto/gpu.py)
+
+
+GPU_MODES = ("auto", "on", "off")
+PACES = ("fast", "medium", "calm")
+
+
+@dataclass
+class Style:
+    """How the edit should feel; goes into the planning prompt only. Editable from the watcher (S)."""
+    tone: str = ""                     # one line, free text
+    pace: str = ""                     # "" (not set) | fast | medium | calm
+    prefer_luts: list[str] = field(default_factory=list)   # LUT ids from catalogue.json
+
+    @property
+    def is_set(self) -> bool:
+        return bool(self.tone or self.pace or self.prefer_luts)
 
 
 LOGO_POSITIONS = ("top-left", "top-right", "bottom-left", "bottom-right")
@@ -84,6 +101,7 @@ class ProjectConfig:
     occ: OccConfig
     brand: Brand = field(default_factory=Brand)
     script_file: Path | None = None
+    style: Style = field(default_factory=Style)
 
     def script_text(self) -> str:
         """The user's script, or "" when script_file is unset, missing or empty."""
@@ -175,6 +193,7 @@ def load_project_config(path: Path | None = None) -> ProjectConfig:
         timeout=int(o.get("timeout", 1800)),
         max_fail_ratio=float(o.get("max_fail_ratio", 0.30)),
         video_bitrate_mbps=_bitrate(o.get("video_bitrate_mbps", 10)),
+        gpu_encode=gpu_mode(o.get("gpu_encode", "auto")),
     )
     catalogue = _rel(base, raw.get("catalogue") or "catalogue.json")
     footage = raw.get("footage_dir") or raw.get("media_dir")          # media_dir: older name
@@ -182,7 +201,51 @@ def load_project_config(path: Path | None = None) -> ProjectConfig:
                          catalogue=catalogue,
                          min_material_ratio=float(raw.get("min_material_ratio", 0.6)), occ=occ,
                          brand=_brand(base, raw.get("brand")),
-                         script_file=_rel(base, raw.get("script_file")))
+                         script_file=_rel(base, raw.get("script_file")),
+                         style=parse_style(raw.get("style")))
+
+
+def gpu_mode(value) -> str:
+    """openchatcut.gpu_encode. YAML 1.1 reads a bare on/off as true/false: accept both spellings."""
+    if value is None:
+        v = "auto"
+    elif isinstance(value, bool):
+        v = "on" if value else "off"
+    else:
+        v = str(value).strip().lower()
+    if v not in GPU_MODES:
+        raise UserError(f"openchatcut.gpu_encode = {value!r} không hợp lệ. Chọn auto (dùng GPU khi thử mã hoá "
+                        "được), on (bắt buộc GPU, lỗi nếu không có) hoặc off (luôn mã hoá bằng CPU).")
+    return v
+
+
+def split_luts(value) -> list[str]:
+    """prefer_luts as a YAML list, or a comma-separated string (what the watcher editor accepts)."""
+    if value is None or value == "":
+        return []
+    items = value if isinstance(value, list) else str(value).split(",")
+    out = []
+    for it in items:
+        t = str(it if it is not None else "").strip()
+        if t and t not in out:
+            out.append(t)
+    return out
+
+
+def parse_style(raw) -> Style:
+    if not raw:
+        return Style()
+    if not isinstance(raw, dict):
+        raise UserError("style trong config.yaml phải là một bảng khoá: giá trị (tone, pace, prefer_luts).")
+    tone = " ".join(str(raw.get("tone") or "").split())
+    pace = str(raw.get("pace") or "").strip().lower()
+    if pace and pace not in PACES:
+        raise UserError(f"style.pace = {raw.get('pace')!r} không hợp lệ. Chọn một trong: {', '.join(PACES)} "
+                        "(hoặc để trống).")
+    luts = raw.get("prefer_luts")
+    if luts is not None and not isinstance(luts, (list, str)):
+        raise UserError("style.prefer_luts phải là danh sách id LUT, ví dụ [builtin:look-teal-orange].")
+    return Style(tone=tone, pace=pace, prefer_luts=split_luts(luts))
 
 
 def _num(section: dict, key: str, default: float, lo: float, hi: float, hint: str = "") -> float:

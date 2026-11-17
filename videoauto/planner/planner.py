@@ -152,6 +152,8 @@ def build_prompt(cfg: ProjectConfig, material: Material, cat: Catalogue) -> str:
         brand_block += ("- Only describe what the footage actually shows. If the brand mentions things the\n"
                         "  footage does not contain, do not imply the video shows them.\n")
 
+    style_block = _style_prompt(cfg, cat)
+
     if script:
         script_block = f"""USER SCRIPT (this is the user's intent: FOLLOW it, do not invent your own narrative)
 <<<
@@ -188,7 +190,7 @@ BRIEF
 - target duration: {b.duration:g} s (total of all clips should be within ±10 %)
 - aspect {b.aspect} ({b.orientation}), {b.fps} fps, platform: {b.platform}
 {('- notes: ' + b.notes) if b.notes else ''}
-{brand_block}{script_block}
+{brand_block}{style_block}{script_block}
 MATERIAL (times are source seconds; shots marked UNUSABLE must never be used)
 {chr(10).join(lines)}
 
@@ -219,6 +221,29 @@ REPLY FORMAT
  "warnings": ["<Vietnamese, optional>"]}}
 "after_clip": N puts the transition on the cut between clip N and clip N+1 (1-based).
 """
+
+
+PACE_RULES = {
+    "fast": "fast: mostly short clips (1.5-3 s), quick cuts, energetic order",
+    "medium": "medium: clips of about 2.5-4.5 s, a steady rhythm",
+    "calm": "calm: longer clips (4-6 s), few cuts, let shots breathe",
+}
+
+
+def _style_prompt(cfg: ProjectConfig, cat: Catalogue) -> str:
+    """STYLE block from config.yaml `style:` (tone, pace, prefer_luts); "" when nothing is set.
+    LUT ids not in the catalogue are left out here and reported by make_plan."""
+    st = cfg.style
+    luts = [i for i in st.prefer_luts if cat.kind(i) == "lut"]
+    if not (st.tone or st.pace or luts):
+        return ""
+    out = "STYLE (how the edit should feel; the footage and the rules below still come first)\n"
+    out += f"- tone: {st.tone}\n" if st.tone else ""
+    out += f"- pace: {PACE_RULES[st.pace]}\n" if st.pace else ""
+    if luts:
+        out += (f"- preferred looks: {', '.join(luts)}. Choose the LUT from these unless none suits the "
+                "footage; say why in \"warnings\" if you pick another.\n")
+    return out
 
 
 def overlay_templates(cfg: ProjectConfig, cat: Catalogue) -> list[dict]:
@@ -433,6 +458,10 @@ def make_plan(cfg: ProjectConfig, index_dir: Path, provider: VisionProvider) -> 
                f"cần ít nhất {need:.1f}s cho video {b.duration:g}s. Thêm cảnh quay hoặc giảm brief.duration.",
             material.warnings, material, 0))
 
+    unknown = [i for i in cfg.style.prefer_luts if cat.kind(i) != "lut"]
+    if unknown:
+        material.warnings.append(f"style.prefer_luts: bỏ qua id không phải LUT trong catalogue.json: "
+                                 f"{', '.join(unknown)}")
     provider.check()
     prompt = build_prompt(cfg, material, cat)
     log.info("model: 1 lượt gọi (%s), %d tệp, %d shot dùng được, prompt %d ký tự",

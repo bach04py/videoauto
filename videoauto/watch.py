@@ -10,6 +10,11 @@ Inside the output folder, next to the videos, it keeps:
     failed/       scripts that failed, each with <name>.loi.txt saying why
     .index/       index cache shared by every run
     .logs/        runs.log (one line per run) plus one full log per run
+
+While it runs in a console window, single keys work (never under --no-prompt or without a console):
+    S  edit the planner style (context, tone, pace, prefer_luts) and save it into config.yaml
+    P  show the folders in use
+    Q  quit (after the current build, if one is running)
 """
 
 from __future__ import annotations
@@ -43,6 +48,7 @@ QUESTIONS = (
     ("output", "Thư mục xuất video"),
 )
 KEYS = {"footage": "footage_dir", "scripts": "scripts_dir", "output": "output_dir"}
+HINT = "[S] sửa phong cách   [P] xem đường dẫn   [Q] thoát"
 STAGE_VI = {"read": "đọc kịch bản", "index": "lập chỉ mục video nguồn", "plan": "lập kế hoạch dựng",
             "build": "dựng video bằng OpenChatCut", "": "chuẩn bị"}
 
@@ -59,8 +65,41 @@ def now() -> str:
     return datetime.now().strftime("%H:%M:%S")
 
 
+class _Console:
+    """While the style editor owns the terminal, status lines from the build wait and are printed
+    when it closes, so they never land in the middle of a question."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._held: list[str] | None = None
+
+    def emit(self, text: str) -> None:
+        with self._lock:
+            if self._held is not None:
+                self._held.append(text)
+                return
+            print(text, flush=True)
+
+    @staticmethod
+    def direct(text: str) -> None:
+        print(text, flush=True)
+
+    def hold(self) -> None:
+        with self._lock:
+            self._held = []
+
+    def release(self) -> None:
+        with self._lock:
+            lines, self._held = self._held or [], None
+            for ln in lines:
+                print(ln, flush=True)
+
+
+console = _Console()
+
+
 def say(msg: str) -> None:
-    print(f"[{now()}] {msg}", flush=True)
+    console.emit(f"[{now()}] {msg}")
 
 
 # ---------------------------------------------------------------- paths: cleaning and validation
@@ -205,14 +244,17 @@ def _ask(prompt: str) -> str:
         raise SetupExit("Dừng: không còn dữ liệu nhập (stdin đã đóng).") from None
 
 
-def _yes(prompt: str) -> bool:
+def _yes(prompt: str, ask=None, default: bool = True, out=print) -> bool:
+    ask = ask or _ask
     while True:
-        a = _ask(f"{prompt} [Y/n] ").strip().lower()
-        if a in ("", "y", "yes", "c", "co", "có"):
+        a = ask(f"{prompt} {'[Y/n]' if default else '[y/N]'} ").strip().lower()
+        if a == "":
+            return default
+        if a in ("y", "yes", "c", "co", "có"):
             return True
         if a in ("n", "no", "k", "khong", "không"):
             return False
-        print("  Trả lời Y (có) hoặc n (không).")
+        out("  Trả lời Y (có) hoặc n (không).")
 
 
 def ask_paths(saved: dict[str, str]) -> dict[str, Path]:
@@ -305,6 +347,7 @@ class Env:
 
 def check_prerequisites(config: Path | None, vision_config: Path | None, provider=None, occ=None) -> Env:
     """ffmpeg, Node + OpenChatCut repo, catalogue.json, model access: once, before any question."""
+    from . import gpu
     from .brief import load_project_config
     from .builder.occ import Occ
     from .config import load_config
@@ -317,6 +360,7 @@ def check_prerequisites(config: Path | None, vision_config: Path | None, provide
         check_ffmpeg()
         occ = occ or Occ(pcfg.occ)
         occ.check()
+        gpu.choose(pcfg.occ.gpu_encode, pcfg.occ.repo)     # gpu_encode=on with no usable GPU stops here
         Catalogue.load(pcfg.catalogue)
         provider = provider or make_provider(vcfg["vision"])
         provider.check()
@@ -381,6 +425,9 @@ class Watcher:
         self.locked: set[str] = set()
         self.current: Path | None = None
         self.runs = 0
+        self.editing = threading.Event()        # style editor open: no new build starts meanwhile
+        self.keys_on = False                    # a key listener is running: show the hint line
+        self._stop: threading.Event | None = None
         self._observer = None
         self._last_scan = 0.0
         self._flog = logging.getLogger("videoauto_watch_runlog")     # file only: no console handler
@@ -543,7 +590,7 @@ class Watcher:
         say(f"Bắt đầu dựng {script.name}" + (f" (còn {rest} kịch bản đang chờ)" if rest else ""))
         try:
             text = self._read_script(script)
-            pcfg = self.env.pcfg
+            pcfg = self.env.pcfg       # this build keeps this object even if S saves a new config
             pcfg.footage_dir, pcfg.script_file = self.footage, script
             if stem != script.stem:
                 say(f"  {script.stem}.mp4 đã có: video mới đặt tên {video.name} (không ghi đè)")
@@ -567,7 +614,8 @@ class Watcher:
         else:
             secs = time.monotonic() - t0
             dest = self._archive(script, self.done, stem)
-            say(f"XONG {script.name} → {video} trong {secs:.0f}s, {res.model_calls} lượt gọi model "
+            enc = f", mã hoá {res.encoder['used']}" if res.encoder else ""
+            say(f"XONG {script.name} → {video} trong {secs:.0f}s, {res.model_calls} lượt gọi model{enc} "
                 f"(kịch bản chuyển vào {dest.parent.name}/)")
             self._runlog(started, script.name, "OK", secs, res.model_calls)
             return True
@@ -646,10 +694,10 @@ class Watcher:
         lines.append("Sửa xong, chép kịch bản từ thư mục failed vào lại thư mục kịch bản để dựng lại.")
         reason.write_text("\n".join(lines) + "\n", encoding="utf-8")
         bar = "=" * 72
-        print("\n".join(["", bar, f"!! LỖI  {when}  {script.name}", f"   Bước lỗi:   {stage}",
-                         f"   Lỗi:        {what}", f"   Cách xử lý: {todo}",
-                         f"   Kịch bản đã chuyển vào: {dest}", f"   Lý do ghi tại:          {reason}",
-                         bar, ""]), flush=True)
+        console.emit("\n".join(["", bar, f"!! LỖI  {when}  {script.name}", f"   Bước lỗi:   {stage}",
+                                f"   Lỗi:        {what}", f"   Cách xử lý: {todo}",
+                                f"   Kịch bản đã chuyển vào: {dest}", f"   Lý do ghi tại:          {reason}",
+                                bar, ""]))
         secs = time.monotonic() - t0 if t0 is not None else 0.0
         self._runlog(datetime.now().timestamp() if started is None else started, script.name,
                      f"LỖI ({stage})", secs, calls)
@@ -662,18 +710,135 @@ class Watcher:
 
     # -- main loop
     def loop(self, stop: threading.Event) -> None:
+        self._stop = stop
         self._scan()
         idle_said = False
         while not stop.is_set():
+            if self.editing.is_set():           # the next build must see what is being typed now
+                stop.wait(self.poll)
+                continue
             claimed = next((c for c in map(self.claim, self.ready()) if c is not None), None)
             if claimed is None:
                 if not idle_said and not self.seen:
                     say(f"Đang chờ kịch bản mới trong {self.scripts} (Ctrl+C để dừng)")
+                    self.hint()
                     idle_said = True
                 stop.wait(self.poll)
                 continue
             self.build(claimed)
             idle_said = False
+
+    # -- keys (called from the key listener thread)
+    def hint(self) -> None:
+        if self.keys_on:
+            console.emit(f"           {HINT}")
+
+    def on_key(self, ch: str, ask) -> None:
+        k = ch.lower()
+        if k == "s":
+            self.edit_style(ask)
+        elif k == "p":
+            self.show_paths()
+        elif k == "q":
+            self.request_quit(ask)
+
+    def show_paths(self) -> None:
+        lines = ["Đang dùng:"]
+        for key, label in QUESTIONS:
+            lines.append(f"  {label + ':':24} {getattr(self, key)}")
+        lines.append(f"  {'Cấu hình:':24} {self.env.pcfg.path}")
+        lines.append(f"  Trong thư mục xuất còn có: {', '.join(WORK_DIRS)}")
+        console.emit("\n".join(lines))
+        if self.current is None:
+            self.hint()
+
+    def request_quit(self, ask) -> None:
+        if self._stop is None:
+            return
+        building = self.current
+        if building is None:
+            say("Thoát theo yêu cầu (Q).")
+            self._stop.set()
+            return
+        console.hold()
+        try:
+            if _yes(f"Đang dựng {building.name}. Thoát sau khi dựng xong?", ask=ask, out=console.direct):
+                self._stop.set()
+                console.direct(f"Sẽ thoát sau khi dựng xong {building.name}.")
+        except (EOFError, KeyboardInterrupt):
+            pass
+        finally:
+            console.release()
+
+    def edit_style(self, ask) -> bool:
+        """Key S. Never touches a running build: it keeps the config it started with; the saved
+        values are used from the next build on. Returns True when config.yaml was saved."""
+        from . import style_edit
+        from .brief import load_project_config
+        out = console.direct
+        building = self.current
+        self.editing.set()
+        console.hold()
+        try:
+            if building is not None:
+                out(f"Đang dựng {building.name}. Phong cách mới chỉ áp dụng từ kịch bản sau; "
+                    "bản đang dựng giữ phong cách cũ.")
+                if not _yes("Tiếp tục sửa?", ask=ask, out=out):
+                    return False
+            path = self.env.pcfg.path
+            snap = style_edit.snapshot(path, self.env.pcfg.catalogue)
+            new = style_edit.edit(snap, ask, out)
+            if new is None:
+                return False
+            if not _yes(f"Lưu vào {path.name}?", ask=ask, out=out):
+                out(f"Không lưu: {path.name} giữ nguyên.")
+                return False
+            try:
+                style_edit.save(snap, new, validate=load_project_config)
+            except style_edit.ChangedOnDisk:
+                out(f"{path.name} đã bị sửa ở nơi khác sau khi mở trình sửa này.")
+                if not _yes("Vẫn ghi 4 giá trị này vào bản mới nhất? (các thay đổi khác trong tệp được giữ)",
+                            ask=ask, default=False, out=out):
+                    out(f"Không lưu: {path.name} giữ nguyên.")
+                    return False
+                style_edit.save(snap, new, overwrite_changed=True, validate=load_project_config)
+            self.env.pcfg = load_project_config(path)     # a new object: a running build keeps its own
+            when = "từ kịch bản sau" if self.current is not None else "từ kịch bản tiếp theo"
+            out(f"Đã lưu vào {path}. Áp dụng {when}.")
+            return True
+        except UserError as e:
+            out(f"Lỗi: {e.message} ({self.env.pcfg.path.name} giữ nguyên.)")
+            return False
+        except (EOFError, KeyboardInterrupt):
+            out("\nĐã huỷ sửa phong cách.")
+            return False
+        finally:
+            console.release()
+            self.editing.clear()
+            if self.current is None:
+                self.hint()
+
+
+class KeyListener(threading.Thread):
+    """Polls the key reader (never blocks the watch loop) and hands keys to the watcher. A broken
+    reader turns the keys off; it never stops the watcher."""
+
+    def __init__(self, watcher: Watcher, reader, stop: threading.Event, ask=input, tick: float = 0.1):
+        super().__init__(name="videoauto-keys", daemon=True)
+        self.watcher, self.reader, self.stop, self.ask, self.tick = watcher, reader, stop, ask, tick
+
+    def run(self) -> None:
+        while not self.stop.is_set():
+            try:
+                ch = self.reader.poll()
+                if ch:
+                    self.watcher.on_key(ch, self.ask)
+                    continue
+            except Exception as e:  # noqa: BLE001
+                log.warning("phím tắt bị tắt do lỗi: %s", e)
+                self.watcher.keys_on = False
+                return
+            self.stop.wait(self.tick)
 
 
 def describe_failure(e: BaseException, stage: str, logfile: Path) -> tuple[str, str]:
@@ -696,7 +861,8 @@ def describe_failure(e: BaseException, stage: str, logfile: Path) -> tuple[str, 
 # ---------------------------------------------------------------- entry point
 
 def main(argv: list[str] | None = None, provider=None, occ=None, stop: threading.Event | None = None,
-         settle: float = SETTLE_SECONDS, poll: float = POLL_SECONDS) -> int:
+         settle: float = SETTLE_SECONDS, poll: float = POLL_SECONDS, keys=None, ask=None) -> int:
+    """keys/ask: a key reader and an input function (tests). By default the console's own."""
     ap = argparse.ArgumentParser(prog="python -m videoauto.watch",
                                  description="Chạy liên tục: dựng một video cho mỗi kịch bản (.txt) mới "
                                              "trong thư mục kịch bản.")
@@ -741,6 +907,8 @@ def main(argv: list[str] | None = None, provider=None, occ=None, stop: threading
         w.prepare()
         w.start_observer()
         say(f"Bắt đầu theo dõi. Mỗi kịch bản .txt mới trong {w.scripts} sẽ thành một video trong {w.output}.")
+        if not no_prompt:                       # a scheduled task / service has no keyboard
+            _start_keys(w, stop, keys, ask)
         w.loop(stop)
     except KeyboardInterrupt:
         _ignore_sigint()
@@ -751,6 +919,21 @@ def main(argv: list[str] | None = None, provider=None, occ=None, stop: threading
         w.stop_observer()
     say("Đã dừng theo dõi.")
     return 0
+
+
+def _start_keys(w: Watcher, stop: threading.Event, keys, ask) -> None:
+    if keys is None:
+        from .keys import console_keys
+        try:
+            keys = console_keys()
+        except Exception:  # noqa: BLE001 - keys are a convenience, never a reason to stop
+            keys = None
+    if keys is None:
+        say("Phím tắt (S/P/Q) không dùng được trên hệ điều hành này; vẫn theo dõi bình thường. "
+            "Sửa phong cách trực tiếp trong config.yaml.")
+        return
+    w.keys_on = True
+    KeyListener(w, keys, stop, ask=ask or input).start()
 
 
 def _stdin_is_tty() -> bool:

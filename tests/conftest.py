@@ -38,6 +38,30 @@ def _need_ffmpeg():
         pytest.skip("ffmpeg/ffprobe not on PATH")
 
 
+class NoGpuProbe:
+    """The default in tests: ffmpeg lists no hardware encoder (no real probe ever runs)."""
+
+    def listed(self, ffmpeg):
+        return {"libx264"}
+
+    def trial(self, ffmpeg, encoder):
+        return "not listed"
+
+
+class NoKeys:
+    def poll(self):
+        return None
+
+
+@pytest.fixture(autouse=True)
+def _hermetic(monkeypatch):
+    """No test probes this machine's GPU or reads its keyboard unless it asks to."""
+    from videoauto import gpu, keys
+    monkeypatch.setattr(gpu, "DEFAULT_PROBE", NoGpuProbe())
+    monkeypatch.setattr(gpu, "_cache", {})
+    monkeypatch.setattr(keys, "console_keys", lambda: NoKeys())
+
+
 @pytest.fixture
 def cfg() -> dict:
     return load_config()

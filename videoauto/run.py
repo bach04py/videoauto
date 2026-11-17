@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
+from .build import encoder_summary
 from .cli import guarded, setup_io
 
 log = logging.getLogger("videoauto")
@@ -43,6 +44,7 @@ def main(argv: list[str] | None = None, provider=None, occ=None) -> int:
 
 
 def _run(args, provider, occ) -> int:
+    from . import gpu
     from .brief import load_project_config
     from .builder.occ import Occ
     from .config import load_config
@@ -81,12 +83,14 @@ def _run(args, provider, occ) -> int:
     Catalogue.load(pcfg.catalogue)
     occ = occ or Occ(pcfg.occ)
     occ.check()
+    enc = gpu.choose(pcfg.occ.gpu_encode, pcfg.occ.repo)           # gpu_encode=on fails here, not after
     provider = provider or make_provider(vcfg["vision"])
     provider.check()
     sources = collect(folder, index_dir)
     log.info("ok: %d tệp trong %s, brief %gs %s, OpenChatCut tại %s", len(sources), folder,
              pcfg.brief.duration, pcfg.brief.aspect, pcfg.occ.repo)
     b = pcfg.brand
+    log.info("mã hoá video: %s (gpu_encode=%s)", enc.label(), enc.mode)
     log.info("thương hiệu: %s; logo: %s; kịch bản: %s", b.name or "(không)",
              f"{b.logo.name} ({b.logo_position}, {b.logo_scale:g}, {b.logo_mode})" if b.logo else "(không)",
              f"theo {pcfg.script_file.name} ({len(script)} ký tự)" if script else "model tự viết")
@@ -96,6 +100,7 @@ def _run(args, provider, occ) -> int:
              res.model_calls)
     log.info("   video:     %s", video.resolve())
     log.info("   kế hoạch:  %s", plan_path.resolve())
+    log.info("   mã hoá:    %s", encoder_summary(res.encoder))
     log.info("   báo cáo:   %s", res.report.resolve())
     log.info("   chỉ mục:   %s", index_dir.resolve())
     return 0
@@ -108,6 +113,7 @@ class PipelineResult:
     model_calls: int = 0
     times: dict[str, float] = field(default_factory=dict)
     report: Path | None = None
+    encoder: dict | None = None                       # gpu.verify() record of the render
 
 
 def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path: Path, video: Path,
@@ -163,6 +169,7 @@ def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path:
     t = time.monotonic()
     brep = Builder(pcfg, occ).build(plan, video)
     res.times["build"] = time.monotonic() - t
+    res.encoder = brep.encoder
     res.report = finish_build(brep, video)
     res.stage = "done"
     return res

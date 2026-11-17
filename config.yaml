@@ -29,6 +29,11 @@ brand:
     ink: "#1A1A1A"                   # near-black: cards and bars behind text
     on_accent: "#FFFFFF"             # text
 
+style:                               # optional; steers the planner. Editable live: watcher key S
+  tone: ""                           # one line, e.g. "mạnh mẽ, năng động" or "tươi mát, thư giãn"
+  pace: ""                           # fast | medium | calm  (empty = planner decides)
+  prefer_luts: []                    # LUT ids from catalogue.json, e.g. [builtin:look-teal-orange]
+
 catalogue: catalogue.json     # generated from OpenChatCut (README step 2)
 min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
 
@@ -40,3 +45,4 @@ openchatcut:
   video_bitrate_mbps: 10      # H.264 target; 8-12 suits 1080x1920 social video
   timeout: 1800               # seconds allowed for occ render
   max_fail_ratio: 0.30        # abort the build when more than 30% of occ item commands fail
+  gpu_encode: auto            # auto | on | off: hardware H.264 (NVENC/...) when a trial encode works (README)

@@ -49,10 +49,24 @@ def finish_build(rep, out: Path) -> Path:
         log.warning("cảnh báo: %s", w)
     log.info("occ: %d lệnh (%d lệnh item, %d lỗi); thời gian %.1fs; báo cáo %s",
              len(rep.commands), rep.attempted, rep.failed, rep.seconds, report)
+    if rep.encoder:
+        log.info("mã hoá: %s", encoder_summary(rep.encoder))
     if rep.error:
         raise rep.error
     log.info("đã xuất %s (%.1f MB)", rep.output, rep.output.stat().st_size / 1e6)
     return report
+
+
+def encoder_summary(enc: dict | None) -> str:
+    """One line for the run summary: what encoded the video, and why that one."""
+    if not enc:
+        return "(không có)"
+    from .gpu import LABELS
+    used = enc["used"]
+    head = f"{used} ({LABELS.get(used, 'không xác định')})" + (", GPU" if enc["hardware"] else "")
+    if enc.get("fallback"):
+        return f"{head}; {enc['fallback']}"
+    return f"{head}; gpu_encode={enc['mode']}"
 
 
 if __name__ == "__main__":

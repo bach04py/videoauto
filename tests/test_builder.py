@@ -21,12 +21,14 @@ class FakeOcc:
     def __init__(self, media: Path, fail: tuple[str, ...] = ()):
         self.media, self.fail, self.history, self.n = media, fail, [], 0
         self.tracks, self.timeline = 1, []      # motion-graphic items: occ's add returns no itemId
+        self.envs = []                          # env= of every call (the render's encoder choice)
 
     def check(self):
         pass
 
-    def run(self, label, args, tool_args=None, timeout=300, read=False):
+    def run(self, label, args, tool_args=None, timeout=300, read=False, env=None):
         self.n += 1
+        self.envs.append(env)
         ok = not any(label.startswith(f) for f in self.fail)
         data = None
         if ok:
@@ -57,7 +59,10 @@ class FakeOcc:
                 self.timeline = [i for i in self.timeline if i["id"] != tool_args["itemId"]]
                 data = {"applied": True, "ops": [{"result": {"ok": True}}]}
             elif args[0] == "render":
-                Path(args[args.index("--out") + 1]).write_bytes(b"\0" * 2048)
+                # like the real thing: libx264 leaves its version string in the stream, NVENC does not
+                sw = (env or {}).get("OPENCHATCUT_DISABLE_HARDWARE_ENCODING") == "1"
+                Path(args[args.index("--out") + 1]).write_bytes(
+                    b"\0" * 1024 + (b"x264 - core 164 r3108" if sw else b"") + b"\0" * 1024)
                 data = {"frames": 1}
             else:
                 data = {"applied": True, "ops": [{"result": {"ok": True}}]}

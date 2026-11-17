@@ -18,6 +18,7 @@ from pathlib import Path
 
 from ..brief import ASPECTS, ProjectConfig
 from ..cache import sha256_of
+from .. import gpu
 from ..errors import BuildAborted, UserError
 from ..planner import overlays as ov
 from ..planner.catalogue import Catalogue
@@ -38,13 +39,14 @@ class BuildReport:
     commands: list[dict] = field(default_factory=list)
     error: UserError | None = None
     overlays: list[dict] = field(default_factory=list)     # one record per planned overlay
+    encoder: dict | None = None                             # gpu.verify(): what encoded the video
 
     def to_json(self) -> dict:
         return {"ok": self.error is None, "error": self.error.message if self.error else None,
                 "output": str(self.output), "project_id": self.project_id,
                 "item_commands": self.attempted, "item_failures": self.failed,
-                "seconds": round(self.seconds, 1), "warnings": self.warnings, "overlays": self.overlays,
-                "commands": self.commands}
+                "seconds": round(self.seconds, 1), "warnings": self.warnings, "encoder": self.encoder,
+                "overlays": self.overlays, "commands": self.commands}
 
 
 def load_plan(path: Path) -> dict:
@@ -180,14 +182,22 @@ class Builder:
             self._place_logo(rep, total, pid, (w, h), fps, cursor)
 
         # ---- render (fatal)
+        choice = gpu.choose(cfg.occ.gpu_encode, cfg.occ.repo)     # cached; gpu_encode=on raises here
+        log.info("mã hoá: %s (gpu_encode=%s)", choice.label(), choice.mode)
         rep.output.parent.mkdir(parents=True, exist_ok=True)
         r = self.occ.run("render", ["render", pid, "--out", str(rep.output),
                                     "--resolution", cfg.occ.resolution, "--fps", str(fps),
                                     "--bitrate", str(round(cfg.occ.video_bitrate_mbps * 1_000_000))],
-                         timeout=cfg.occ.timeout)
+                         timeout=cfg.occ.timeout, env=choice.env())
         self._fatal(r, "xuất video (render)")
         if not rep.output.exists() or rep.output.stat().st_size == 0:
             raise BuildAborted(f"occ render báo xong nhưng không có tệp '{rep.output}'.")
+        rep.encoder = gpu.verify(choice, rep.output)
+        if rep.encoder.get("fallback"):
+            rep.warnings.append(f"mã hoá: {rep.encoder['fallback']}")
+        if choice.mode == "on" and not rep.encoder["hardware"]:
+            raise BuildAborted("openchatcut.gpu_encode = on nhưng video đã được mã hoá bằng CPU (libx264): "
+                               f"{rep.encoder.get('fallback', '')} Đặt gpu_encode: auto nếu chấp nhận mã hoá CPU.")
 
     # ------------------------------------------------------------------
     def _place_logo(self, rep: BuildReport, total: int, pid: str, canvas: tuple[int, int], fps: int,

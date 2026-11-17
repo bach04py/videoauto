@@ -66,9 +66,10 @@ class Occ:
         self.cfg.data_dir.mkdir(parents=True, exist_ok=True)
 
     def run(self, label: str, args: list[str], tool_args: dict | None = None,
-            timeout: int = 300, read: bool = False) -> OccResult:
+            timeout: int = 300, read: bool = False, env: dict[str, str] | None = None) -> OccResult:
         """read=True for read-only tools (read_timeline): they report applied=false and no
-        "ok" key, which is success for a read; only an "error" in the result fails it."""
+        "ok" key, which is success for a read; only an "error" in the result fails it.
+        env: extra environment variables for this call only (the render's encoder choice)."""
         argv = [*args, "--json"]
         t0 = time.monotonic()
         with tempfile.TemporaryDirectory(prefix="videoauto_occ_") as tmp:
@@ -76,10 +77,10 @@ class Occ:
                 f = Path(tmp) / "args.json"
                 f.write_text(json.dumps(tool_args, ensure_ascii=False), encoding="utf-8")
                 argv = [*args, "--args", f"@{f}", "--json"]
-            env = {**os.environ, "OPENCHATCUT_DATA_DIR": str(self.cfg.data_dir)}
+            full_env = {**os.environ, **(env or {}), "OPENCHATCUT_DATA_DIR": str(self.cfg.data_dir)}
             try:
                 proc = subprocess.run([self.cfg.node, "--import", "tsx", "cli/main.ts", *argv],
-                                      cwd=self.cfg.repo, env=env, capture_output=True, text=True,
+                                      cwd=self.cfg.repo, env=full_env, capture_output=True, text=True,
                                       encoding="utf-8", errors="replace", timeout=timeout)
             except subprocess.TimeoutExpired:
                 res = OccResult(label, args, False, time.monotonic() - t0,

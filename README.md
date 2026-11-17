@@ -41,6 +41,18 @@ chuyển vào `failed/` kèm tệp `.loi.txt` ghi lý do và cách xử lý; cá
 xuất video. Khi chạy lúc
 đăng nhập (Task Scheduler) hoặc dạng dịch vụ (NSSM) phải thêm `--no-prompt`. Xem mục 6.
 
+Khi đang chờ, cửa sổ watcher luôn hiện dòng gợi ý
+`[S] sửa phong cách   [P] xem đường dẫn   [Q] thoát`. Nhấn **S** để tự gõ lại bối cảnh (`context`),
+giọng điệu (`tone`), nhịp (`pace`: fast | medium | calm) và LUT ưu tiên (`prefer_luts`) ngay trong
+cửa sổ, không cần mở tệp; Enter = giữ giá trị cũ, `-` = xoá. Chỉ khi trả lời **Y** ở câu
+"Lưu vào config.yaml?" thì mới ghi, và mọi chú thích trong `config.yaml` được giữ nguyên. Video
+đang dựng giữ phong cách cũ; phong cách mới áp dụng từ kịch bản tiếp theo.
+
+**GPU**: `openchatcut.gpu_encode: auto` dùng bộ mã hoá phần cứng (NVENC…) khi thử mã hoá 1 giây
+thành công, nếu không thì tự dùng CPU và ghi lý do vào log. Bộ mã hoá thực sự đã dùng được ghi
+trong `<video>.mp4.build.json`. Cùng bitrate, mã hoá GPU cho chất lượng hơi thấp hơn x264 (CPU):
+khi chất lượng quan trọng hơn tốc độ, đặt `gpu_encode: off`.
+
 Chưa làm được: phụ đề theo lời nói, nhạc nền; phần nhận giọng nói chưa được kiểm thử.
 Chỉ mới chạy thử trên Windows 11.
 
@@ -234,6 +246,11 @@ brand:
     ink: "#1A1A1A"                   # near-black: cards and bars behind text
     on_accent: "#FFFFFF"             # text
 
+style:                               # optional; steers the planner. Editable live: watcher key S
+  tone: ""                           # one line, e.g. "mạnh mẽ, năng động" or "tươi mát, thư giãn"
+  pace: ""                           # fast | medium | calm  (empty = planner decides)
+  prefer_luts: []                    # LUT ids from catalogue.json, e.g. [builtin:look-teal-orange]
+
 catalogue: catalogue.json     # generated from OpenChatCut (README step 2)
 min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
 
@@ -245,11 +262,13 @@ openchatcut:
   video_bitrate_mbps: 10      # H.264 target; 8-12 suits 1080x1920 social video
   timeout: 1800               # seconds allowed for occ render
   max_fail_ratio: 0.30        # abort the build when more than 30% of occ item commands fail
+  gpu_encode: auto            # auto | on | off: hardware H.264 (NVENC/...) when a trial encode works (README)
 ```
 
 Every setting is checked before any work starts (`kiểm tra môi trường…`): a missing logo file, a
 `logo_scale` outside 0.05–0.5, an unknown `logo_position` or `logo_mode`, a brand colour that is not
-`#RGB`/`#RRGGBB`, a missing `footage_dir` each stop the run in the first second with a Vietnamese
+`#RGB`/`#RRGGBB`, a `style.pace` other than fast/medium/calm, a `gpu_encode` other than
+auto/on/off, a missing `footage_dir` each stop the run in the first second with a Vietnamese
 message, e.g.
 `Lỗi: brand.logo_scale = 0.6 không hợp lệ: phải là số trong khoảng 0.05–0.5.`
 
@@ -296,6 +315,69 @@ shows the transition, and the logo appears from 3 s before the end.
 narrow. A wide logo with small lettering (this one is 1065x786 with a "Gym&Fitness 24h" arc) is
 about 238 px wide at 0.22, and its small text is unreadable on a phone. Use 0.30–0.35 for logos
 like that; the default 0.22 suits compact marks.
+
+### Style: tone, pace, preferred looks (`style`)
+
+`brand.context` says what the place is and who it is for; the `style` block says how the edit
+should feel. All four go into the **planning** prompt only, as a `STYLE` block (nothing is added
+when they are all empty):
+
+| Field | Effect on the plan |
+|---|---|
+| `brand.context` | free text, several lines: what this place is, who the video is for |
+| `style.tone` | one line, e.g. `mạnh mẽ, năng động` or `tươi mát, thư giãn` |
+| `style.pace` | `fast` = mostly 1.5–3 s clips, quick cuts; `medium` = about 2.5–4.5 s; `calm` = 4–6 s, few cuts; empty = the planner decides |
+| `style.prefer_luts` | LUT ids from `catalogue.json`; the planner picks one of them unless none suits the footage, and then says why in a warning |
+
+The footage still comes first: style never makes the planner use a shot it would otherwise
+reject. A `prefer_luts` id that is not a LUT in `catalogue.json` is dropped with one warning
+(`style.prefer_luts: bỏ qua id không phải LUT…`). In the watcher these four can be edited without
+opening the file (key **S**, section 6).
+
+### GPU encoding (`gpu_encode`)
+
+**What OpenChatCut already does.** `occ render` has no encoder option. For H.264 it chooses by
+itself: on Windows it tries NVIDIA NVENC, Intel Quick Sync and AMD AMF in that order (macOS:
+VideoToolbox; Linux: NVENC, Quick Sync, VA-API), each with a one-frame trial encode, and uses the
+first that works **and** that its renderer's ffmpeg (Remotion's) has compiled in; otherwise
+software x264. Two environment variables steer it: `OPENCHATCUT_DISABLE_HARDWARE_ENCODING=1` and
+`OPENCHATCUT_H264_ENCODER=<name>`. It does not report which encoder it ended up using.
+
+Remotion's bundled Windows ffmpeg has only **NVENC** compiled in, so through `occ render` an NVIDIA
+card is the only hardware encoder that can be used on Windows today. Quick Sync and AMF are probed but
+reported as missing from the renderer.
+
+**What videoauto adds:**
+
+| `gpu_encode` | Behaviour |
+|---|---|
+| `auto` (default) | a hardware encoder is used when the renderer's ffmpeg lists it **and** a one-second trial encode with OpenChatCut's ffmpeg succeeds. A GPU with missing or broken drivers falls back to x264 silently; why is written to the log (`mã hoá video: libx264 … h264_nvenc: exit -1: Cannot load nvcuda.dll`) |
+| `on` | the same check, but no usable hardware encoder is an error at startup (`Lỗi: openchatcut.gpu_encode = on nhưng không có bộ mã hoá GPU nào dùng được: …`); a render that OpenChatCut still finished in software fails the build too |
+| `off` | always software x264 (`OPENCHATCUT_DISABLE_HARDWARE_ENCODING=1`) |
+
+The probe runs once per process (about a second). Its result is passed to `occ render` through the
+two variables above, overriding whatever your shell has set.
+
+**What was actually used** is read back from the finished file: x264 writes its version string
+(`x264 - core …`) into the H.264 stream and hardware encoders do not. So a fallback inside
+OpenChatCut during the render is caught too. It is recorded in three places:
+- the run summary (`mã hoá:    h264_nvenc (NVIDIA NVENC), GPU; gpu_encode=auto`);
+- the watcher's `XONG …` line (`…, mã hoá libx264`);
+- `<out>.mp4.build.json`, under `"encoder"`: `mode`, `requested`, `used`, `hardware`, `evidence`,
+  `reason` and every probe result.
+
+If someone complains about quality later, that file says how the video was encoded.
+
+**Quality.** At the same bitrate (`video_bitrate_mbps`), hardware encoders give slightly lower
+quality than software x264: more blocking in fast motion and fine texture such as water, foliage or
+gym equipment. Their advantage is speed. When quality matters more than render time, set
+`gpu_encode: off`.
+
+On the development laptop (AMD Radeon RX 6600M + integrated Radeon), ffmpeg lists `h264_nvenc`,
+`h264_qsv` and `h264_amf`, but none can encode: NVENC has no NVIDIA driver (`Cannot load
+nvcuda.dll`), Quick Sync has no Intel GPU, and AMF fails with `CreateComponent(AMFVideoEncoderVCE_AVC)
+failed with error 30`. So `auto` uses x264 there and logs those three reasons. The hardware path is
+covered by tests with a faked probe, not yet by a real GPU.
 
 ### Following your own script (`script_file`)
 
@@ -556,8 +638,9 @@ Start it once from a terminal in the videoauto folder (virtual environment activ
 and builds **one video for every new script** (`.txt`) that appears in the scripts folder. The
 footage folder is a standing library, not a trigger: adding clips does not start a build, but every
 build first indexes any clip not yet in the cache (already-indexed clips cost zero model calls).
-`brief`, `brand`, `openchatcut` and `catalogue` still come from `config.yaml`; its `footage_dir`
-and `script_file` are not used by the watcher.
+`brief`, `brand`, `style`, `openchatcut` and `catalogue` still come from `config.yaml`; its
+`footage_dir` and `script_file` are not used by the watcher. The file is read at startup, and read
+again after every save from key **S** (below).
 
 **1. Startup checks.** ffmpeg, Node, the OpenChatCut repo, `catalogue.json` and model access are
 checked once, before any question. A missing one prints the same `Lỗi: …` message as
@@ -649,6 +732,68 @@ A failure never stops the watcher. It is printed immediately as a block:
 
 To retry, fix the cause and copy the script from `failed/` back into the scripts folder. An empty
 script, or one not saved as UTF-8, fails at once with that reason.
+
+**5. Keys while it runs.** In a console window the watcher reads single key presses without
+blocking, and shows this hint line every time it goes idle:
+
+```
+[15:02:11] Đang chờ kịch bản mới trong D:\kich-ban (Ctrl+C để dừng)
+           [S] sửa phong cách   [P] xem đường dẫn   [Q] thoát
+```
+
+- **S**: edit the four fields that steer the planner (see **Style** in section 4), typed by you
+  rather than picked from presets:
+
+  ```
+  Sửa phong cách (Enter = giữ nguyên, '-' = xoá trống).
+  1. context (bối cảnh: nơi này là gì, dành cho ai). Hiện tại:
+       Chuỗi phòng tập, hồ bơi và sân pickleball ở Bình Dương.
+     Gõ nội dung mới, nhiều dòng; kết thúc bằng một dòng chỉ có dấu chấm (.)
+     Enter ngay ở dòng đầu = giữ nguyên.
+     > Phòng tập 24h ở Thủ Dầu Một, dành cho sinh viên.
+     > .
+  2. tone (giọng điệu, một dòng) [(trống)]: mạnh mẽ, năng động
+  3. pace (fast | medium | calm) [(trống)]: fast
+  4. prefer_luts (id LUT, cách nhau bằng dấu phẩy) [(trống)]: builtin:look-teal-orange
+  Giá trị mới:
+   *1. context:
+         Phòng tập 24h ở Thủ Dầu Một, dành cho sinh viên.
+   *2. tone: mạnh mẽ, năng động
+   …
+  Lưu vào config.yaml? [Y/n]
+  ```
+
+  Each field shows its current value; Enter keeps it and `-` clears it. `context` takes several
+  lines and ends with a line holding only a dot. A `pace` other than fast/medium/calm, or a LUT id
+  that is not in `catalogue.json`, is asked again (the available LUT ids are listed). Nothing is
+  written unless you answer **Y** at the end.
+- **P**: show the folders and the `config.yaml` in use.
+- **Q**: quit. During a build it asks `Thoát sau khi dựng xong? [Y/n]` and exits once that build is
+  finished; it never cuts a build short (Ctrl+C still abandons one, as above).
+
+How a save works:
+- `config.yaml` is rewritten with ruamel.yaml in round-trip mode, so every comment (the **CHANGE**
+  markers too), the key order, the quoting and the comment columns stay as they were. Only the four
+  values change. A file without a `style:` block gets one after `brand:`.
+- The write is atomic: the new text goes to a temporary file in the same folder, is flushed to disk
+  and checked (it must load as a valid config), and only then replaces `config.yaml`. A crash or
+  power cut mid-save leaves the old `config.yaml` whole, never a truncated one.
+- If `config.yaml` was saved by something else after the editor opened, the watcher says so and asks
+  `Vẫn ghi 4 giá trị này vào bản mới nhất? [y/N]` (default no). On yes, the four values go into the
+  file as it is now, so the other person's edits are kept.
+
+When the new values apply:
+- **Next build.** The next build uses the new values. A build that is already running keeps the
+  config it started with: **S** during a build first says the change will apply after the current
+  build and asks `Tiếp tục sửa?`.
+- **No build starts mid-edit.** While the editor is open, no new build starts, so a script dropped
+  in at that moment is built with what you are typing. Status lines from a running build wait until
+  the editor closes, so they never break into a question.
+
+The keys use `msvcrt` (Windows). On other systems the watcher prints
+`Phím tắt (S/P/Q) không dùng được trên hệ điều hành này; vẫn theo dõi bình thường…` and keeps
+watching; edit `config.yaml` by hand there. Under `--no-prompt`, or when stdin is not a console
+(Task Scheduler, a service, `< NUL`), no keyboard listener is started at all and no hint is shown.
 
 ### Starting it at logon (later)
 

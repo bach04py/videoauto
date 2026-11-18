@@ -159,6 +159,7 @@ class Indexer:
         det = quality.detect(path, pr.duration, pr.has_audio, c["quality"]["silence_db"], crop)
 
         pcm = audio.load_audio(path, SPEECH_SR) if pr.has_audio else None
+        # None: speech recognition off or failed (never fatal) -> transcript null on every shot
         segments = self.transcriber.transcribe(pcm) if pcm is not None else []
         peaks = audio.peak_times(pcm, SPEECH_SR) if pcm is not None else []
 
@@ -183,7 +184,7 @@ class Indexer:
                 flags.append("silent")
 
             seg = [{"start": s.start, "end": s.end, "text": s.text}
-                   for s in segments if s.start < end and s.end > start]
+                   for s in segments or [] if s.start < end and s.end > start]
             camera = frames.camera_movement(samples, end - start)
             shot = {
                 "id": sid, "start": start, "end": end, "keyframes": times,

@@ -178,9 +178,24 @@ def test_stdin_not_a_terminal_behaves_as_no_prompt(ws, monkeypatch, capsys):
     assert "1. Thư mục" not in capsys.readouterr().out          # nothing was asked
 
 
-def test_missing_prerequisite_exits_before_any_question(ws, monkeypatch, capsys):
+def test_first_run_asks_the_folders_before_the_environment_check(ws, monkeypatch, capsys):
+    """A fresh clone: the questions come first and are saved, then the check reports what is
+    missing. (Before, the check ran first, failed on sample values, and the user never saw a
+    question.)"""
     (ws["root"] / "catalogue.json").unlink()
     stdin(monkeypatch, f"{ws['footage']}\n{ws['scripts']}\n{ws['output']}\n\n")
+    assert setup_only() == 2
+    cap = capsys.readouterr()
+    assert "Thư mục video nguồn" in cap.out and "catalogue" in cap.err
+    assert (ws["root"] / "videoauto.local.yaml").exists()           # the answers are not lost
+
+
+def test_missing_prerequisite_with_saved_folders_exits_before_any_question(ws, monkeypatch, capsys):
+    stdin(monkeypatch, f"{ws['footage']}\n{ws['scripts']}\n{ws['output']}\n\n")
+    assert setup_only() == 0                                          # folders saved
+    capsys.readouterr()
+    (ws["root"] / "catalogue.json").unlink()
+    stdin(monkeypatch, "\n\n\n\n")
     assert setup_only() == 2
     cap = capsys.readouterr()
     assert "catalogue" in cap.err and "Thư mục video nguồn" not in cap.out

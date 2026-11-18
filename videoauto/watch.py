@@ -348,35 +348,59 @@ class Env:
 
 
 def check_prerequisites(config: Path | None, vision_config: Path | None, provider=None, occ=None) -> Env:
-    """ffmpeg, Node + OpenChatCut repo, catalogue.json, model access: once, before any question."""
-    from . import gpu, occ_catalogue
+    """ffmpeg, Node + OpenChatCut repo, catalogue.json (generated if missing or stale), the logo,
+    model access. Every problem is reported in one message, not one per run."""
     from .brief import load_project_config
-    from .builder.occ import Occ
-    from .features import check_style, no_template_cause
+    from .features import no_template_cause
     from .planner.planner import overlay_templates
-    from .config import load_config
-    from .planner.catalogue import Catalogue
-    from .tools import check_ffmpeg
-    from .vision import make_provider
+    from .preflight import Problems, check_tools
+    problems = Problems()
     try:
-        pcfg = load_project_config(config)
-        vcfg = load_config(vision_config)
-        check_ffmpeg()
-        occ = occ or Occ(pcfg.occ)
-        occ.check()
-        gpu.choose(pcfg.occ.gpu_encode, pcfg.occ.repo)     # gpu_encode=on with no usable GPU stops here
-        occ_catalogue.ensure(pcfg.catalogue, pcfg.occ.repo, pcfg.occ.node, say=print)
-        cat = Catalogue.load(pcfg.catalogue)
-        check_style(pcfg, cat)
-        if not overlay_templates(pcfg, cat):
-            # each script is checked when it arrives; say it once now so nobody is surprised later
-            print(f"Chú ý: kịch bản có dòng TEXT: sẽ bị từ chối (khung {pcfg.brief.aspect} không có template "
-                  f"chữ nào dùng được). {no_template_cause(pcfg, cat)}")
-        provider = provider or make_provider(vcfg["vision"])
-        provider.check()
+        pcfg = load_project_config(config, problems=problems.items)
+        env = check_tools(pcfg, problems, occ=occ, provider=provider, vision_config=vision_config, say=print)
+        problems.raise_if_any()
     except UserError as e:
         raise SetupExit(f"Lỗi: {e.message}") from None
-    return Env(pcfg, vcfg, provider, occ)
+    if not overlay_templates(pcfg, env.cat):
+        # each script is checked when it arrives; say it once now so nobody is surprised later
+        print(f"Chú ý: kịch bản có dòng TEXT: sẽ bị từ chối (khung {pcfg.brief.aspect} không có template "
+              f"chữ nào dùng được). {no_template_cause(pcfg, env.cat)}")
+    return Env(pcfg, env.vcfg, env.provider, env.occ)
+
+
+def first_setup(config: Path | None) -> str | None:
+    """Why the folders must be asked BEFORE the environment check, or None. A fresh clone has no
+    videoauto.local.yaml, and its config.yaml still holds the sample values marked CHANGE: checking
+    those first would fail on paths the user was never asked for, and exit before the questions."""
+    if not local_file().exists():
+        return f"chưa có {LOCAL_FILE}"
+    sample = changed_sample_lines(config or Path.cwd() / "config.yaml")
+    if sample:
+        return "config.yaml còn giá trị mẫu (CHANGE): " + ", ".join(sample)
+    return None
+
+
+def changed_sample_lines(path: Path) -> list[str]:
+    """`key: value` lines marked `# CHANGE` whose value is a path that does not exist here."""
+    import re
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+    except OSError:
+        return []
+    out = []
+    for line in text.splitlines():
+        if "CHANGE" not in line or line.lstrip().startswith("#"):
+            continue
+        m = re.match(r"\s*([A-Za-z_]+)\s*:\s*([^#]+?)\s*(#|$)", line)
+        if not m:
+            continue
+        value = m.group(2).strip().strip("\"'")
+        p = Path(value)
+        if not p.is_absolute():
+            p = path.parent / p
+        if value and not p.exists():
+            out.append(f"{m.group(1)}: {value}")
+    return out
 
 
 # ---------------------------------------------------------------- the watcher
@@ -915,8 +939,15 @@ def main(argv: list[str] | None = None, provider=None, occ=None, stop: threading
 
     no_prompt = args.no_prompt or not _stdin_is_tty()
     try:
-        env = check_prerequisites(args.config, args.vision_config, provider, occ)
-        paths = setup_paths(no_prompt)
+        why = None if no_prompt else first_setup(args.config)
+        if why:
+            # fresh clone: ask the folders first (they are what a new user has to give), then check
+            print(f"Thiết lập lần đầu ({why}).")
+            paths = setup_paths(no_prompt)
+            env = check_prerequisites(args.config, args.vision_config, provider, occ)
+        else:
+            env = check_prerequisites(args.config, args.vision_config, provider, occ)
+            paths = setup_paths(no_prompt)
     except SetupExit as e:
         print(e.message, file=sys.stderr)
         return e.code

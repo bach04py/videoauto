@@ -85,6 +85,15 @@ standard ones for each tool but have not been tested with videoauto.
 
 You need git, Python 3.12, Node.js 24, ffmpeg and the Claude Code CLI.
 
+**Downloads to expect.** OpenChatCut's `npm install` takes several minutes. Speech recognition
+(Whisper, which transcribes what is said in a clip for the planner) is **off by default** and
+downloads nothing. Turn it on in `config.yaml` (`whisper: model:`) only if your footage has speech
+that matters; the first run then downloads the model once: `tiny` 75 MB, `base` 145 MB, `small`
+485 MB, `medium` 1.5 GB, `large-v3` 3.1 GB (`auto` = `large-v3` with a working NVIDIA GPU and its
+CUDA 12 libraries, otherwise `medium`). Speech recognition never stops a build: if the model
+cannot load (no `cublas64_12.dll`, a card without fast float16, no disk space), videoauto logs one
+warning, falls back to the CPU or skips it, and the clips get `transcript: null`.
+
 ### Windows (PowerShell)
 
 ```powershell
@@ -213,8 +222,8 @@ Optional extras:
 - `pip install -e ".[dev]"` adds pytest. Tests run on your own clips in `tests/fixtures/`
   (`gym.mp4`, `sunset.mp4`); footage is never committed, so tests that need it are skipped.
 
-`faster-whisper` (speech) is installed with the base package. The first file that contains speech
-downloads a Whisper model (`medium`, about 1.5 GB, on CPU). The speech path is untested.
+`faster-whisper` (speech) is installed with the base package but unused while `whisper.model` is
+`off` (the default; see **Downloads to expect** in step 1).
 
 ---
 
@@ -242,7 +251,7 @@ brand:
   context: |                         # optional free text for the planner (never sent to captioning)
     Chuỗi phòng tập, hồ bơi và sân pickleball ở Bình Dương.
     Giọng điệu khỏe khoắn, hướng tới hội viên mới.
-  logo: brand/logo.png               # optional; PNG with transparency. CHANGE or remove this line
+  # logo: brand/logo.png             # optional; PNG with transparency. Put your logo there and remove the "# "
   logo_position: bottom-right        # top-left | top-right | bottom-left | bottom-right
   logo_scale: 0.22                   # logo width as a fraction of frame width (0.05-0.5)
   logo_opacity: 0.85                 # 0.05-1
@@ -258,7 +267,14 @@ style:                               # optional; steers the planner. Editable li
   pace: ""                           # fast | medium | calm  (empty = planner decides)
   prefer_luts: []                    # LUT ids from catalogue.json, e.g. [builtin:look-teal-orange]
 
-catalogue: catalogue.json     # generated from OpenChatCut (README step 2)
+catalogue: catalogue.json     # made by videoauto from OpenChatCut on the first run (README step 2)
+
+whisper:                      # speech recognition in the clips (optional; README, Prerequisites)
+  model: off                  # off | tiny | base | small | medium | large-v3 | auto
+                              # the first use downloads the model once: tiny 75 MB, base 145 MB,
+                              # small 485 MB, medium 1.5 GB, large-v3 3.1 GB (auto: large-v3 with a
+                              # working NVIDIA GPU, else medium). off = no download, no transcripts
+  # language: vi              # optional; empty = detect per clip
 min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
 
 openchatcut:
@@ -279,9 +295,10 @@ auto/on/off, a missing `footage_dir` each stop the run in the first second with 
 message, e.g.
 `Lỗi: brand.logo_scale = 0.6 không hợp lệ: phải là số trong khoảng 0.05–0.5.`
 
-The example brand, logo and script are not part of this repository: put your own logo at
-`brand/logo.png` and your script at `scripts/buoi-tap.txt` (both folders are git-ignored), or remove
-those lines.
+The example brand, logo and script are not part of this repository. The sample `logo:` line is
+commented out, so a fresh clone runs without a logo; to add yours, put it at `brand/logo.png` (the
+folder is git-ignored) and remove the `# ` in front of `logo:`. Put your script at
+`scripts/buoi-tap.txt`, or pass `--script`.
 
 ### Brand: worked example
 
@@ -440,11 +457,15 @@ broken rule drops that overlay with a Vietnamese warning (and the rule above the
 a TEXT line is left without its overlay):
 
 - **Vietnamese-safe templates only.** A template needs `"vi_ok": true` in `catalogue.json` (131 of
-  235 pass OpenChatCut's two Vietnamese font audits: M2, and M3, which checks that the second mark
-  of stacked letters such as Ố, Ớ and Ắ stays attached), and its orientation must match the target (no 16:9
+  235 pass OpenChatCut's two Vietnamese font audits with upstream OpenChatCut: M2, and M3, which
+  checks that the second mark of stacked letters such as Ố, Ớ and Ắ stays attached; 134 with the
+  fork's branch `videoauto`, whose font loader completes Windows Georgia with the open Gelasio font
+  and reads font lists written `'"Playfair Display", …'`; videoauto bundles the verdicts for both and
+  picks the matching ones), and its orientation must match the target (no 16:9
   template on a 9:16 video). This is checked twice: the planner is only shown matching templates,
-  and the validator drops any other, including a template whose size is unknown. Of the 131, only
-  20 are 9:16. For 9:16 the planner is offered the `social-shorts` group, with
+  and the validator drops any other, including a template whose size is unknown. Either way only
+  20 are 9:16. The other ~100 are not font problems (no text field, text too long for its box,
+  accents colliding with the line above, props the template ignores) and need template changes. For 9:16 the planner is offered the `social-shorts` group, with
   `竖屏·重点词弹出` (keyword pop, `ss-keyword-pop`) first as the default for a short line.
 - **Script text only, verbatim.** Every non-empty text field must equal one of the script's TEXT
   lines (compared after Unicode NFC normalisation, so a decomposed `ộ` still matches), and each line
@@ -660,9 +681,12 @@ build first indexes any clip not yet in the cache (already-indexed clips cost ze
 `footage_dir` and `script_file` are not used by the watcher. The file is read at startup, and read
 again after every save from key **S** (below).
 
-**1. Startup checks.** ffmpeg, Node, the OpenChatCut repo, `catalogue.json` and model access are
-checked once, before any question. A missing one prints the same `Lỗi: …` message as
-`videoauto.run` (see **Troubleshooting**) and exits with code 2.
+**1. Startup checks.** ffmpeg, Node, the OpenChatCut repo, `catalogue.json` (generated if missing
+or made from another OpenChatCut), the logo and model access are checked once. **Every** problem is
+listed in one message (`Lỗi: Còn 3 việc cần sửa trước khi chạy …`), so one round of fixes is enough;
+then it exits with code 2. On a first run (no `videoauto.local.yaml` yet, or a `config.yaml` that
+still holds the sample paths marked `CHANGE`) the three questions below come **first** and are
+saved, and the check runs after them: a new user always gets to answer them.
 
 **2. Three questions** (Vietnamese, in this order):
 
@@ -876,11 +900,13 @@ OpenChatCut's `.nvmrc`. If neither works, set the full path in `config.yaml`, e.
 wrong folder; `Repo OpenChatCut chưa cài thư viện. Chạy npm install …` means step 2's `npm install`
 did not finish.
 
-**catalogue.json missing**
+**catalogue.json missing or not generated**
 ```
-Lỗi: Không tìm thấy catalogue '…\catalogue.json'. Chép catalogue.json từ thư mục gốc repo OpenChatCut (tạo bằng scripts/dump-catalogue.mts) và đặt đường dẫn 'catalogue' trong config.yaml.
+Lỗi: Không tìm thấy catalogue '…\catalogue.json'. videoauto tự tạo tệp này từ OpenChatCut khi chạy; tạo ngay bằng: python -m videoauto.occ_catalogue (cần repo OpenChatCut đã `npm install`, đường dẫn openchatcut.repo trong config.yaml). Không cần chép tay tệp nào.
 ```
-Redo the catalogue part of step 2, or point `catalogue:` at the file you generated.
+videoauto generates `catalogue.json` itself (step 2). This message means it could not: the same
+report lists the OpenChatCut problem to fix first (wrong `openchatcut.repo`, `npm install` not
+run). After fixing it, run again or run `python -m videoauto.occ_catalogue`.
 
 **Claude CLI not installed or not logged in**
 ```

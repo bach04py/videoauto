@@ -79,15 +79,26 @@ class Occ:
     cfg: OccConfig
     history: list[OccResult] = field(default_factory=list)
 
-    def check(self) -> None:
+    def problems(self) -> list[str]:
+        """Everything that stops occ from running, all at once (empty list: ready)."""
+        out = []
         if not (self.cfg.repo / "cli" / "main.ts").exists():
-            raise UserError(f"openchatcut.repo = '{self.cfg.repo}' không phải repo OpenChatCut "
-                            "(thiếu cli/main.ts). Sửa đường dẫn trong config.yaml.")
-        if not (self.cfg.repo / "node_modules" / "tsx").exists():
-            raise UserError(f"Repo OpenChatCut chưa cài thư viện. Chạy `npm install` trong '{self.cfg.repo}'.")
+            out.append(f"openchatcut.repo = '{self.cfg.repo}' không phải repo OpenChatCut (thiếu cli/main.ts). "
+                       "Clone OpenChatCut cạnh thư mục videoauto (README bước 2) hoặc sửa openchatcut.repo "
+                       "trong config.yaml.")
+        elif not (self.cfg.repo / "node_modules" / "tsx").exists():
+            out.append(f"Repo OpenChatCut chưa cài thư viện. Chạy `npm install` trong '{self.cfg.repo}'.")
         if not (shutil.which(self.cfg.node) or Path(self.cfg.node).exists()):
-            raise ToolMissing(f"Không tìm thấy Node.js ('{self.cfg.node}'). Cài Node (bản trong .nvmrc của "
-                              "OpenChatCut) hoặc đặt openchatcut.node trong config.yaml.")
+            out.append(f"Không tìm thấy Node.js ('{self.cfg.node}'). Cài Node (bản trong .nvmrc của "
+                       "OpenChatCut) hoặc đặt openchatcut.node trong config.yaml.")
+        return out
+
+    def check(self) -> None:
+        found = self.problems()
+        if found:
+            if any(m.startswith("Không tìm thấy Node.js") for m in found) and len(found) == 1:
+                raise ToolMissing(found[0])
+            raise UserError(" ".join(found))
         self.cfg.data_dir.mkdir(parents=True, exist_ok=True)
 
     def run(self, label: str, args: list[str], tool_args: dict | None = None,

@@ -102,6 +102,7 @@ class ProjectConfig:
     brand: Brand = field(default_factory=Brand)
     script_file: Path | None = None
     style: Style = field(default_factory=Style)
+    whisper: dict = field(default_factory=dict)     # config.yaml `whisper:` (speech recognition)
 
     def script_text(self) -> str:
         """The user's script, or "" when script_file is unset, missing or empty."""
@@ -152,7 +153,9 @@ def _node_setting(base: Path, value: str | None, repo: Path) -> str:
     return str(_rel(base, value)) if ("/" in value or "\\" in value) else value   # bare name: PATH
 
 
-def load_project_config(path: Path | None = None) -> ProjectConfig:
+def load_project_config(path: Path | None = None, problems: list[str] | None = None) -> ProjectConfig:
+    """problems: when given, a brand.logo that cannot be used is recorded there (and the logo left
+    out) instead of raised, so the startup check can report it together with everything else."""
     try:
         import yaml
     except ImportError:
@@ -200,9 +203,30 @@ def load_project_config(path: Path | None = None) -> ProjectConfig:
     return ProjectConfig(path=path, brief=brief, footage_dir=_rel(base, footage),
                          catalogue=catalogue,
                          min_material_ratio=float(raw.get("min_material_ratio", 0.6)), occ=occ,
-                         brand=_brand(base, raw.get("brand")),
+                         brand=_brand(base, raw.get("brand"), problems),
                          script_file=_rel(base, raw.get("script_file")),
-                         style=parse_style(raw.get("style")))
+                         style=parse_style(raw.get("style")),
+                         whisper=parse_whisper(raw.get("whisper")))
+
+
+def parse_whisper(raw) -> dict:
+    """config.yaml `whisper:` {model, language}. Absent: speech recognition stays off."""
+    from .speech import DOWNLOAD, MODELS, model_setting
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise UserError("whisper trong config.yaml phải là một bảng khoá: giá trị, ví dụ `model: off`.")
+    out = {}
+    if "model" in raw:
+        m = model_setting(raw["model"])
+        if m != "off" and m not in MODELS:
+            sizes = ", ".join(f"{k} ({v})" for k, v in DOWNLOAD.items())
+            raise UserError(f"whisper.model = {raw['model']!r} không hợp lệ. Chọn off (tắt, mặc định) hoặc một "
+                            f"model: {sizes}, hoặc auto.")
+        out["model"] = m
+    if raw.get("language"):
+        out["language"] = str(raw["language"]).strip()
+    return out
 
 
 def gpu_mode(value) -> str:
@@ -259,7 +283,7 @@ def _num(section: dict, key: str, default: float, lo: float, hi: float, hint: st
     return v
 
 
-def _brand(base: Path, raw) -> Brand:
+def _brand(base: Path, raw, problems: list[str] | None = None) -> Brand:
     if not raw:
         return Brand()
     if not isinstance(raw, dict):
@@ -268,6 +292,17 @@ def _brand(base: Path, raw) -> Brand:
     b = Brand(**text, colors=_colors(raw.get("colors")))
     if not raw.get("logo"):
         return b
+    if problems is None:
+        return _logo(base, raw, b)
+    try:
+        return _logo(base, raw, b)
+    except UserError as e:
+        problems.append(e.message)
+        b.logo, b.logo_size = None, None
+        return b
+
+
+def _logo(base: Path, raw: dict, b: Brand) -> Brand:
     b.logo = _rel(base, raw["logo"])
     if not b.logo.is_file():
         raise UserError(f"Không tìm thấy logo '{b.logo}' (brand.logo trong config.yaml). Kiểm tra đường dẫn, "

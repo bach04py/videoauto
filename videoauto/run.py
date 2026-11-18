@@ -44,51 +44,46 @@ def main(argv: list[str] | None = None, provider=None, occ=None) -> int:
 
 
 def _run(args, provider, occ) -> int:
-    from . import gpu, occ_catalogue
     from .brief import load_project_config
-    from .builder.occ import Occ
-    from .config import load_config
     from .errors import UserError
-    from .features import check_script_file, check_style, check_text_overlays
+    from .features import check_script_file
     from .indexer import collect
-    from .planner.catalogue import Catalogue
-    from .tools import check_ffmpeg
-    from .vision import make_provider
+    from .preflight import Problems, check_tools
 
     t_all = time.monotonic()
     out = args.out
     index_dir, plan_path, video = out / "index", out / "plan.json", out / "final.mp4"
 
-    # ---- preflight: everything that can fail in a second fails before the slow work
+    # ---- preflight: everything that can fail in a second fails before the slow work, and every
+    # problem is reported in one message (not one per run)
     log.info("kiểm tra môi trường…")
-    pcfg = load_project_config(args.config)                        # also validates brand/logo
+    problems = Problems()
+    pcfg = load_project_config(args.config, problems=problems.items)   # a bad logo is collected
     if args.folder and args.footage and args.folder.resolve() != args.footage.resolve():
         raise UserError("Chỉ truyền thư mục video một lần: hoặc làm tham số, hoặc --footage.")
     folder = args.folder or args.footage or pcfg.footage_dir         # command line wins over config
     if folder is None:
-        raise UserError("Chưa biết lấy video ở đâu: đặt footage_dir trong config.yaml, hoặc chạy "
-                        "python -m videoauto.run <thư mục video>.")
-    if not folder.is_dir():
-        raise UserError(f"Thư mục video '{folder}' không tồn tại. Sửa footage_dir trong config.yaml "
-                        "hoặc truyền đúng thư mục.")
-    pcfg.footage_dir = folder = folder.resolve()
+        problems.add("Chưa biết lấy video ở đâu: đặt footage_dir trong config.yaml, hoặc chạy "
+                     "python -m videoauto.run <thư mục video>.")
+    elif not folder.is_dir():
+        problems.add(f"Thư mục video '{folder}' không tồn tại. Sửa footage_dir trong config.yaml "
+                     "hoặc truyền đúng thư mục.")
+    else:
+        pcfg.footage_dir = folder = folder.resolve()
+    script, script_ok = "", True
     if args.script is not None:
-        if not args.script.is_file():
-            raise UserError(f"Không tìm thấy tệp kịch bản '{args.script}' (--script).")
-        pcfg.script_file = args.script.resolve()
-    check_script_file(pcfg)             # a missing script is never replaced by one the model writes
-    script = pcfg.script_text()
-    vcfg = load_config(args.vision_config)
-    check_ffmpeg()
-    occ = occ or Occ(pcfg.occ)
-    occ.check()
-    occ_catalogue.ensure(pcfg.catalogue, pcfg.occ.repo, pcfg.occ.node)   # missing or stale: regenerate
-    cat = Catalogue.load(pcfg.catalogue)
-    check_style(pcfg, cat)
-    check_text_overlays(pcfg, cat, script)     # TEXT lines with no usable template: stop here, not after 5 min
-    enc = gpu.choose(pcfg.occ.gpu_encode, pcfg.occ.repo)           # gpu_encode=on fails here, not after
-    provider = provider or make_provider(vcfg["vision"])
-    provider.check()
+        if args.script.is_file():
+            pcfg.script_file = args.script.resolve()
+        else:
+            problems.add(f"Không tìm thấy tệp kịch bản '{args.script}' (--script).")
+            script_ok = False
+    # a missing script_file is never replaced by one the model writes
+    if script_ok and problems.attempt(check_script_file, pcfg)[0]:
+        script = problems.attempt(pcfg.script_text)[1] or ""
+    env = check_tools(pcfg, problems, occ=occ, provider=provider, vision_config=args.vision_config,
+                      script=script)
+    problems.raise_if_any()
+    vcfg, occ, provider, enc = env.vcfg, env.occ, env.provider, env.enc
     sources = collect(folder, index_dir)
     log.info("ok: %d tệp trong %s, brief %gs %s, OpenChatCut tại %s", len(sources), folder,
              pcfg.brief.duration, pcfg.brief.aspect, pcfg.occ.repo)
@@ -132,8 +127,10 @@ def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path:
     from .plan import log_plan, save_plan
     from .planner.planner import make_plan
 
+    from .speech import merge_whisper
     res = result or PipelineResult()
     folder = pcfg.footage_dir
+    vcfg = merge_whisper(vcfg, getattr(pcfg, "whisper", None))     # config.yaml wins over videoauto.toml
 
     def stage(key: str, n: int, title: str) -> None:
         res.stage = key

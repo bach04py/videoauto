@@ -1,4 +1,4 @@
-"""catalogue.json (dumped from OpenChatCut by its scripts/dump-catalogue.mts): ids and param ranges.
+"""catalogue.json (made by videoauto.occ_catalogue from OpenChatCut): ids and param ranges.
 
 Read as plain JSON. Nothing from OpenChatCut is imported.
 """
@@ -26,9 +26,10 @@ class Catalogue:
     @classmethod
     def load(cls, path: Path) -> "Catalogue":
         if not path.exists():
-            raise UserError(f"Không tìm thấy catalogue '{path}'. Chép catalogue.json từ thư mục gốc repo "
-                            "OpenChatCut (tạo bằng scripts/dump-catalogue.mts) và đặt đường dẫn 'catalogue' "
-                            "trong config.yaml.")
+            raise UserError(f"Không tìm thấy catalogue '{path}'. videoauto tự tạo tệp này từ OpenChatCut khi "
+                            "chạy; tạo ngay bằng: python -m videoauto.occ_catalogue (cần repo OpenChatCut đã "
+                            "`npm install`, đường dẫn openchatcut.repo trong config.yaml). Không cần chép tay "
+                            "tệp nào.")
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
             return cls(data["items"])

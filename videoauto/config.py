@@ -11,8 +11,10 @@ from .errors import UserError
 
 DEFAULTS: dict[str, Any] = {
     "whisper": {
-        # "auto": large-v3 when CUDA is available at runtime, else medium.
-        "model": "auto",
+        # off (default): no speech recognition, no model download. tiny | base | small | medium |
+        # large-v3, or "auto": large-v3 when CUDA works at runtime, else medium. config.yaml's
+        # `whisper:` section overrides this (videoauto/speech.py).
+        "model": "off",
         "language": None,           # None = auto-detect
         "min_speech_seconds": 0.5,  # VAD gate: below this the file has no speech
     },

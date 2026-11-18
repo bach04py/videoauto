@@ -9,8 +9,15 @@ Remotion die with exit 1 in readFile), videoauto:
      machine without re-running the 6-minute render audit,
   3. removes the copied script again and stamps catalogue.json with a fingerprint of the inputs.
 
+Two stacked-diacritic verdict files are bundled, because the result depends on OpenChatCut's font
+loader: vi-stack-review.json for upstream OpenChatCut (Windows Georgia draws Ố Ầ Ắ … with a detached
+mark: 131 vi_ok), and vi-stack-review.georgia-fix.json for an OpenChatCut with the Georgia/Gelasio
+fix (src/fonts/georgiaVietnamese.ts, branch videoauto of the fork: 134 vi_ok). The one matching the
+configured OpenChatCut is used.
+
 The fingerprint hashes what the dump reads in OpenChatCut (template JSON, the effect/transition
-sources, package.json) plus videoauto's dump script and review files. Any change -> regenerate.
+sources, package.json, the font fix if present) plus videoauto's dump script and review files.
+Any change -> regenerate.
 """
 
 from __future__ import annotations
@@ -23,6 +30,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from .errors import UserError
@@ -31,10 +39,12 @@ log = logging.getLogger("videoauto")
 
 BUNDLE = Path(__file__).resolve().parent.parent / "openchatcut"
 SCRIPT = "dump-catalogue.mts"
-REVIEWS = ("vi-font-review.json", "vi-stack-review.json")
+REVIEWS = ("vi-font-review.json", "vi-stack-review.json", "vi-stack-review.georgia-fix.json")
+GEORGIA_FIX = "src/fonts/georgiaVietnamese.ts"
 COPIED_NAME = "videoauto-dump-catalogue.mts"
 # What scripts/dump-catalogue.mts reads in the OpenChatCut repo (directly or through imports).
-OCC_INPUTS = ("assets/templates", "src/gl", "src/editor/types.ts", "src/types.ts", "package.json")
+OCC_INPUTS = ("assets/templates", "src/gl", "src/editor/types.ts", "src/types.ts", "package.json", GEORGIA_FIX,
+              "src/fonts/projectFonts.ts")
 STAMP = "videoauto"
 
 
@@ -74,6 +84,11 @@ def stamp_of(path: Path) -> dict | None:
         return None
     s = data.get(STAMP) if isinstance(data, dict) else None
     return s if isinstance(s, dict) else None
+
+
+def stack_review_name(repo: Path) -> str:
+    """The stacked-diacritic verdicts that match this OpenChatCut's font loader."""
+    return "vi-stack-review.georgia-fix.json" if (repo / GEORGIA_FIX).is_file() else "vi-stack-review.json"
 
 
 def why_stale(path: Path, repo: Path, bundle: Path = BUNDLE) -> str | None:
@@ -125,11 +140,16 @@ def generate(path: Path, repo: Path, node: str, bundle: Path = BUNDLE, timeout: 
     copied = repo / "scripts" / COPIED_NAME
     tmp = path.with_name(path.name + ".tmp")
     path.parent.mkdir(parents=True, exist_ok=True)
+    stack = stack_review_name(repo)
     shutil.copyfile(script, copied)
     try:
-        proc = subprocess.run([node, "--import", "tsx", f"scripts/{COPIED_NAME}", str(tmp), str(bundle)],
-                              cwd=repo, capture_output=True, text=True, encoding="utf-8",
-                              errors="replace", timeout=timeout)
+        with tempfile.TemporaryDirectory(prefix="videoauto_reviews_") as reviews:
+            # the dump reads <reviewDir>/vi-font-review.json and vi-stack-review.json
+            shutil.copyfile(bundle / "vi-font-review.json", Path(reviews) / "vi-font-review.json")
+            shutil.copyfile(bundle / stack, Path(reviews) / "vi-stack-review.json")
+            proc = subprocess.run([node, "--import", "tsx", f"scripts/{COPIED_NAME}", str(tmp), reviews],
+                                  cwd=repo, capture_output=True, text=True, encoding="utf-8",
+                                  errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired:
         raise UserError(f"Tạo catalogue.json quá {timeout}s trong '{repo}'.") from None
     except OSError as e:
@@ -142,7 +162,7 @@ def generate(path: Path, repo: Path, node: str, bundle: Path = BUNDLE, timeout: 
         raise UserError(f"Tạo catalogue.json từ OpenChatCut thất bại (exit {proc.returncode}): {tail[:600]}")
     data = json.loads(tmp.read_text(encoding="utf-8"))
     data[STAMP] = {"fingerprint": fingerprint(repo, bundle), "openchatcut_repo": str(repo),
-                   "openchatcut_git": git_head(repo), "reviews": str(bundle)}
+                   "openchatcut_git": git_head(repo), "reviews": str(bundle), "stack_review": stack}
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     os.replace(tmp, path)
 

@@ -130,7 +130,8 @@ def test_clean_machine_catalogue_is_regenerated_with_vi_ok(clean_machine, real_c
     assert "vân tay" in oc.why_stale(cat_path, OCC_REPO)
     lines = []
     assert oc.ensure(cat_path, OCC_REPO, _find_node(OCC_REPO) or "node", say=lines.append)
-    assert "vi_ok (dùng được với chữ tiếng Việt): 131/235" in lines[-1] and "dọc 20" in lines[-1]
+    want = 134 if (OCC_REPO / oc.GEORGIA_FIX).is_file() else 131         # fork with the font fix, or upstream
+    assert f"vi_ok (dùng được với chữ tiếng Việt): {want}/235" in lines[-1] and "dọc 20" in lines[-1]
     assert oc.why_stale(cat_path, OCC_REPO) is None
     assert not (OCC_REPO / "scripts" / oc.COPIED_NAME).exists()          # no file left in OpenChatCut
     (clean_machine / "config.yaml").write_text("catalogue: catalogue.json\n", encoding="utf-8")
@@ -155,6 +156,7 @@ def fake_dump(monkeypatch, oc, seen: dict, code: int = 0):
     def run(cmd, cwd, **kw):
         seen["cmd"], seen["cwd"] = cmd, cwd
         seen["copied"] = (Path(cwd) / cmd[3]).is_file()
+        seen["stack"] = (Path(cmd[5]) / "vi-stack-review.json").read_bytes()
         if code == 0:
             cat = json.loads(json.dumps(CATALOGUE))
             cat["counts"] = {"effect": 1, "lut": 1, "transition": 1, "template": 3}
@@ -171,7 +173,8 @@ def test_generate_copies_runs_cleans_and_stamps(tmp_path, fake_occ_repo, real_ca
     said = []
     assert oc.ensure(out, fake_occ_repo, "node", say=said.append) is True
     assert seen["copied"] and seen["cwd"] == fake_occ_repo
-    assert seen["cmd"][:3] == ["node", "--import", "tsx"] and seen["cmd"][5] == str(oc.BUNDLE)
+    assert seen["cmd"][:3] == ["node", "--import", "tsx"]
+    assert seen["stack"] == (oc.BUNDLE / "vi-stack-review.json").read_bytes()      # upstream OpenChatCut
     assert not (fake_occ_repo / "scripts" / oc.COPIED_NAME).exists()
     stamp = json.loads(out.read_text(encoding="utf-8"))["videoauto"]
     assert stamp["fingerprint"] == oc.fingerprint(fake_occ_repo) and stamp["openchatcut_git"] == "abc1234"
@@ -204,10 +207,27 @@ def test_not_an_openchatcut_repo(tmp_path, real_catalogue):
         real_catalogue.generate(tmp_path / "c.json", tmp_path / "nowhere", "node")
 
 
-def test_bundled_reviews_cover_every_template():
+@pytest.mark.parametrize("stack_file,want", [("vi-stack-review.json", 131),
+                                             ("vi-stack-review.georgia-fix.json", 134)])
+def test_bundled_reviews_cover_every_template(stack_file, want):
     from videoauto.occ_catalogue import BUNDLE
     font = json.loads((BUNDLE / "vi-font-review.json").read_text(encoding="utf-8"))["templates"]
-    stack = json.loads((BUNDLE / "vi-stack-review.json").read_text(encoding="utf-8"))["templates"]
+    stack = json.loads((BUNDLE / stack_file).read_text(encoding="utf-8"))["templates"]
     assert len(font) == len(stack) == 235
     ok = {t["id"] for t in font if t["vi_ok"]} & {t["id"] for t in stack if t["stack_ok"]}
-    assert len(ok) == 131
+    assert len(ok) == want
+
+
+def test_openchatcut_with_the_font_fix_gets_its_own_verdicts(tmp_path, fake_occ_repo, real_catalogue,
+                                                            monkeypatch):
+    oc, seen = real_catalogue, {}
+    fake_dump(monkeypatch, oc, seen)
+    monkeypatch.setattr(oc, "git_head", lambda repo: None)
+    out = tmp_path / "catalogue.json"
+    oc.ensure(out, fake_occ_repo, "node", say=lambda m: None)
+    (fake_occ_repo / "src" / "fonts").mkdir(parents=True)
+    (fake_occ_repo / oc.GEORGIA_FIX).write_text("// fix", encoding="utf-8")
+    assert "bản OpenChatCut khác" in oc.why_stale(out, fake_occ_repo)       # the fix changes the verdicts
+    oc.ensure(out, fake_occ_repo, "node", say=lambda m: None)
+    assert seen["stack"] == (oc.BUNDLE / "vi-stack-review.georgia-fix.json").read_bytes()
+    assert json.loads(out.read_text(encoding="utf-8"))["videoauto"]["stack_review"] == "vi-stack-review.georgia-fix.json"

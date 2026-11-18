@@ -1,0 +1,5 @@
+# OpenChatCut that this videoauto is tested with. python -m videoauto.setup clones and checks
+# exactly this commit. Update (maintainer): python -m videoauto.setup --pin
+url=https://github.com/bach04py/OpenChatCut
+branch=videoauto
+commit=6150c4c4eac9ec470fc3ab72315db845c0a2238f

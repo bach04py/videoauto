@@ -92,7 +92,7 @@ def test_single_problem_keeps_its_plain_message(tmp_path, monkeypatch, capsys, s
 def test_catalogue_message_matches_the_new_behaviour(tmp_path):
     with pytest.raises(UserError) as e:
         Catalogue.load(tmp_path / "catalogue.json")
-    assert "python -m videoauto.occ_catalogue" in e.value.message and "Chép" not in e.value.message
+    assert "python -m videoauto.setup" in e.value.message and "Chép" not in e.value.message
 
 
 # ---------------------------------------------------------------- speech recognition

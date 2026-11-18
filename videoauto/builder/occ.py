@@ -84,10 +84,10 @@ class Occ:
         out = []
         if not (self.cfg.repo / "cli" / "main.ts").exists():
             out.append(f"openchatcut.repo = '{self.cfg.repo}' không phải repo OpenChatCut (thiếu cli/main.ts). "
-                       "Clone OpenChatCut cạnh thư mục videoauto (README bước 2) hoặc sửa openchatcut.repo "
+                       "Chạy python -m videoauto.setup (tự tải đúng bản OpenChatCut cạnh videoauto) hoặc sửa openchatcut.repo "
                        "trong config.yaml.")
         elif not (self.cfg.repo / "node_modules" / "tsx").exists():
-            out.append(f"Repo OpenChatCut chưa cài thư viện. Chạy `npm install` trong '{self.cfg.repo}'.")
+            out.append(f"Repo OpenChatCut tại '{self.cfg.repo}' chưa cài thư viện. Chạy: python -m videoauto.setup")
         if not (shutil.which(self.cfg.node) or Path(self.cfg.node).exists()):
             out.append(f"Không tìm thấy Node.js ('{self.cfg.node}'). Cài Node (bản trong .nvmrc của "
                        "OpenChatCut) hoặc đặt openchatcut.node trong config.yaml.")

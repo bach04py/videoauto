@@ -23,3 +23,5 @@ plan.json
 videoauto.local.yaml
 *.tmp
 previews/
+# the setup check clip (made by us with ffmpeg testsrc2, no third-party media)
+!videoauto/assets/*.mp4

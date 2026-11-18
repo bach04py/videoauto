@@ -62,6 +62,11 @@ def _run(args, provider, occ) -> int:
     if args.folder and args.footage and args.folder.resolve() != args.footage.resolve():
         raise UserError("Chỉ truyền thư mục video một lần: hoặc làm tham số, hoặc --footage.")
     folder = args.folder or args.footage or pcfg.footage_dir         # command line wins over config
+    if not (args.folder or args.footage) and (folder is None or not folder.is_dir()):
+        saved = _saved_footage()        # config.yaml still has the sample path: use the one setup saved
+        if saved is not None:
+            log.info("footage_dir trong config.yaml chưa dùng được; dùng thư mục video đã lưu: %s", saved)
+            folder = saved
     if folder is None:
         problems.add("Chưa biết lấy video ở đâu: đặt footage_dir trong config.yaml, hoặc chạy "
                      "python -m videoauto.run <thư mục video>.")
@@ -102,6 +107,13 @@ def _run(args, provider, occ) -> int:
     log.info("   báo cáo:   %s", res.report.resolve())
     log.info("   chỉ mục:   %s", index_dir.resolve())
     return 0
+
+
+def _saved_footage() -> Path | None:
+    from .watch import load_saved
+    raw = load_saved().get("footage")
+    p = Path(raw) if raw else None
+    return p if p is not None and p.is_dir() else None
 
 
 @dataclass

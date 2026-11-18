@@ -27,9 +27,8 @@ class Catalogue:
     def load(cls, path: Path) -> "Catalogue":
         if not path.exists():
             raise UserError(f"Không tìm thấy catalogue '{path}'. videoauto tự tạo tệp này từ OpenChatCut khi "
-                            "chạy; tạo ngay bằng: python -m videoauto.occ_catalogue (cần repo OpenChatCut đã "
-                            "`npm install`, đường dẫn openchatcut.repo trong config.yaml). Không cần chép tay "
-                            "tệp nào.")
+                            "chạy; tạo ngay bằng: python -m videoauto.setup (cài OpenChatCut nếu chưa có, rồi tạo "
+                            "catalogue). Không cần chép tay tệp nào.")
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
             return cls(data["items"])

@@ -36,7 +36,7 @@ style:                               # optional; steers the planner. Editable li
   pace: ""                           # fast | medium | calm  (empty = planner decides)
   prefer_luts: []                    # LUT ids from catalogue.json, e.g. [builtin:look-teal-orange]
 
-catalogue: catalogue.json     # made by videoauto from OpenChatCut on the first run (README step 2)
+catalogue: catalogue.json     # made by python -m videoauto.setup (and again whenever OpenChatCut changes)
 
 whisper:                      # speech recognition in the clips (optional; README, Prerequisites)
   model: off                  # off | tiny | base | small | medium | large-v3 | auto

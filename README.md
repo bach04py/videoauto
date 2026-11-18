@@ -1,25 +1,166 @@
 # videoauto
 
-## Tiếng Việt (tóm tắt)
+Thư mục video thô vào, video ngắn hoàn chỉnh ra. Raw footage folder in, finished short video out.
+
+## Cài đặt (install)
+
+Trên máy đã có Node 24, Python 3.12, ffmpeg, git và Claude Code đã đăng nhập:
+
+```
+git clone https://github.com/bach04py/videoauto
+cd videoauto
+pip install -e .
+python -m videoauto.setup
+```
+
+Gặp vấn đề: xem **Troubleshooting** ngay bên dưới.
+
+## Troubleshooting
+
+### When `python -m videoauto.setup` stops
+
+Every stop ends with `Chưa cài đặt xong.` and the exact command to run; run setup again afterwards
+(finished steps are skipped in seconds). "Cài đặt xong" is printed only after step 7 rendered a real
+video.
+
+**Step 1: `Thiếu N công cụ`.** All missing tools are listed at once, each with its install command
+(Windows: `winget …`). Install them, **open a new terminal** (winget updates PATH for new windows
+only) and run setup again. Node must be 24 (at least the version in OpenChatCut's `.nvmrc`): with a
+newer Node as the default, `fnm install 24.22.1` is enough, videoauto finds fnm's Node 24 itself.
+`claude chưa đăng nhập`: run `claude auth login`.
+
+**Step 2: OpenChatCut at another commit.** `../OpenChatCut` exists but is not at the pinned commit.
+Answer **Y** to switch (git checks the pinned commit out, detached). If git refuses because of local
+changes: `git -C ../OpenChatCut stash`, then setup again. `không phải một git clone`: the folder is a
+download, not a clone; rename it and let setup clone. Under `--no-prompt` setup never switches; it
+prints the two git commands.
+
+**Step 3: install scripts blocked.** On machines whose npm policy blocks install scripts:
+
+```
+Thư viện của OpenChatCut cài chưa đủ:
+  - ffmpeg-static: thiếu ffmpeg.exe (script cài đặt của nó không chạy)
+  - esbuild: không chạy được (…)
+  Máy này chặn install script của npm. Cho phép đúng các gói cần thiết:
+      npm --prefix "C:\…\OpenChatCut" install-scripts approve ffmpeg-static esbuild
+  rồi chạy lại: python -m videoauto.setup   (nó tự chạy npm rebuild cho các gói đó)
+```
+
+Run the printed `approve` line, then setup again: it runs `npm rebuild` for those packages and
+checks again. Only these two are needed; the other packages npm lists (onnxruntime-node, koffi,
+electron-winstaller, protobufjs) belong to desktop features videoauto does not use. `approve`
+writes an `allowScripts` entry into OpenChatCut's `package.json`. If `npm ci` itself fails, it is
+usually the network or a company proxy (`npm config set proxy http://…`).
+
+**Step 6 under `--no-prompt`.** Pass the folders: `--footage <thư mục> --scripts <thư mục>
+--output <thư mục>`, or run setup once in a terminal to choose and save them.
+
+**Step 7: `Dựng thử thất bại`.** The 1-second check video (the bundled 16:9 sample cropped into
+9:16, one `TEXT:` line) did not come out. The message has OpenChatCut's own error; every command and
+its result is in `<output>/.setup-check/build.json`, with the plan next to it. When it works, the
+video is `<output>/kiem-tra-cai-dat.mp4`: open it to see the text and the crop.
+
+### Messages while running
+
+All messages are printed as `Lỗi: …` with the fix in the message.
+
+**ffmpeg not found**
+```
+Lỗi: Không tìm thấy ffmpeg trong PATH. Cài bằng lệnh: winget install Gyan.FFmpeg, rồi mở terminal mới và chạy lại.
+```
+Install ffmpeg (setup step 1), then **open a new terminal**: winget only updates PATH for new windows.
+`ffmpeg -version` must work in the terminal you run videoauto from.
+
+**Node not on PATH / not found**
+```
+Lỗi: Không tìm thấy Node.js ('node'). Cài Node (bản trong .nvmrc của OpenChatCut) hoặc đặt openchatcut.node trong config.yaml.
+```
+On Windows, videoauto looks for `node` on PATH, then for the fnm-installed version named in
+OpenChatCut's `.nvmrc`. If neither works, set the full path in `config.yaml`, e.g.
+`node: C:/Users/<you>/AppData/Roaming/fnm/node-versions/v24.22.1/installation/node.exe`
+(macOS/Linux: the output of `fnm exec --using=24 which node`). Related messages:
+`openchatcut.repo = '…' không phải repo OpenChatCut (thiếu cli/main.ts)` means `repo:` points to the
+wrong folder; `Repo OpenChatCut tại '…' chưa cài thư viện. Chạy: python -m videoauto.setup` means OpenChatCut's
+libraries are not installed: setup step 3 installs and checks them.
+
+**catalogue.json missing or not generated**
+```
+Lỗi: Không tìm thấy catalogue '…\catalogue.json'. videoauto tự tạo tệp này từ OpenChatCut khi chạy; tạo ngay bằng: python -m videoauto.setup (cài OpenChatCut nếu chưa có, rồi tạo catalogue). Không cần chép tay tệp nào.
+```
+videoauto generates `catalogue.json` itself (setup step 4). This message means it could not: the same
+report lists the OpenChatCut problem to fix first (wrong `openchatcut.repo`, OpenChatCut not
+installed). `python -m videoauto.setup` fixes both and makes the catalogue.
+
+**Claude CLI not installed or not logged in**
+```
+Lỗi: Không tìm thấy lệnh `claude`. Cài Claude Code CLI rồi đăng nhập bằng lệnh: claude auth login (hoặc đặt vision.provider = "openai-compatible" trong videoauto.toml).
+Lỗi: Không có quyền truy cập Claude: <the CLI's own message>. Đăng nhập bằng lệnh: claude auth login (kiểm tra: claude auth status).
+```
+Run `claude auth login`, check with `claude auth status`, and run videoauto again. The second line
+quotes whatever the Claude CLI reported, for example `Invalid API key · Please run /login`.
+
+**Windows Smart App Control blocks numpy** (only with the `[music]` extra)
+```
+ImportError: DLL load failed while importing _sfc64: An Application Control policy has blocked this file.
+```
+videoauto reports it as `Windows Smart App Control chặn một thư viện của librosa (thường do numpy
+quá mới). Chạy: pip install "numpy>=2.0,<2.3" rồi thử lại.` Run exactly that. Do not disable Smart
+App Control. Video indexing keeps working either way.
+
+**Usage limit reached**
+```
+Dừng: Đã chạm giới hạn sử dụng/tốc độ của Claude. Đã dừng an toàn: các tệp đã xử lý xong được lưu vào cache, tệp đang dở không được ghi. Hãy chạy lại lệnh khoảng 19:00 ngày 16/11; các tệp đã có trong cache sẽ không tốn lượt gọi nào.
+```
+Exit code 3. Nothing half-finished is written. Run the same command after the time shown; finished
+files are cache hits and cost no calls.
+
+**The video is sideways**
+Some cameras record portrait footage as landscape (e.g. 3840x2160) without a rotation tag, so every
+tool, including OpenChatCut, shows it sideways. Tag copies of the files losslessly and run on the
+copies (`90` = turn counter-clockwise; use `-90` if they come out upside down):
+```
+ffmpeg -display_rotation 90 -i C0144.MP4 -map 0:v:0 -map 0:a:0 -c copy upright/C0144.MP4
+```
+
+**Old indexes (`bỏ qua N chỉ mục cũ không còn tệp tương ứng trong thư mục video`)**
+The index folder still holds indexes for clips that were replaced or removed. They are skipped and
+do no harm. To remove them, run the clean-up explicitly:
+```
+python -m videoauto.index --prune --out D:\video\xuat\.index
+python -m videoauto.index D:\quay\thu-vien --prune --out output\index    # name the footage folder
+```
+Without a folder argument, the footage folder is the watcher's saved one when `--out` is the
+watcher's `.index`, otherwise `footage_dir` from `config.yaml`. The command lists every index it
+would remove and deletes only after you answer `y`; Enter means no. It **refuses to run** when the
+footage folder is missing or contains no video, because that usually means the drive is not
+connected, not that the library is gone. An index whose clip comes back later is simply rebuilt,
+which costs model calls again.
+
+One case still gets its own warning: two clips with the **same file name but different content**
+both in the footage folder (e.g. `ngay1\C0140.MP4` and `ngay2\C0140.MP4`). The plan refers to clips
+by name, so only one can be used; the warning names both and says which one the plan used. Rename
+one of them to use both.
+
+**A clip is skipped with `Không đọc được tệp …`**
+The file could not be decoded by ffmpeg. The run continues with the other clips; check the file
+plays in a normal video player.
+
+### Tiếng Việt (tóm tắt)
 
 **videoauto** biến một thư mục video thô thành một video ngắn hoàn chỉnh (mặc định 15 giây, dọc 9:16)
 chỉ bằng một lệnh. Công cụ phân tích từng clip (cắt cảnh, độ nét, chuyển động, mô tả cảnh bằng
 Claude), lập kế hoạch dựng bằng **một** lượt gọi model, rồi dựng và xuất MP4 bằng
 [OpenChatCut](https://github.com/0xsline/OpenChatCut). Đây là bản thử nghiệm sớm: kết quả còn thô.
 
-```
-python -m videoauto.watch
-```
-
-Đây là lệnh chính. Lần đầu nó hỏi ba thư mục (video nguồn, kịch bản, xuất video), lưu vào
+Lệnh chính sau khi cài: `python -m videoauto.watch`. Lần đầu nó hỏi ba thư mục (video nguồn, kịch bản, xuất video), lưu vào
 `videoauto.local.yaml` nếu bạn đồng ý, rồi chạy mãi: mỗi tệp kịch bản `.txt` mới thả vào thư mục
 kịch bản thành một video (`tap-nguc.txt` → `tap-nguc.mp4`), lần lượt từng cái một; video cũ không
 bao giờ bị ghi đè (lần sau thành `tap-nguc-2.mp4`). Kịch bản xong chuyển vào `done/`, lỗi chuyển
 vào `failed/` kèm tệp `.loi.txt` ghi lý do và cách xử lý; video của một lần dựng lỗi được giữ lại
 với tên `<tên>.loi.mp4`, không bao giờ bị xoá. Các thư mục này nằm trong thư mục xuất video. Khi
-chạy lúc đăng nhập (Task Scheduler) hoặc dạng dịch vụ (NSSM) phải thêm `--no-prompt`. Xem mục 5.
+chạy lúc đăng nhập (Task Scheduler) hoặc dạng dịch vụ (NSSM) phải thêm `--no-prompt`. Xem **The folder watcher**.
 
-Dựng **một lần** không cần watcher (cho người dùng quen dòng lệnh; xem mục 6):
+Dựng **một lần** không cần watcher (cho người dùng quen dòng lệnh; xem **One build from the command line**):
 `python -m videoauto.run` dùng thư mục video (`footage_dir`) và kịch bản (`script_file`) đặt trong
 `config.yaml`, hoặc `python -m videoauto.run D:\quay\buoi-khac --script kich-ban.txt`.
 
@@ -38,10 +179,10 @@ Dựng **một lần** không cần watcher (cho người dùng quen dòng lện
   (không có template hợp khung hình, model bỏ sót một dòng, OpenChatCut báo lỗi) thì **dừng và
   báo lý do**, không bao giờ xuất video thiếu chữ. Logo cũng vậy.
 
-Cần cài: Python 3.12, Node 24, ffmpeg, Claude Code CLI (đã đăng nhập), và một bản OpenChatCut đặt
-**cạnh** thư mục videoauto, đã chạy `npm install` (`catalogue.json` do videoauto tự tạo ở lần chạy đầu). Làm theo đúng thứ tự
-các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ sai nhất). Mọi thông báo lỗi của công cụ
-đều bằng tiếng Việt và nói rõ cần làm gì; xem mục **Troubleshooting**.
+Cài đặt: bốn lệnh ở đầu tệp này. `python -m videoauto.setup` tự tải đúng bản OpenChatCut (fork có
+bản vá font tiếng Việt, đúng commit ghim trong `openchatcut.pin`), cài thư viện, tạo `catalogue.json`,
+hỏi ba thư mục và dựng thử một video 1 giây; chỉ khi video đó ra đời mới báo "Cài đặt xong". Mọi
+thông báo lỗi đều bằng tiếng Việt và nói đúng lệnh cần chạy.
 
 Khi đang chờ, cửa sổ watcher luôn hiện dòng gợi ý
 `[S] sửa phong cách   [P] xem đường dẫn   [Q] thoát`. Nhấn **S** để tự gõ lại bối cảnh (`context`),
@@ -63,9 +204,8 @@ Chưa làm được: phụ đề theo lời nói, nhạc nền, cắt bám theo 
 nhận giọng nói (tắt mặc định) chưa được kiểm thử trên clip có lời nói.
 Chỉ mới chạy thử trên Windows 11.
 
----
 
-## What this does
+### What this does
 
 videoauto turns a folder of raw video clips into one finished short video, with no clicks.
 It indexes every clip locally (shots, sharpness, motion, quality flags) and captions the shots with
@@ -73,26 +213,22 @@ Claude, asks a model **once** for an edit plan (which shots, in what order, one 
 validates that plan hard, and then drives the [OpenChatCut](https://github.com/0xsline/OpenChatCut)
 `occ` command line to assemble and render the MP4.
 
-```
-python -m videoauto.watch
-```
-
-That is the main command (section 5): it asks for three folders once, then turns every script
+The main command, once installed, is `python -m videoauto.watch` (the folder watcher, below): it asks for three folders once, then turns every script
 (`.txt`) dropped into the scripts folder into a video. For a single run from the command line,
 `python -m videoauto.run` uses `footage_dir` (and optionally `script_file` and `brand`) from
-`config.yaml` (section 6). The output is a crude first cut: picked and ordered shots, one LUT, a fade in and
+`config.yaml` (**One build from the command line**). The output is a crude first cut: picked and ordered shots, one LUT, a fade in and
 out, an optional logo, text overlays for the lines your script asks for, sometimes a transition.
 It is not a finished edit with subtitles or music (see **What this does not do yet**).
 It has been developed and run on **Windows 11 only**. The macOS/Linux commands below are the
 standard ones for each tool but have not been tested with videoauto.
 
----
 
-## 1. Prerequisites
+### Installing the tools by hand
 
-You need git, Python 3.12, Node.js 24, ffmpeg and the Claude Code CLI.
+`python -m videoauto.setup` step 1 checks git, Python 3.12, Node.js 24, ffmpeg and the Claude Code CLI
+(logged in) and prints the install command for each one that is missing. The same commands, in full:
 
-**Downloads to expect.** OpenChatCut's `npm install` takes several minutes. Speech recognition
+**Downloads to expect.** OpenChatCut's `npm ci` (setup step 3) takes about a minute on a fast line. Speech recognition
 (Whisper, which transcribes what is said in a clip for the planner) is **off by default** and
 downloads nothing. Turn it on in `config.yaml` (`whisper: model:`) only if your footage has speech
 that matters; the first run then downloads the model once: `tiny` 75 MB, `base` 145 MB, `small`
@@ -101,7 +237,7 @@ CUDA 12 libraries, otherwise `medium`). Speech recognition never stops a build: 
 cannot load (no `cublas64_12.dll`, a card without fast float16, no disk space), videoauto logs one
 warning, falls back to the CPU or skips it, and the clips get `transcript: null`.
 
-### Windows (PowerShell)
+#### Windows (PowerShell)
 
 ```powershell
 winget install -e --id Git.Git
@@ -127,7 +263,7 @@ claude auth status    # should show you are logged in
 To have `node` in every new PowerShell window, add the `fnm env ...` line to your profile
 (`notepad $PROFILE`). videoauto itself also finds an fnm-installed Node on Windows without it.
 
-### macOS (Homebrew, untested)
+#### macOS (Homebrew, untested)
 
 ```bash
 brew install git python@3.12 fnm ffmpeg
@@ -137,7 +273,7 @@ curl -fsSL https://claude.ai/install.sh | bash
 claude auth login
 ```
 
-### Ubuntu 24.04 (untested)
+#### Ubuntu 24.04 (untested)
 
 ```bash
 sudo apt update && sudo apt install -y git python3.12 python3.12-venv ffmpeg fonts-dejavu-core
@@ -150,73 +286,66 @@ claude auth login
 Every model call (captions and the plan) goes through `claude -p` and counts against your Claude
 plan's usage. A 17-clip folder took 8 calls in total (see **Run it**).
 
----
 
-## 2. OpenChatCut (required, separate project)
+### OpenChatCut, the video engine (setup steps 2-4)
 
 videoauto does not render video itself. It runs OpenChatCut's `occ` command line as a subprocess
-(it never imports OpenChatCut code), and it needs OpenChatCut's catalogue of effects and transitions
-as a JSON file. **Both must be set up before the first run.**
+(it never imports OpenChatCut code), and reads OpenChatCut's catalogue of effects, LUTs,
+transitions and text templates from `catalogue.json`. `python -m videoauto.setup` puts all of it in
+place:
 
-Put the two projects **side by side** in the same parent folder. The default `config.yaml`
-expects exactly this layout:
+- **Step 2** clones **the fork** `https://github.com/bach04py/OpenChatCut`, branch `videoauto`, next
+  to videoauto (`../OpenChatCut`, the `openchatcut.repo` of `config.yaml`), at exactly the commit in
+  `openchatcut.pin`. The fork carries the Vietnamese font fix (Georgia's stacked marks Ố Ầ Ắ … drawn
+  from bundled Gelasio, an open-licence font) and the fix for templates that name a font list;
+  upstream OpenChatCut has neither, and stacked marks break again. The commit is pinned because a
+  `catalogue.json` from another OpenChatCut version made Remotion fail with exit 1 in `readFile`.
+  An existing `../OpenChatCut` at another commit is reported and switched only if you answer **Y**
+  (under `--no-prompt` it stops and prints the git commands).
+- **Step 3** runs `npm ci` there (with `ELECTRON_SKIP_BINARY_DOWNLOAD=1`: videoauto never starts the
+  desktop app), then checks what npm's install scripts should have produced: the ffmpeg binary of
+  `ffmpeg-static`, a working `esbuild`, and `occ --help` through tsx. npm exits 0 even when a policy
+  blocked those scripts (`8 packages have install scripts not yet covered by allowScripts`), so the
+  check is on the files, not on npm's exit code. It is skipped on later runs while
+  `package-lock.json` and Node are unchanged.
+- **Step 4** generates `catalogue.json` (about a second). It copies its generator
+  (`openchatcut/dump-catalogue.mts`) into OpenChatCut's `scripts/`, runs it with OpenChatCut's Node,
+  removes it again and writes `videoauto/catalogue.json`. The Vietnamese font verdicts (`vi_ok`:
+  which templates draw Vietnamese text correctly) come from audit results bundled with videoauto
+  (`openchatcut/vi-font-review.json`, and `vi-stack-review.georgia-fix.json` for the fork), so a
+  fresh machine gets them without re-running the audit:
 
 ```
-some-folder/
-  OpenChatCut/      <- step 2
-  videoauto/        <- step 3
+catalogue: đã ghi …\catalogue.json: 33 hiệu ứng, 16 LUT, 16 chuyển cảnh, 235 template; vi_ok (dùng được với chữ tiếng Việt): 134/235 (dọc 20, ngang 114, vuông 0)
 ```
 
-```bash
-cd some-folder
-git clone https://github.com/0xsline/OpenChatCut.git
-git clone https://github.com/bach04py/videoauto.git
+`catalogue.json` carries a fingerprint of the OpenChatCut it came from; when OpenChatCut changes, or
+a `catalogue.json` is copied from another machine, videoauto regenerates it before doing anything
+else. By hand: `python -m videoauto.occ_catalogue` (`--refresh` forces a new one).
+
+The same by hand, if you ever need it (Node 24 on PATH):
+
+```
+git clone --branch videoauto https://github.com/bach04py/OpenChatCut.git
 cd OpenChatCut
-fnm use                     # reads .nvmrc (Node 24); answer "y" if fnm offers to install it
-npm install                 # takes several minutes; must finish without errors
+git checkout --detach <the commit= line of videoauto/openchatcut.pin>
+npm ci
 ```
 
-That is all for OpenChatCut. **You do not create `catalogue.json` yourself**: videoauto needs
-OpenChatCut's catalogue of effects, LUTs, transitions and text templates, and generates it on the
-first run (about a second). It copies its generator (`openchatcut/dump-catalogue.mts`) into
-OpenChatCut's `scripts/`, runs it with OpenChatCut's Node, removes it again and writes
-`videoauto/catalogue.json`. The Vietnamese font verdicts (`vi_ok`: which templates draw Vietnamese
-text correctly) come from audit results bundled with videoauto (`openchatcut/vi-font-review.json`,
-`openchatcut/vi-stack-review.json`), so a fresh machine gets them without re-running the audit.
-The summary line says how many templates can carry Vietnamese text:
-
-```
-catalogue: chưa có catalogue.json → tự tạo lại từ OpenChatCut tại …\OpenChatCut (vài giây)…
-catalogue: đã ghi …\catalogue.json: 33 hiệu ứng, 16 LUT, 16 chuyển cảnh, 235 template; vi_ok (dùng được với chữ tiếng Việt): 131/235 (dọc 20, ngang 111, vuông 0)
-```
-
-`catalogue.json` carries a fingerprint of the OpenChatCut it came from. When you update
-OpenChatCut, or copy a `catalogue.json` from another machine (a catalogue from a different
-OpenChatCut version made Remotion fail with exit 1 in `readFile`), the fingerprint no longer
-matches and videoauto regenerates the file before doing anything else. To regenerate or check it by
-hand: `python -m videoauto.occ_catalogue` (`--refresh` forces a new one).
-
-Optional check that `occ` runs:
-
-```bash
-npx tsx cli/main.ts --help          # prints "occ — OpenChatCut command line"
-```
+**Maintainer: moving the pin.** Commit and push the change on the fork's `videoauto` branch, check
+it out in `../OpenChatCut`, then run `python -m videoauto.setup --pin` in videoauto: it writes
+`openchatcut.pin` from `git rev-parse HEAD` there (and refuses while OpenChatCut has uncommitted
+changes). Commit `openchatcut.pin`.
 
 You do not need to open the OpenChatCut app. videoauto uses its own OpenChatCut data folder
 (`.occ-data/` inside videoauto) so it never touches your OpenChatCut projects.
 
----
+### Python packages and extras
 
-## 3. Install videoauto
-
-```powershell
-cd ..\videoauto
-py -3.12 -m venv .venv
-.venv\Scripts\activate
-pip install -e .
-```
-
-macOS/Linux: `python3.12 -m venv .venv && source .venv/bin/activate && pip install -e .`
+`pip install -e .` installs everything videoauto imports (`tests/test_install.py` checks that every
+imported library is declared in `pyproject.toml`). A virtual environment is optional but keeps
+other projects apart: `py -3.12 -m venv .venv` then `.venv\Scripts\activate` before
+`pip install -e .` (macOS/Linux: `python3.12 -m venv .venv && source .venv/bin/activate`).
 
 Optional extras:
 
@@ -230,11 +359,10 @@ Optional extras:
   (`gym.mp4`, `sunset.mp4`); footage is never committed, so tests that need it are skipped.
 
 `faster-whisper` (speech) is installed with the base package but unused while `whisper.model` is
-`off` (the default; see **Downloads to expect** in step 1).
+`off` (the default; see **Downloads to expect** above).
 
----
 
-## 4. Configure: `config.yaml`
+### Configure: `config.yaml`
 
 `config.yaml` in the videoauto folder is read from the current directory (or pass
 `--config path`). Relative paths are relative to the file itself. This is the committed file; the
@@ -276,7 +404,7 @@ style:                               # optional; steers the planner. Editable li
   pace: ""                           # fast | medium | calm  (empty = planner decides)
   prefer_luts: []                    # LUT ids from catalogue.json, e.g. [builtin:look-teal-orange]
 
-catalogue: catalogue.json     # made by videoauto from OpenChatCut on the first run (README step 2)
+catalogue: catalogue.json     # made by python -m videoauto.setup (and again whenever OpenChatCut changes)
 
 whisper:                      # speech recognition in the clips (optional; README, Prerequisites)
   model: off                  # off | tiny | base | small | medium | large-v3 | auto
@@ -309,7 +437,7 @@ commented out, so a fresh clone runs without a logo; to add yours, put it at `br
 folder is git-ignored) and remove the `# ` in front of `logo:`. Put your script at
 `scripts/buoi-tap.txt`, or pass `--script`.
 
-### Brand: worked example
+#### Brand: worked example
 
 With the `brand` block above, `name`, `tagline` and `context` go into the **planning** prompt only,
 so shot choice, pacing and the written script reflect the business. They are never sent with the
@@ -319,7 +447,7 @@ planner opened on a close-up of a strapped hand gripping the bar, ended the scri
 `Footage chỉ có phòng gym; không có hình hồ bơi hay sân pickleball nên video không đề cập đến các
 tiện ích này.` The brand context does not make it claim footage it does not have.
 
-### Logo overlay, and why there are no transitions under it
+#### Logo overlay, and why there are no transitions under it
 
 The logo is a real overlay in OpenChatCut: `import_asset` (the PNG), `edit_track create` (a video
 track above V1), `edit_item` (an image item on that track), then an `edit_item` update with
@@ -349,7 +477,7 @@ narrow. A wide logo with small lettering (this one is 1065x786 with a "Gym&Fitne
 about 238 px wide at 0.22, and its small text is unreadable on a phone. Use 0.30–0.35 for logos
 like that; the default 0.22 suits compact marks.
 
-### Style: tone, pace, preferred looks (`style`)
+#### Style: tone, pace, preferred looks (`style`)
 
 `brand.context` says what the place is and who it is for; the `style` block says how the edit
 should feel. All four go into the **planning** prompt only, as a `STYLE` block (nothing is added
@@ -365,9 +493,9 @@ when they are all empty):
 The footage still comes first: style never makes the planner use a shot it would otherwise
 reject. A `prefer_luts` id that is not a LUT in `catalogue.json` stops the run at the startup
 check (`style.prefer_luts trong config.yaml có id không phải LUT…`), with a few valid ids to copy. In the watcher these four can be edited without
-opening the file (key **S**, section 5).
+opening the file (key **S**, **The folder watcher**).
 
-### GPU encoding (`gpu_encode`)
+#### GPU encoding (`gpu_encode`)
 
 **What OpenChatCut already does.** `occ render` has no encoder option. For H.264 it chooses by
 itself: on Windows it tries NVIDIA NVENC, Intel Quick Sync and AMD AMF in that order (macOS:
@@ -412,7 +540,7 @@ nvcuda.dll`), Quick Sync has no Intel GPU, and AMF fails with `CreateComponent(A
 failed with error 30`. So `auto` uses x264 there and logs those three reasons. The hardware path is
 covered by tests with a faked probe, not yet by a real GPU.
 
-### Following your own script (`script_file`)
+#### Following your own script (`script_file`)
 
 When `script_file` exists and is not empty, the planner **follows** it instead of inventing a
 narrative: plain text, with or without timecodes, for example
@@ -431,7 +559,7 @@ dropped silently (a reply without that report is itself flagged). Any such warni
 tier `basic`. `plan.json` records `"script_source": "user"`. When the file is absent or empty, the
 planner writes the script as before (`"script_source": "planner"`).
 
-### Text overlays (`TEXT:` lines and `brand.colors`)
+#### Text overlays (`TEXT:` lines and `brand.colors`)
 
 A beat in the script gets on-screen text only when the script names it with a `TEXT:` line, at the
 start of a line or of a `|` column:
@@ -575,7 +703,7 @@ Two things this run showed that are not fixed:
 - White text with a thin outline is **hard to read over bright backgrounds** (a window, a lit
   ceiling). Choose calm, darker shots for TEXT beats if you can.
 
-#### Choosing a template by eye: `python -m videoauto.templates --preview`
+##### Choosing a template by eye: `python -m videoauto.templates --preview`
 
 ```
 python -m videoauto.templates --preview --out previews/
@@ -617,9 +745,8 @@ model = "..."
 api_key_env = "VIDEOAUTO_API_KEY"   # the key is read from this environment variable
 ```
 
----
 
-## 5. Run it: the folder watcher (`python -m videoauto.watch`)
+### The folder watcher (`python -m videoauto.watch`)
 
 ```powershell
 python -m videoauto.watch
@@ -735,7 +862,7 @@ blocking, and shows this hint line every time it goes idle:
            [S] sửa phong cách   [P] xem đường dẫn   [Q] thoát
 ```
 
-- **S**: edit the four fields that steer the planner (see **Style** in section 4), typed by you
+- **S**: edit the four fields that steer the planner (see **Style** under **Configure**), typed by you
   rather than picked from presets:
 
   ```
@@ -789,7 +916,7 @@ The keys use `msvcrt` (Windows). On other systems the watcher prints
 watching; edit `config.yaml` by hand there. Under `--no-prompt`, or when stdin is not a console
 (Task Scheduler, a service, `< NUL`), no keyboard listener is started at all and no hint is shown.
 
-### Starting it at logon (later)
+#### Starting it at logon (later)
 
 Started without a terminal, the watcher cannot ask anything, so it must run with `--no-prompt` (it
 also switches to that mode by itself when stdin is not a terminal, including `< NUL`). Run it once in
@@ -827,9 +954,8 @@ nssm start videoauto-watch
 The service must run as **your** user (`ObjectName`), not LocalSystem: the Claude CLI login and fnm
 live in your profile. Neither setup has been tested yet.
 
----
 
-## 6. One build from the command line (`python -m videoauto.run`)
+### One build from the command line (`python -m videoauto.run`)
 
 From the videoauto folder, with the virtual environment active and `footage_dir` set:
 
@@ -872,7 +998,7 @@ then makes one new plan call and a new build.
 Exit codes: `0` done; `2` setup or input problem; `3` usage limit reached (safe to re-run later);
 `5` the planner refused (not enough usable footage); `6` the build was aborted.
 
-### Debugging one stage at a time
+#### Debugging one stage at a time
 
 ```
 python -m videoauto.index <folder> --out output/index
@@ -884,96 +1010,8 @@ python -m videoauto.index [<folder>] --prune --out output/index        # list, c
 
 Add `--debug` to any command for a full Python traceback.
 
----
 
-## Troubleshooting
-
-All messages are printed as `Lỗi: …` with the fix in the message.
-
-**ffmpeg not found**
-```
-Lỗi: Không tìm thấy ffmpeg trong PATH. Cài bằng lệnh: winget install Gyan.FFmpeg, rồi mở terminal mới và chạy lại.
-```
-Install ffmpeg (step 1), then **open a new terminal**: winget only updates PATH for new windows.
-`ffmpeg -version` must work in the terminal you run videoauto from.
-
-**Node not on PATH / not found**
-```
-Lỗi: Không tìm thấy Node.js ('node'). Cài Node (bản trong .nvmrc của OpenChatCut) hoặc đặt openchatcut.node trong config.yaml.
-```
-On Windows, videoauto looks for `node` on PATH, then for the fnm-installed version named in
-OpenChatCut's `.nvmrc`. If neither works, set the full path in `config.yaml`, e.g.
-`node: C:/Users/<you>/AppData/Roaming/fnm/node-versions/v24.22.1/installation/node.exe`
-(macOS/Linux: the output of `fnm exec --using=24 which node`). Related messages:
-`openchatcut.repo = '…' không phải repo OpenChatCut (thiếu cli/main.ts)` means `repo:` points to the
-wrong folder; `Repo OpenChatCut chưa cài thư viện. Chạy npm install …` means step 2's `npm install`
-did not finish.
-
-**catalogue.json missing or not generated**
-```
-Lỗi: Không tìm thấy catalogue '…\catalogue.json'. videoauto tự tạo tệp này từ OpenChatCut khi chạy; tạo ngay bằng: python -m videoauto.occ_catalogue (cần repo OpenChatCut đã `npm install`, đường dẫn openchatcut.repo trong config.yaml). Không cần chép tay tệp nào.
-```
-videoauto generates `catalogue.json` itself (step 2). This message means it could not: the same
-report lists the OpenChatCut problem to fix first (wrong `openchatcut.repo`, `npm install` not
-run). After fixing it, run again or run `python -m videoauto.occ_catalogue`.
-
-**Claude CLI not installed or not logged in**
-```
-Lỗi: Không tìm thấy lệnh `claude`. Cài Claude Code CLI rồi đăng nhập bằng lệnh: claude auth login (hoặc đặt vision.provider = "openai-compatible" trong videoauto.toml).
-Lỗi: Không có quyền truy cập Claude: <the CLI's own message>. Đăng nhập bằng lệnh: claude auth login (kiểm tra: claude auth status).
-```
-Run `claude auth login`, check with `claude auth status`, and run videoauto again. The second line
-quotes whatever the Claude CLI reported, for example `Invalid API key · Please run /login`.
-
-**Windows Smart App Control blocks numpy** (only with the `[music]` extra)
-```
-ImportError: DLL load failed while importing _sfc64: An Application Control policy has blocked this file.
-```
-videoauto reports it as `Windows Smart App Control chặn một thư viện của librosa (thường do numpy
-quá mới). Chạy: pip install "numpy>=2.0,<2.3" rồi thử lại.` Run exactly that. Do not disable Smart
-App Control. Video indexing keeps working either way.
-
-**Usage limit reached**
-```
-Dừng: Đã chạm giới hạn sử dụng/tốc độ của Claude. Đã dừng an toàn: các tệp đã xử lý xong được lưu vào cache, tệp đang dở không được ghi. Hãy chạy lại lệnh khoảng 19:00 ngày 16/11; các tệp đã có trong cache sẽ không tốn lượt gọi nào.
-```
-Exit code 3. Nothing half-finished is written. Run the same command after the time shown; finished
-files are cache hits and cost no calls.
-
-**The video is sideways**
-Some cameras record portrait footage as landscape (e.g. 3840x2160) without a rotation tag, so every
-tool, including OpenChatCut, shows it sideways. Tag copies of the files losslessly and run on the
-copies (`90` = turn counter-clockwise; use `-90` if they come out upside down):
-```
-ffmpeg -display_rotation 90 -i C0144.MP4 -map 0:v:0 -map 0:a:0 -c copy upright/C0144.MP4
-```
-
-**Old indexes (`bỏ qua N chỉ mục cũ không còn tệp tương ứng trong thư mục video`)**
-The index folder still holds indexes for clips that were replaced or removed. They are skipped and
-do no harm. To remove them, run the clean-up explicitly:
-```
-python -m videoauto.index --prune --out D:\video\xuat\.index
-python -m videoauto.index D:\quay\thu-vien --prune --out output\index    # name the footage folder
-```
-Without a folder argument, the footage folder is the watcher's saved one when `--out` is the
-watcher's `.index`, otherwise `footage_dir` from `config.yaml`. The command lists every index it
-would remove and deletes only after you answer `y`; Enter means no. It **refuses to run** when the
-footage folder is missing or contains no video, because that usually means the drive is not
-connected, not that the library is gone. An index whose clip comes back later is simply rebuilt,
-which costs model calls again.
-
-One case still gets its own warning: two clips with the **same file name but different content**
-both in the footage folder (e.g. `ngay1\C0140.MP4` and `ngay2\C0140.MP4`). The plan refers to clips
-by name, so only one can be used; the warning names both and says which one the plan used. Rename
-one of them to use both.
-
-**A clip is skipped with `Không đọc được tệp …`**
-The file could not be decoded by ffmpeg. The run continues with the other clips; check the file
-plays in a normal video player.
-
----
-
-## What this does not do yet
+### What this does not do yet
 
 - No subtitles from speech. On-screen text comes only from `TEXT:` lines in your script, through
   the 15 social-shorts templates whose position is known (see **Text overlays**). While the logo or
@@ -985,17 +1023,16 @@ plays in a normal video player.
 - The watcher (`videoauto.watch`) has not yet been run at logon or as a service.
 - Speech transcription (Whisper) is wired in but untested on real speech.
 - Planning is minimal: shot choice and order, one LUT for the whole piece, fades, optional transitions.
-  Footage whose orientation differs from the target (e.g. landscape into 9:16) is letterboxed, not
-  reframed.
+  Footage whose orientation differs from the target (e.g. landscape into 9:16) is cropped at the
+  centre to fill the frame (`brief.fit`), not reframed around the subject.
 - The per-shot `motion` value saturates (0.83–1.00 on every shot of a real 4K gym shoot), so it
   does not yet distinguish calm from busy shots.
 - Shot choice leans heavily on `sharpness`: on a 17-clip test the plan used exactly the five
   sharpest shots. Sharpness also depends on content, so detail close-ups tend to rank low.
 - Developed and tested on Windows 11 only.
 
----
 
-## How it works (short)
+### How it works (short)
 
 - **M1 index** (`videoauto/index.py`): ffprobe metadata; PySceneDetect shot boundaries; keyframes;
   OpenCV motion, camera movement and per-shot `sharpness`; ffmpeg black/frozen/silent detection;
@@ -1025,6 +1062,8 @@ plays in a normal video player.
   counts as done only when the file exists, is not empty and is as long as the timeline; a failed
   build keeps its video as `<name>.loi.mp4`. Render time is OpenChatCut's (Remotion draws every
   frame); videoauto does not change it.
+
+---
 
 ## License
 

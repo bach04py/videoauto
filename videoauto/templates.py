@@ -204,7 +204,7 @@ def _render(cfg, out: Path, mode: str, items: list[dict], args, colors: dict | N
     results_path = out / ("colour-measure.json" if mode == "measure" else "render-results.json")
     if proc.returncode != 0 or not results_path.exists():
         raise UserError(f"Dựng thất bại (node thoát mã {proc.returncode}). Xem log phía trên; "
-                        "kiểm tra OpenChatCut đã `npm install` và `occ render` chạy được.")
+                        "kiểm tra cài đặt bằng: python -m videoauto.setup (bước cuối dựng thử một video thật).")
     return {r["n"]: r for r in json.loads(results_path.read_text(encoding="utf-8"))["results"] if r}
 
 

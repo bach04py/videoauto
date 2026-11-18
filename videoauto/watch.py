@@ -374,7 +374,9 @@ def first_setup(config: Path | None) -> str | None:
     those first would fail on paths the user was never asked for, and exit before the questions."""
     if not local_file().exists():
         return f"chưa có {LOCAL_FILE}"
-    sample = changed_sample_lines(config or Path.cwd() / "config.yaml")
+    # footage_dir / script_file are run's; the watcher takes its folders from videoauto.local.yaml
+    sample = [s for s in changed_sample_lines(config or Path.cwd() / "config.yaml")
+              if not s.startswith(("footage_dir:", "script_file:"))]
     if sample:
         return "config.yaml còn giá trị mẫu (CHANGE): " + ", ".join(sample)
     return None

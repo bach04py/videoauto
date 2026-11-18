@@ -33,7 +33,7 @@ build-backend = "setuptools.build_meta"
 include = ["videoauto*"]
 
 [tool.setuptools.package-data]
-videoauto = ["schemas/*.json", "preview_render.mjs", "planner/overlay_colours.json"]
+videoauto = ["schemas/*.json", "preview_render.mjs", "planner/overlay_colours.json", "assets/*.mp4"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

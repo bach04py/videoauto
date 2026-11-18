@@ -203,7 +203,7 @@ def test_failed_dump_says_why_and_leaves_nothing(tmp_path, fake_occ_repo, real_c
 
 
 def test_not_an_openchatcut_repo(tmp_path, real_catalogue):
-    with pytest.raises(UserError, match="npm install"):
+    with pytest.raises(UserError, match="videoauto.setup"):
         real_catalogue.generate(tmp_path / "c.json", tmp_path / "nowhere", "node")
 
 

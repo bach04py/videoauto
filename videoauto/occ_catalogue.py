@@ -135,7 +135,7 @@ def generate(path: Path, repo: Path, node: str, bundle: Path = BUNDLE, timeout: 
                         "Tải lại videoauto (git pull hoặc clone lại).")
     if not (repo / "scripts").is_dir() or not (repo / "node_modules" / "tsx").exists():
         raise UserError(f"Không tạo được catalogue.json: '{repo}' không phải repo OpenChatCut đã cài "
-                        "(thiếu scripts/ hoặc node_modules/tsx). Chạy `npm install` trong repo OpenChatCut "
+                        "(thiếu scripts/ hoặc node_modules/tsx). Chạy: python -m videoauto.setup (cài OpenChatCut), "
                         "và kiểm tra openchatcut.repo trong config.yaml.")
     copied = repo / "scripts" / COPIED_NAME
     tmp = path.with_name(path.name + ".tmp")

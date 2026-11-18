@@ -53,13 +53,21 @@ class NoKeys:
         return None
 
 
+FAKE_RENDERS: dict[str, float] = {}     # path -> seconds, written by FakeOcc's fake render
+
+
 @pytest.fixture(autouse=True)
 def _hermetic(monkeypatch):
-    """No test probes this machine's GPU or reads its keyboard unless it asks to."""
+    """No test probes this machine's GPU or reads its keyboard unless it asks to. A fake render
+    (FakeOcc) is not a real video: its length comes from FAKE_RENDERS, real files are probed."""
     from videoauto import gpu, keys
+    from videoauto.builder import builder
     monkeypatch.setattr(gpu, "DEFAULT_PROBE", NoGpuProbe())
     monkeypatch.setattr(gpu, "_cache", {})
     monkeypatch.setattr(keys, "console_keys", lambda: NoKeys())
+    real = builder.media_duration
+    monkeypatch.setattr(builder, "media_duration",
+                        lambda p: FAKE_RENDERS.get(str(Path(p).resolve())) or real(p))
 
 
 @pytest.fixture
@@ -111,3 +119,45 @@ class FakeProvider(VisionProvider):
         if not hasattr(self, "_prompts"):
             self._prompts = []
         return self._prompts
+
+
+def make_clip(path: Path, seconds: float, size: str = "270x480", audio: bool = False) -> Path:
+    """A synthetic clip (ffmpeg lavfi): moving test pattern, optionally a sine tone."""
+    import subprocess
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cmd = ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", f"testsrc2=s={size}:r=30:d={seconds}"]
+    if audio:
+        cmd += ["-f", "lavfi", "-i", f"sine=f=440:d={seconds}", "-shortest"]
+    cmd += ["-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "ultrafast", str(path)]
+    subprocess.run(cmd, check=True)
+    return path
+
+
+@pytest.fixture(scope="session")
+def synth_media(tmp_path_factory) -> Path:
+    """Two short vertical clips that need no third-party fixture: a.mp4 (8 s), b.mp4 (6 s)."""
+    media = tmp_path_factory.mktemp("synth") / "media"
+    make_clip(media / "a.mp4", 8)
+    make_clip(media / "b.mp4", 6)
+    return media
+
+
+REPO = Path(__file__).resolve().parent.parent
+
+
+@pytest.fixture
+def clean_machine(tmp_path, monkeypatch):
+    """A fresh clone on a new machine: config.yaml exactly as committed, no videoauto.local.yaml,
+    and a catalogue.json dumped by an OpenChatCut that has no Vietnamese review (no vi_ok)."""
+    from test_planner import CATALOGUE
+    root = tmp_path / "videoauto"
+    root.mkdir()
+    shutil.copy(REPO / "config.yaml", root / "config.yaml")
+    cat = json.loads(json.dumps(CATALOGUE))
+    for it in cat["items"]:
+        for k in [k for k in it if k.startswith("vi_")]:
+            del it[k]
+    (root / "catalogue.json").write_text(json.dumps(cat), encoding="utf-8")
+    monkeypatch.chdir(root)
+    assert not (root / "videoauto.local.yaml").exists()
+    return root

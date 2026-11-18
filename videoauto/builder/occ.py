@@ -33,6 +33,7 @@ class OccResult:
     data: Any = None
     error: str = ""
     tool_args: dict | None = None
+    returncode: int | None = None       # None: timed out
 
     def record(self) -> dict:
         return {"label": self.label, "argv": self.argv, "args": self.tool_args, "ok": self.ok,
@@ -47,6 +48,30 @@ def _summary(data: Any) -> Any:
     if isinstance(data, dict) and "ops" in data:
         return [op.get("result") for op in data["ops"]]
     return data
+
+
+def parse_stdout(stdout: str) -> Any:
+    """The JSON document occ printed with --json, or None.
+
+    `occ render` prints progress lines ("rendering 120/450") before its JSON, so the whole
+    stdout is not one JSON document: the JSON is the first line that opens a value and parses
+    to the end of the output (one line or pretty-printed)."""
+    text = stdout.strip()
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except ValueError:
+        pass
+    lines = text.splitlines()
+    for i, ln in enumerate(lines):
+        if ln.lstrip()[:1] not in ("{", "["):
+            continue
+        try:
+            return json.loads("\n".join(lines[i:]))
+        except ValueError:
+            continue
+    return None
 
 
 @dataclass
@@ -66,10 +91,13 @@ class Occ:
         self.cfg.data_dir.mkdir(parents=True, exist_ok=True)
 
     def run(self, label: str, args: list[str], tool_args: dict | None = None,
-            timeout: int = 300, read: bool = False, env: dict[str, str] | None = None) -> OccResult:
+            timeout: int = 300, read: bool = False, env: dict[str, str] | None = None,
+            json_required: bool = True) -> OccResult:
         """read=True for read-only tools (read_timeline): they report applied=false and no
         "ok" key, which is success for a read; only an "error" in the result fails it.
-        env: extra environment variables for this call only (the render's encoder choice)."""
+        env: extra environment variables for this call only (the render's encoder choice).
+        json_required=False (render): exit 0 is enough here; the caller judges the result by the
+        file it wrote, never by whether stdout parsed."""
         argv = [*args, "--json"]
         t0 = time.monotonic()
         with tempfile.TemporaryDirectory(prefix="videoauto_occ_") as tmp:
@@ -84,18 +112,14 @@ class Occ:
                                       encoding="utf-8", errors="replace", timeout=timeout)
             except subprocess.TimeoutExpired:
                 res = OccResult(label, args, False, time.monotonic() - t0,
-                                error=f"quá thời gian {timeout}s", tool_args=tool_args)
+                                error=f"quá thời gian {timeout}s", tool_args=tool_args, returncode=None)
                 return self._done(res)
             except OSError as e:
                 raise ToolMissing(f"Không chạy được Node.js ('{self.cfg.node}'): {e.strerror}.") from None
         secs = time.monotonic() - t0
-        data, err = None, ""
-        try:
-            data = json.loads(proc.stdout) if proc.stdout.strip() else None
-        except ValueError:
-            pass
-        ok = proc.returncode == 0 and data is not None
-        if ok and tool_args is not None:
+        data, err = parse_stdout(proc.stdout), ""
+        ok = proc.returncode == 0 and (data is not None or not json_required)
+        if ok and tool_args is not None and isinstance(data, dict):
             r = (data.get("ops") or [{}])[0].get("result") or {}
             if read:
                 ok = "error" not in r
@@ -107,7 +131,9 @@ class Occ:
             lines = [ln for ln in (proc.stderr + "\n" + proc.stdout).splitlines()
                      if ln.strip() and not ln.startswith("rendering ")]
             err = f"exit {proc.returncode}: " + " | ".join(lines[-6:])[:600]
-        return self._done(OccResult(label, args, ok, secs, data, err, tool_args))
+            if proc.returncode == 0 and data is None:
+                err += " (occ thoát mã 0 nhưng không in ra JSON kết quả)"
+        return self._done(OccResult(label, args, ok, secs, data, err, tool_args, proc.returncode))
 
     def _done(self, res: OccResult) -> OccResult:
         self.history.append(res)

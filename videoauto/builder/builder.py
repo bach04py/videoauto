@@ -40,12 +40,14 @@ class BuildReport:
     error: UserError | None = None
     overlays: list[dict] = field(default_factory=list)     # one record per planned overlay
     encoder: dict | None = None                             # gpu.verify(): what encoded the video
+    kept_video: Path | None = None                          # failed build: the video kept as .loi.mp4
 
     def to_json(self) -> dict:
         return {"ok": self.error is None, "error": self.error.message if self.error else None,
                 "output": str(self.output), "project_id": self.project_id,
                 "item_commands": self.attempted, "item_failures": self.failed,
                 "seconds": round(self.seconds, 1), "warnings": self.warnings, "encoder": self.encoder,
+                "kept_video": str(self.kept_video) if self.kept_video else None,
                 "overlays": self.overlays, "commands": self.commands}
 
 
@@ -188,10 +190,15 @@ class Builder:
         r = self.occ.run("render", ["render", pid, "--out", str(rep.output),
                                     "--resolution", cfg.occ.resolution, "--fps", str(fps),
                                     "--bitrate", str(round(cfg.occ.video_bitrate_mbps * 1_000_000))],
-                         timeout=cfg.occ.timeout, env=choice.env())
+                         timeout=cfg.occ.timeout, env=choice.env(), json_required=False)
         self._fatal(r, "xuất video (render)")
-        if not rep.output.exists() or rep.output.stat().st_size == 0:
-            raise BuildAborted(f"occ render báo xong nhưng không có tệp '{rep.output}'.")
+        # success = exit 0 + the file exists + it is not empty + its length is the timeline's;
+        # what occ printed on stdout plays no part (it prints progress lines before its JSON)
+        problem = render_problem(rep.output, cursor / fps, fps)
+        if problem:
+            raise BuildAborted(f"occ render thoát mã 0 nhưng {problem}")
+        if r.data is None:
+            log.info("occ render không in JSON kết quả; tệp xuất đã được kiểm tra trực tiếp")
         rep.encoder = gpu.verify(choice, rep.output)
         if rep.encoder.get("fallback"):
             rep.warnings.append(f"mã hoá: {rep.encoder['fallback']}")
@@ -330,6 +337,33 @@ class Builder:
 
 
 LOGO_COMMANDS = 4      # import_asset, edit_track, edit_item add, edit_item transform
+
+
+def media_duration(path: Path) -> float | None:
+    """Container duration in seconds (ffprobe), or None if it cannot be read."""
+    from ..errors import UserError as _UserError
+    from ..probe import probe
+    try:
+        return probe(path).duration
+    except (_UserError, OSError, ValueError):
+        return None
+
+
+def render_problem(video: Path, expected: float, fps: int) -> str | None:
+    """None when the rendered file is a real video of the timeline's length; else what is wrong.
+    Tolerance: 3 frames or 0.25 s, whichever is larger (AAC priming and padding add a little)."""
+    if not video.is_file():
+        return f"không có tệp '{video}'."
+    size = video.stat().st_size
+    if size == 0:
+        return f"tệp '{video.name}' rỗng (0 byte)."
+    got = media_duration(video)
+    if got is None:
+        return f"không đọc được thời lượng của '{video.name}' ({size / 1e6:.1f} MB): tệp có thể hỏng."
+    if abs(got - expected) > max(0.25, 3 / fps):
+        return (f"'{video.name}' dài {got:.2f}s, trong khi timeline dài {expected:.2f}s: bản xuất bị "
+                "cắt ngắn hoặc hỏng.")
+    return None
 
 
 def _with(call: list, tool: str) -> list[str]:

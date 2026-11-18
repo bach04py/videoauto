@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -40,10 +41,38 @@ def main(argv: list[str] | None = None, occ=None) -> int:
     return guarded(run, args.debug)
 
 
+def keep_failed_video(video: Path) -> Path | None:
+    """A build that failed never deletes its video: it may be a complete render that a later
+    check refused (that is how a finished 21.6 MB video was lost). The file is renamed
+    <name>.loi.mp4 (or <name>.loi-2.mp4, ...) so the name is free again and nobody mistakes it
+    for a good result. Returns the new path, or None if there was no file."""
+    if not video.is_file():
+        return None
+    stem, n = f"{video.stem}.loi", 1
+    dest = video.with_name(f"{stem}{video.suffix}")
+    while dest.exists():
+        n += 1
+        dest = video.with_name(f"{stem}-{n}{video.suffix}")
+    try:
+        os.replace(video, dest)
+    except OSError as e:
+        log.warning("không đổi tên được video lỗi %s (%s); để nguyên", video, e.strerror or e)
+        return video
+    return dest
+
+
 def finish_build(rep, out: Path) -> Path:
-    """Write <out>.build.json, log a summary, raise the build's error if it had one."""
+    """Write <out>.build.json, log a summary, raise the build's error if it had one. On an error
+    the video (if any) is kept as <name>.loi.mp4, never deleted."""
     report = out.with_name(out.name + ".build.json")
     report.parent.mkdir(parents=True, exist_ok=True)
+    if rep.error:
+        kept = keep_failed_video(out)
+        if kept is not None:
+            rep.kept_video = kept
+            rep.error.kept = kept
+            rep.error.message += f" Video đã dựng được giữ lại để xem: {kept}"
+            rep.error.args = (rep.error.message,)
     report.write_text(json.dumps(rep.to_json(), ensure_ascii=False, indent=2), encoding="utf-8")
     for w in rep.warnings:
         log.warning("cảnh báo: %s", w)

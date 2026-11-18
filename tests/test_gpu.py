@@ -205,7 +205,7 @@ def test_on_mode_fails_when_occ_falls_back_mid_render(setup_gpu, monkeypatch):
     monkeypatch.setitem(gpu.CANDIDATES, gpu.sys.platform, ("h264_nvenc",))
 
     class FallingBack(FakeOcc):
-        def run(self, label, args, tool_args=None, timeout=300, read=False, env=None):
+        def run(self, label, args, tool_args=None, timeout=300, read=False, env=None, json_required=True):
             res = super().run(label, args, tool_args, timeout, read, env)
             if args[0] == "render":
                 Path(args[args.index("--out") + 1]).write_bytes(b"x264 - core 164")

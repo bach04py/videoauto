@@ -8,6 +8,7 @@ Inside the output folder, next to the videos, it keeps:
     processing/   the script currently being built (at most one)
     done/         scripts that produced a video
     failed/       scripts that failed, each with <name>.loi.txt saying why
+                  (a video from a failed build stays next to the others as <name>.loi.mp4)
     .index/       index cache shared by every run
     .logs/        runs.log (one line per run) plus one full log per run
 
@@ -31,6 +32,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from .build import keep_failed_video
 from .cli import setup_io
 from .errors import LimitReached, PlanRejected, UserError
 
@@ -607,9 +609,12 @@ class Watcher:
             self._flog.error("lỗi ở bước %s: %s", res.stage, getattr(e, "message", e),
                              exc_info=not isinstance(e, UserError))
             what, todo = describe_failure(e, res.stage, logfile)
-            self._remove(video)                  # the name was free: anything there is this run's
+            # never delete the video: a failed check may have refused a complete render
+            kept = keep_failed_video(video) or getattr(e, "kept", None)
+            if kept is not None and str(kept) not in what:
+                what += f" Video đã dựng được giữ lại để xem: {kept}"
             self._to_failed(script, STAGE_VI.get(res.stage, res.stage), what, todo, started=started,
-                            logfile=logfile, calls=res.model_calls, t0=t0, stem=stem)
+                            logfile=logfile, calls=res.model_calls, t0=t0, stem=stem, kept=kept)
             return False
         else:
             secs = time.monotonic() - t0
@@ -640,13 +645,18 @@ class Watcher:
 
     def abandon(self) -> None:
         """Ctrl+C during a run: put the script back where it came from (it is rebuilt next start),
-        drop a half-rendered video and any half-written cache file."""
+        free the output name and drop any half-written cache file. A video already written is
+        kept as <name>.loi.mp4, never deleted."""
         script = self.current
         if script is None:
             return
         _ignore_sigint()
+        kept = keep_failed_video(self.output / f"{self._stem}.mp4")
+        if kept is not None:
+            say(f"Video đang dựng dở được giữ lại: {kept}")
         for x in OUTPUT_SUFFIXES:                # free the name again: the rebuild reuses it
-            self._remove(self.output / f"{self._stem}{x}")
+            if x != ".mp4":
+                self._remove(self.output / f"{self._stem}{x}")
         self._clean_tmp()
         dest = self.scripts / script.name
         if dest.exists():
@@ -683,12 +693,14 @@ class Watcher:
 
     def _to_failed(self, script: Path, stage: str, what: str, todo: str, started: float | None,
                    logfile: Path | None = None, calls: int = 0, t0: float | None = None,
-                   stem: str | None = None) -> None:
+                   stem: str | None = None, kept: Path | None = None) -> None:
         dest = self._archive(script, self.failed, stem)
         reason = dest.with_name(dest.stem + ".loi.txt")
         when = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         lines = [f"Thời gian: {when}", f"Kịch bản: {script.name}", f"Bước lỗi: {stage}",
                  f"Lỗi: {what}", f"Cách xử lý: {todo}"]
+        if kept:
+            lines.append(f"Video lỗi (giữ lại): {kept}")
         if logfile:
             lines.append(f"Log đầy đủ: {logfile}")
         lines.append("Sửa xong, chép kịch bản từ thư mục failed vào lại thư mục kịch bản để dựng lại.")

@@ -16,28 +16,37 @@ from videoauto.cache import sha256_of
 
 
 class FakeOcc:
-    """Records every occ command; `fail` = set of label prefixes that fail."""
+    """Records every occ command; `fail` = set of label prefixes that fail.
+    render_json=False: the render prints no JSON (like `occ render` with progress lines only);
+    render_seconds: the length the fake render reports (default: the timeline's)."""
 
-    def __init__(self, media: Path, fail: tuple[str, ...] = ()):
+    def __init__(self, media: Path, fail: tuple[str, ...] = (), render_json: bool = True,
+                 render_seconds: float | None = None):
         self.media, self.fail, self.history, self.n = media, fail, [], 0
+        self.render_json, self.render_seconds = render_json, render_seconds
+        self.fps, self.end_frame = 30, 0
         self.tracks, self.timeline = 1, []      # motion-graphic items: occ's add returns no itemId
         self.envs = []                          # env= of every call (the render's encoder choice)
 
     def check(self):
         pass
 
-    def run(self, label, args, tool_args=None, timeout=300, read=False, env=None):
+    def run(self, label, args, tool_args=None, timeout=300, read=False, env=None, json_required=True):
         self.n += 1
         self.envs.append(env)
         ok = not any(label.startswith(f) for f in self.fail)
         data = None
         if ok:
             if args[:2] == ["project", "new"]:
+                self.fps = int(args[args.index("--fps") + 1]) if "--fps" in args else 30
                 data = {"id": "proj1"}
             elif "import_folder" in args:
                 data = {"applied": True, "ops": [{"result": {"ok": True, "imported": [
                     {"id": f"asset-{p.name}", "name": p.name} for p in sorted(self.media.iterdir())]}}]}
             elif "edit_item" in args and tool_args.get("adds", [{}])[0].get("type") in ("video", "image"):
+                add = tool_args["adds"][0]
+                if add["type"] == "video":
+                    self.end_frame = max(self.end_frame, add["fromFrame"] + add["sourceDurationInFrames"])
                 data = {"applied": True, "ops": [{"result": {"ok": True, "results": [
                     {"placed": {"itemId": f"item{self.n}"}}]}}]}
             elif "import_asset" in args:
@@ -61,12 +70,15 @@ class FakeOcc:
             elif args[0] == "render":
                 # like the real thing: libx264 leaves its version string in the stream, NVENC does not
                 sw = (env or {}).get("OPENCHATCUT_DISABLE_HARDWARE_ENCODING") == "1"
-                Path(args[args.index("--out") + 1]).write_bytes(
-                    b"\0" * 1024 + (b"x264 - core 164 r3108" if sw else b"") + b"\0" * 1024)
-                data = {"frames": 1}
+                out = Path(args[args.index("--out") + 1])
+                out.write_bytes(b"\0" * 1024 + (b"x264 - core 164 r3108" if sw else b"") + b"\0" * 1024)
+                from conftest import FAKE_RENDERS
+                FAKE_RENDERS[str(out.resolve())] = (self.render_seconds if self.render_seconds is not None
+                                                    else self.end_frame / self.fps)
+                data = {"frames": 1} if self.render_json else None
             else:
                 data = {"applied": True, "ops": [{"result": {"ok": True}}]}
-        res = OccResult(label, args, ok, 0.01, data, "" if ok else "boom", tool_args)
+        res = OccResult(label, args, ok, 0.01, data, "" if ok else "boom", tool_args, 0 if ok else 1)
         self.history.append(res)
         return res
 

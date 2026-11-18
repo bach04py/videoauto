@@ -471,6 +471,13 @@ def _beat_warnings(beats) -> list[str]:
 # ------------------------------------------------------------------------ entry
 
 def make_plan(cfg: ProjectConfig, index_dir: Path, provider: VisionProvider) -> dict:
+    import dataclasses
+    from ..duration import effective
+    # the script's last timed beat sets the length, whichever command plans (run, watch, plan)
+    secs, why = effective(cfg.script_text(), cfg.brief.duration)
+    if secs != cfg.brief.duration:
+        log.info("độ dài video: %gs (%s)", secs, why)
+        cfg = dataclasses.replace(cfg, brief=dataclasses.replace(cfg.brief, duration=secs))
     cat = Catalogue.load(cfg.catalogue)
     material = load_material(index_dir, cfg.footage_dir)
     b = cfg.brief

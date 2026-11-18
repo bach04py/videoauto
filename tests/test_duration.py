@@ -220,3 +220,16 @@ def test_equal_cuts_from_the_model_are_reported(tmp_path, long_footage, long_ind
     pcfg = dataclasses.replace(pcfg, brief=dataclasses.replace(pcfg.brief, duration=60))
     plan = pl.make_plan(pcfg, long_index, Equal())
     assert any("20 clip dài gần bằng nhau" in w for w in plan["warnings"]) and plan["tier"] == "basic"
+
+
+def test_the_plan_command_alone_also_takes_the_length_from_the_script(tmp_path, long_footage, long_index):
+    """python -m videoauto.plan (not only run/watch): an 8 s script plans 8 s, not config's 15."""
+    from videoauto import plan as plan_cli
+    (tmp_path / "catalogue.json").write_text(json.dumps(CATALOGUE), encoding="utf-8")
+    (tmp_path / "kb.txt").write_text("0-3s | a\n3-6s | b\n6-8s | c\n", encoding="utf-8")
+    (tmp_path / "config.yaml").write_text("brief:\n  duration: 15\ncatalogue: catalogue.json\n"
+                                          "openchatcut:\n  repo: nowhere\n", encoding="utf-8")
+    out = tmp_path / "plan.json"
+    code = plan_cli.main([str(long_index), "--out", str(out), "--config", str(tmp_path / "config.yaml"),
+                          "--footage", str(long_footage), "--script", str(tmp_path / "kb.txt")], provider=Planner())
+    assert code == 0 and json.loads(out.read_text(encoding="utf-8"))["target"]["duration"] == 8

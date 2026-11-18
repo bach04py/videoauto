@@ -123,7 +123,8 @@ clips; about 2.5 s per second of 4K on the development laptop, once). A clip rec
 one) store portrait shots as plain 3840x2160 landscape and write no orientation anywhere, not even
 in their XML metadata. Every tool shows them sideways, videoauto counts them as landscape, and the
 crop to fill a 9:16 frame then blows the sideways picture up (3.16x). videoauto cannot know such a
-clip was meant to stand up. Tag copies of those files losslessly and use the copies; videoauto
+clip was meant to stand up. The fix is to record portrait shots with a device that writes the
+rotation tag (phones do). For files already shot, tag copies losslessly and use the copies; videoauto
 then normalises them as above (`90` = turn counter-clockwise; use `-90` if they come out upside
 down):
 ```
@@ -207,6 +208,12 @@ khi chất lượng quan trọng hơn tốc độ, đặt `gpu_encode: off`.
 **Video quay ngang trong khung dọc**: mặc định (`brief.fit: fill`) clip 16:9 được phóng to cho đầy
 khung 9:16 và cắt giữa, không có viền đen; hai bên hình bị cắt, nên chủ thể cần ở giữa khung.
 Muốn giữ nguyên cả hình (có viền đen) thì đặt `brief.fit: fit`.
+
+**Cảnh quay dọc bị dựng nằm nghiêng**: một số máy quay ghi cảnh cầm dọc thành khung ngang mà không
+lưu hướng máy ở đâu cả (ví dụ Sony RX10M3: tệp 3840x2160, không có thẻ xoay). Với những tệp đó
+videoauto không thể biết hình phải đứng, nên coi là cảnh ngang và cắt cho đầy khung dọc, ra hình
+nằm nghiêng bị phóng to. Cách xử lý: quay cảnh dọc bằng thiết bị có ghi thẻ xoay (điện thoại ghi
+thẻ này); clip có thẻ xoay được videoauto tự chuẩn hoá thành hình đứng.
 
 Chưa làm được: phụ đề theo lời nói, nhạc nền, cắt bám theo chủ thể (hiện cắt chính giữa); phần
 nhận giọng nói (tắt mặc định) chưa được kiểm thử trên clip có lời nói.
@@ -363,8 +370,12 @@ Optional extras:
   `numpy/random/_sfc64.pyd` from numpy 2.5.x, which librosa loads through scipy/numba. numpy 2.2.6
   loads fine. Do not turn Smart App Control off; the cap is the fix. The video path does not use
   `numpy.random` and works on current numpy without the extra.
-- `pip install -e ".[dev]"` adds pytest. Tests run on your own clips in `tests/fixtures/`
-  (`gym.mp4`, `sunset.mp4`); footage is never committed, so tests that need it are skipped.
+- `pip install -e ".[dev]"` adds pytest; then `python -m pytest`. The test clips are committed
+  (`tests/fixtures/gym.mp4` and `sunset.mp4`, ffmpeg test patterns made by
+  `tests/fixtures/make_fixtures.py`). Still skipped, each with its reason: one test that needs a
+  real Sony 4K clip (`tests/fixtures/C0140.MP4`; camera footage is never committed), the music
+  tests without the `[music]` extra, and the real OpenChatCut renders until
+  `python -m videoauto.setup` has installed OpenChatCut.
 
 `faster-whisper` (speech) is installed with the base package but unused while `whisper.model` is
 `off` (the default; see **Downloads to expect** above).

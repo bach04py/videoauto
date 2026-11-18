@@ -16,19 +16,19 @@ FIXTURES = Path(__file__).parent / "fixtures"
 def _find(name: str) -> Path:
     p = FIXTURES / name
     if not p.exists():
-        pytest.skip(f"fixture missing: tests/fixtures/{name} (videos are not committed)")
+        pytest.skip(f"fixture missing: tests/fixtures/{name}; make it with: python tests/fixtures/make_fixtures.py")
     return p
 
 
 @pytest.fixture(scope="session")
 def gym() -> Path:
-    """Real source clip: vertical 474x900, ~15.5 s, no text, no edits."""
+    """Synthetic (make_fixtures.py): vertical 474x900, ~15.5 s, one take, no audio."""
     return _find("gym.mp4")
 
 
 @pytest.fixture(scope="session")
 def sunset() -> Path:
-    """10 s sunset timelapse with music, no speech, single shot."""
+    """Synthetic (make_fixtures.py): horizontal 640x360, 9.38 s, one take, music-like tone, no speech."""
     return _find("sunset.mp4")
 
 

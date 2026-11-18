@@ -4,9 +4,9 @@ __pycache__/
 *.pyc
 .pytest_cache/
 *.egg-info/
-# test videos are third-party media: provide locally (see tests/conftest.py)
-# footage never goes in the repo (camera files are often upper-case .MP4)
-tests/fixtures/
+# footage never goes in the repo (camera files are often upper-case .MP4); the test clips
+# made by tests/fixtures/make_fixtures.py (ffmpeg test patterns) are the exception, below
+tests/fixtures/*
 *.[mM][pP]4
 *.[mM][oO][vV]
 *.[mM][kK][vV]
@@ -25,3 +25,7 @@ videoauto.local.yaml
 previews/
 # the setup check clip (made by us with ffmpeg testsrc2, no third-party media)
 !videoauto/assets/*.mp4
+# synthetic test clips (ffmpeg testsrc2), committed so a fresh clone runs the whole suite
+!tests/fixtures/make_fixtures.py
+!tests/fixtures/gym.mp4
+!tests/fixtures/sunset.mp4

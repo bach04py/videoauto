@@ -331,7 +331,7 @@ def test_interactive_setup_asks_the_three_folders(machine, monkeypatch, capsys):
 OCC = REPO.parent / "OpenChatCut"
 
 
-@pytest.mark.skipif(not (OCC / "node_modules" / "tsx").exists(), reason="OpenChatCut not installed next to videoauto")
+@pytest.mark.skipif(not (OCC / "node_modules" / "tsx").exists(), reason="needs OpenChatCut next to videoauto: run python -m videoauto.setup first")
 def test_real_render_of_the_check_video(tmp_path, real_catalogue):
     """Through the real OpenChatCut: a 1 s MP4, 1080x1920, no black bars left and right."""
     from videoauto.brief import load_project_config

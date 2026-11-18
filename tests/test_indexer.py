@@ -34,7 +34,7 @@ def gym_index(gym, tmp_path_factory):
 
 
 def test_gym_index_is_valid_and_sensible(gym_index):
-    """Real source: vertical 474x900, one continuous take, no audio stream."""
+    """tests/fixtures/gym.mp4 (make_fixtures.py): vertical 474x900, one continuous take, no audio."""
     assert schema.errors(gym_index) == []
     assert (gym_index["width"], gym_index["height"], gym_index["orientation"]) == (474, 900, "vertical")
     assert gym_index["duration"] == pytest.approx(15.54, abs=0.05)
@@ -44,7 +44,8 @@ def test_gym_index_is_valid_and_sensible(gym_index):
     shot = gym_index["shots"][0]
     assert shot["flags"] == ["silent"]                # sharp subject + soft background is NOT blurry
     assert len(shot["keyframes"]) == 2                # > 8 s
-    assert shot["sharpness"] == pytest.approx(139.2, abs=5)   # raw score, for ranking in M2
+    from videoauto.config import DEFAULTS
+    assert shot["sharpness"] > DEFAULTS["quality"]["blur_threshold"]   # raw score, for ranking in M2
     assert gym_index["quality"]["usable_shots"] == 1
 
 
@@ -62,7 +63,9 @@ def test_real_sony_clip_with_tail_cut_indexes(cfg, tmp_path):
     from conftest import FIXTURES
     clip = FIXTURES / "C0140.MP4"
     if not clip.exists():
-        pytest.skip("tests/fixtures/C0140.MP4 not present")
+        pytest.skip("needs real camera footage: a Sony 4K clip with a cut 2 frames before its end, at "
+                    "tests/fixtures/C0140.MP4 (camera files are never committed); the rule itself is "
+                    "tested by test_cut_just_before_eof_is_dropped")
     _, rep = run(cfg, clip, tmp_path / "idx", FakeProvider())
     assert rep.failed == [] and len(rep.written) == 1
 

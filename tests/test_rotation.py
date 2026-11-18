@@ -153,7 +153,7 @@ def test_builder_imports_the_normalized_file_not_the_tagged_original(rotated, tm
 OCC = Path(__file__).resolve().parents[1].parent / "OpenChatCut"
 
 
-@pytest.mark.skipif(not (OCC / "node_modules" / "tsx").exists(), reason="OpenChatCut not installed next to videoauto")
+@pytest.mark.skipif(not (OCC / "node_modules" / "tsx").exists(), reason="needs OpenChatCut next to videoauto: run python -m videoauto.setup first")
 @pytest.mark.parametrize("use_copy", [True, False])
 def test_real_render_is_upright(rotated, tmp_path, use_copy, real_catalogue):
     """Through the real OpenChatCut: the render shows what a player shows for the tagged clip.

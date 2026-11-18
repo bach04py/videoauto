@@ -168,7 +168,7 @@ def test_no_prompt_with_nothing_saved_exits_2(ws, monkeypatch, capsys):
 
 
 def test_stdin_not_a_terminal_behaves_as_no_prompt(ws, monkeypatch, capsys):
-    (ws["root"] / "videoauto.local.yaml").write_text(yaml.safe_dump({
+    (ws["root"] / "videoauto.local.yaml").write_text(yamlio.dump({
         "footage_dir": str(ws["footage"]), "scripts_dir": str(ws["root"] / "mat-roi"),
         "output_dir": str(ws["output"])}), encoding="utf-8")
     stdin(monkeypatch, "would be an answer\n", tty=False)
@@ -220,7 +220,7 @@ class Running:
         work = ws["work"]
         (work / ".index").parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(cached_index, work / ".index", dirs_exist_ok=True)
-        (ws["root"] / "videoauto.local.yaml").write_text(yaml.safe_dump({
+        (ws["root"] / "videoauto.local.yaml").write_text(yamlio.dump({
             "footage_dir": str(ws["footage"]), "scripts_dir": str(ws["scripts"]),
             "output_dir": str(ws["output"])}), encoding="utf-8")
         self.ws, self.stop = ws, threading.Event()

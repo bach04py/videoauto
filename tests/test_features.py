@@ -120,7 +120,7 @@ def test_clean_machine_watcher_refuses_text_script_before_indexing(clean_with_lo
     assert env.provider.calls == 0 and not any((out / ".index").glob("*.json"))
 
 
-@pytest.mark.skipif(not (OCC_REPO / "node_modules" / "tsx").exists(), reason="no OpenChatCut next to videoauto")
+@pytest.mark.skipif(not (OCC_REPO / "node_modules" / "tsx").exists(), reason="needs OpenChatCut next to videoauto: run python -m videoauto.setup first")
 def test_clean_machine_catalogue_is_regenerated_with_vi_ok(clean_machine, real_catalogue):
     """catalogue.json without vi_ok and without a fingerprint is regenerated from the real
     OpenChatCut with the bundled font verdicts: TEXT lines then have templates again."""

@@ -103,7 +103,10 @@ def test_valid_reply_becomes_validated_plan(indexed, tmp_path):
     assert plan["fades"] == {"in": 0.5, "out": 0.8}
     assert set(plan["sources"]) == {"gym.mp4", "sunset.mp4"}
     prompt = provider.prompts[0]
-    assert "sharpness 139" in prompt and "rank 2/2" in prompt     # gym is the softer of the two
+    import re
+    gym_line = next(ln for ln in prompt.splitlines() if ln.startswith("FILE gym.mp4"))
+    gym_shot = prompt.split(gym_line, 1)[1].splitlines()[1]
+    assert re.search(r"sharpness \d+ \(rank 2/2\)", gym_shot)        # gym is the softer of the two
     assert "builtin:look-teal-orange" in prompt and "builtin:tr-flash" in prompt
 
 
@@ -131,7 +134,8 @@ def test_not_enough_material_rejects_without_a_model_call(indexed, tmp_path):
     plan, provider = plan_with(indexed, tmp_path, GOOD, duration=120)
     assert provider.calls == 0 and plan["model_calls"] == 0
     assert plan["tier"] == "reject" and plan["clips"] == []
-    assert "Không đủ hình dùng được" in plan["reason"] and schema_errors(plan) == []
+    assert "cần ít nhất 72 giây footage dùng được cho video 120 giây" in plan["reason"]
+    assert schema_errors(plan) == []
 
 
 def test_model_reject_is_kept_not_invented(indexed, tmp_path):

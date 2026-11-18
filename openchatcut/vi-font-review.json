@@ -1,0 +1,5036 @@
+{
+ "generatedAt": "2026-11-16T02:02:34.521Z",
+ "renderedAt": "2026-11-16T01:56:28.168Z",
+ "vi": "Đức Ủy Ở Hoàng Gia Nguyễn",
+ "ascii": "Duc Uy O Hoang Gia Nguyen",
+ "method": "scripts/vi-font-check.mts renders + manual review of every contact-sheet crop; see NOTES-M0.md",
+ "summary": {
+  "total": 235,
+  "vi_ok": 136,
+  "fail_vietnamese": 24,
+  "fail_length_only": 35,
+  "no_text_field": 30,
+  "text_props_ignored": 10,
+  "glyph_correct_when_rendered": 171,
+  "byIssue": {
+   "no_editable_text_field": 30,
+   "accent_clipped": 4,
+   "text_overflow": 40,
+   "text_props_ignored": 10,
+   "glyph_fallback": 8,
+   "accent_collision": 11,
+   "text_overflow_vi_only": 1
+  }
+ },
+ "templates": [
+  {
+   "id": "ca391141-ac35-4672-a2ab-90980ddae765",
+   "name": "Bar Chart - Annual Sales",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 0,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "452d340f-f4f4-4747-bec6-018cf639d10e",
+   "name": "Bar Chart - Category Sales",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 1,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 59296,
+    "viVsAsciiPx": 26749,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": []
+  },
+  {
+   "id": "847102e7-ec7f-4c4c-ad8a-f015f5b31fc7",
+   "name": "Bar Chart - Department Headcount",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 2,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 19486,
+    "viVsAsciiPx": 18498,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "a7b5e885-25ae-4970-9d5e-d451e9d8da7a",
+   "name": "Bar Chart - Monthly Sales",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 3,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 75336,
+    "viVsAsciiPx": 35333,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "1c49b2f1-3dce-4953-afd1-674ae0a285e8",
+   "name": "Bar Chart - Monthly Targets",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 4,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 17029,
+    "viVsAsciiPx": 22462,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": []
+  },
+  {
+   "id": "d03ead86-a81b-4638-98d3-2fae21c1715b",
+   "name": "Bar Chart - Monthly User Growth",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 5,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 51345,
+    "viVsAsciiPx": 15946,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": []
+  },
+  {
+   "id": "c63df7ef-fc63-491b-ae4b-30a34d88d8ae",
+   "name": "Bar Chart - Quarterly Revenue Comparison",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 6,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 120499,
+    "viVsAsciiPx": 29453,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 4
+   },
+   "fonts": []
+  },
+  {
+   "id": "9e4ffbcc-ec05-4a3b-b54f-0ffe7f571efd",
+   "name": "Bar Chart - Sales by Region",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 7,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 96158,
+    "viVsAsciiPx": 28197,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "6e2cda87-034d-4a76-8fd5-1f0bea0d6b00",
+   "name": "Bar Chart - Weekly Growth Rate",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 8,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_clipped",
+     "note": "stacked tilde on ễ cut off by a per-line mask: renders \"Nguyên\""
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 91782,
+    "viVsAsciiPx": 19397,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "f7361a72-e5c6-4ed7-aebf-95fd541676d5",
+   "name": "Benchmark Bar Chart - Pantone Warm",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 9,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 23606,
+    "viVsAsciiPx": 16802,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "d82c1bd4-4654-4f92-809d-32eba00a88f0",
+   "name": "Benchmark Score Comparison",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 10,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 23741,
+    "viVsAsciiPx": 16912,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "7ef378f4-bbee-4529-8e79-30d5591e3017",
+   "name": "Coordinates Weather Dashboard",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 11,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "9b186c75-5a70-429d-bcfb-a09805172ef9",
+   "name": "Donut Chart - Budget Allocation",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 12,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 24201,
+    "viVsAsciiPx": 28208,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": []
+  },
+  {
+   "id": "5e015143-44fa-4cc4-bb04-f692e011a1ee",
+   "name": "Donut Chart - Market Share",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 13,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 78226,
+    "viVsAsciiPx": 75041,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "3e399f3e-d0f3-4bfd-a4e7-304f32d0dfd9",
+   "name": "Donut Chart - Regional Sales",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 14,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 169572,
+    "viVsAsciiPx": 49842,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": []
+  },
+  {
+   "id": "38bd86e5-2f30-46f7-ade8-1a9711220f0d",
+   "name": "Hand-Drawn Line Chart",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 15,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "6cdf1268-c279-4c5d-a540-3f59501fbe0d",
+   "name": "Hand-Drawn Radar Chart",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 16,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "145263b5-d513-4612-80fd-db56effa77f8",
+   "name": "Hand-Drawn Scatter Plot",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 17,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "1a4cd0c3-ba36-4457-8428-49e57c61292f",
+   "name": "Hand-Drawn Stack Chart",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 18,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "6d14754c-1e8a-4920-85ff-953203b42afe",
+   "name": "Line Chart - App Performance",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 19,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 20820,
+    "viVsAsciiPx": 19384,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "74444c9b-b846-496e-a5d9-e8e1c5887b95",
+   "name": "Line Chart - Growth Trend",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 20,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "798fa1a8-771d-4c97-b900-8a9004266304",
+   "name": "Line Chart - Monthly Active Users",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 21,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 85227,
+    "viVsAsciiPx": 39864,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": []
+  },
+  {
+   "id": "c430c730-8ff2-4a4b-86af-230563431c49",
+   "name": "Line Chart - Sales Trend",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 22,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_clipped",
+     "note": "stacked tilde on ễ cut off by a per-line mask: renders \"Nguyên\""
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 105886,
+    "viVsAsciiPx": 20230,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "033ce93d-219c-4100-9b53-83adf2e19d39",
+   "name": "Line Chart - Stock Price",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 23,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 29656,
+    "viVsAsciiPx": 35599,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": []
+  },
+  {
+   "id": "c206d9e8-7cc6-428f-a030-65f5758641a5",
+   "name": "Line Chart - Temperature Change",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 24,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "0371e3ac-0449-4e8d-a5df-c758ccdbba44",
+   "name": "Line Chart - User Growth",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 25,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 31031,
+    "viVsAsciiPx": 14689,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 4
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "26c175c6-f05d-4370-913a-c63b15b05314",
+   "name": "Line Chart - Website Traffic",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 26,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "0273f371-8c99-4d7f-b51e-096edd9d2188",
+   "name": "Pie Chart - Customer Satisfaction",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 27,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 23525,
+    "viVsAsciiPx": 22543,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "82a91144-3342-4599-8fc0-a0b02f5d3933",
+   "name": "Pie Chart - Market Segments",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 28,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 26147,
+    "viVsAsciiPx": 26432,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "97d3b441-1916-48bc-a11c-9af4ff6fb0be",
+   "name": "Pie Chart - Resource Allocation",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 29,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 20217,
+    "viVsAsciiPx": 19281,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "a456f6df-9683-4ff9-b4be-d80208b92d16",
+   "name": "Pie Chart - User Age Distribution",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 30,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "f9b5adcd-fc88-4f3b-b4f2-c74befe1317e",
+   "name": "Pie Chart - User Sources",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 31,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 53573,
+    "viVsAsciiPx": 25459,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": []
+  },
+  {
+   "id": "86b95e5b-18d1-4074-9dbc-22229237a8ee",
+   "name": "Retention Graph Card — White Luminance Variant",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 32,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 14220,
+    "viVsAsciiPx": 6357,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "53dd0f34-fa25-4999-b317-5122f11d258c",
+   "name": "Revenue counter stat reveal overlay",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 33,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "numeric counter field: text renders as \"…NaN\" and overflows"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 1696708,
+    "viVsAsciiPx": 191915,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 26
+   },
+   "fonts": [
+    "Montserrat"
+   ]
+  },
+  {
+   "id": "c6508fa2-0507-45af-b0a4-9859f49fec0d",
+   "name": "Sales Counter Dashboard",
+   "category": "data-visualization",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 34,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "b0e7ccf7-d84c-4baf-aca4-678d3ad4b11e",
+   "name": "Article Card",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 35,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 1461,
+    "viVsAsciiPx": 309,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": []
+  },
+  {
+   "id": "0d6f793e-8501-479e-bd78-f75dc32fb0aa",
+   "name": "Checklist Tick Animation",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 36,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "e0d468df-601e-4ac6-befe-9870696b4f2c",
+   "name": "Fruit Shopping Tips",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 37,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "03decebd-7066-4257-b21c-250151c5c8d2",
+   "name": "Product Specs Panel",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 38,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 57078,
+    "viVsAsciiPx": 49709,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "05ae4e10-0bf7-4611-bd7e-135b9e2c8ee9",
+   "name": "Progress Bar",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 39,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 11523,
+    "viVsAsciiPx": 1396,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 4
+   },
+   "fonts": []
+  },
+  {
+   "id": "ccbf5be2-d5a7-45f5-835a-016ad845cc33",
+   "name": "Progress Bar Title Card",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 40,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 34273,
+    "viVsAsciiPx": 1331,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "9d11fc67-dc78-4d78-b797-f0d76c816858",
+   "name": "Savings Plan Sidebar",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 41,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 102593,
+    "viVsAsciiPx": 12541,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "8f195239-642e-44fa-aa03-7de513e56ab4",
+   "name": "Score Title Card",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 42,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 168372,
+    "viVsAsciiPx": 15250,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": []
+  },
+  {
+   "id": "6f06cbe0-4bd3-4382-91cd-e8d6c01a155a",
+   "name": "Shopping Tips Animation",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 43,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "49756343-72e4-48aa-8a3d-cc66975d3435",
+   "name": "Stat Title Card",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 44,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 1854244,
+    "viVsAsciiPx": 9201,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "23f4a551-32fa-4cf7-ae35-abaa9c3d093c",
+   "name": "Timeline Progress Bar",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 45,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 22158,
+    "viVsAsciiPx": 5231,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 6
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "7c8eb54a-f237-4334-b6ba-c55421c3d35a",
+   "name": "Tip List Title Card",
+   "category": "infographics",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 46,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 59098,
+    "viVsAsciiPx": 20197,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": []
+  },
+  {
+   "id": "10d5638b-dc0f-4362-8cf8-f6bb14340331",
+   "name": "Distressed Paper Lower Third",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 47,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 241832,
+    "viVsAsciiPx": 22230,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "b6ed6fcb-f11c-4209-8f45-9217ccb9d03c",
+   "name": "Divided Name Lower Third",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 48,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references Georgia (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 90345,
+    "viVsAsciiPx": 25782,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 1
+   },
+   "fonts": [
+    "Georgia",
+    "serif"
+   ]
+  },
+  {
+   "id": "a8881761-23dc-4cb7-ac6e-11aa29aa6df7",
+   "name": "Editorial Lower Third Card",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 49,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_clipped",
+     "note": "accents of first line cut by container top; lines collide"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 67473,
+    "viVsAsciiPx": 24382,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 1
+   },
+   "fonts": [
+    "serif"
+   ]
+  },
+  {
+   "id": "63ea06e3-3c00-4a22-920d-5b7e8df2b21b",
+   "name": "Hand-Drawn Paper Lower Third",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 50,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 30995,
+    "viVsAsciiPx": 22666,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "b820ad1e-f2e5-4a49-93de-28add26db506",
+   "name": "Lower Third - Minimal Flat",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 51,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 100191,
+    "viVsAsciiPx": 18898,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "8963b40a-b5b0-4076-8831-e1e227a9a777",
+   "name": "Lower Third - Warm Editorial",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 52,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 112822,
+    "viVsAsciiPx": 6173,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "08aeec62-dffe-4973-b1da-b9bddd492d63",
+   "name": "Lower Third 01 - Pill Badge",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 53,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "5a14be9d-3155-4519-b2c3-0974ee1e7006",
+   "name": "Lower Third 03 - Vertical Bar",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 54,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "1b06459e-b43f-4a46-9e0f-dd3f67202373",
+   "name": "Photo Lower Third",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 55,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 4669,
+    "viVsAsciiPx": 561,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "a2abdfc4-c794-4224-b89a-07c0f4009129",
+   "name": "Speaker Intro Card",
+   "category": "lower-thirds",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 56,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 169847,
+    "viVsAsciiPx": 132384,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 25
+   },
+   "fonts": []
+  },
+  {
+   "id": "8833541d-1d2a-4281-bec2-9139e3d9c6aa",
+   "name": "Celebrity Quote Flashcards",
+   "category": "quote-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 57,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 12996,
+    "viVsAsciiPx": 12641,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 4
+   },
+   "fonts": [
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Inter",
+    "sans-serif",
+    "system-ui"
+   ]
+  },
+  {
+   "id": "ef4231df-8e0a-43b8-9dfc-76bac9c1eeb9",
+   "name": "Quote Card",
+   "category": "quote-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 58,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 5261,
+    "viVsAsciiPx": 602,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": []
+  },
+  {
+   "id": "7fa3108f-346f-42ba-b707-b15e8282fe6e",
+   "name": "Quote Title Card",
+   "category": "quote-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 59,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 20699,
+    "viVsAsciiPx": 1944,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": []
+  },
+  {
+   "id": "893c85e4-940f-4cbc-b0fc-2db3a2f48392",
+   "name": "Story Quote Card",
+   "category": "quote-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 60,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 176379,
+    "viVsAsciiPx": 52335,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 28
+   },
+   "fonts": [
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "bf565cad-9797-470c-909a-e91e5f5ba0a8",
+   "name": "X Quote Card",
+   "category": "quote-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 61,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 39114,
+    "viVsAsciiPx": 7399,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "-apple-system",
+    "BlinkMacSystemFont"
+   ]
+  },
+  {
+   "id": "8aedc1d6-c5c8-44f0-9f3d-9ed78fd55f69",
+   "name": "Dark Tech — Feature Showcase",
+   "category": "social-media",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 62,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "a75ac7ba-db04-4266-93b9-9ebd0614dc06",
+   "name": "Finance Explainer — Chapter Marker Notebook",
+   "category": "social-media",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 63,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 181482,
+    "viVsAsciiPx": 99304,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 22
+   },
+   "fonts": [
+    "Roboto",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "4de08f53-df3a-47ed-bd45-e541386b27fa",
+   "name": "Finance Explainer — Poll Card Progress Bars",
+   "category": "social-media",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 64,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 28791,
+    "viVsAsciiPx": 29539,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": [
+    "Roboto",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "7f1570f1-c211-4143-b15d-76849729d786",
+   "name": "Search Interface Simulator",
+   "category": "social-ui",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 65,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "83a77388-8670-4df0-bd5e-b4e3b59c92ce",
+   "name": "Bullet Points Overlay",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 66,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 14775,
+    "viVsAsciiPx": 14082,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "3515f6e1-019d-408d-9396-59cdea42abb1",
+   "name": "Bullet Points Overlay - Dark Neon",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 67,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 14569,
+    "viVsAsciiPx": 12756,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "4792b7a4-126f-48ac-9a0c-7dfcd9a2891b",
+   "name": "Bullet Points Overlay - Japanese Pastel",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 68,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 11937,
+    "viVsAsciiPx": 11256,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "2e4c55aa-3c66-49b9-9b24-bd85d03e58a4",
+   "name": "Bullet Points Overlay - Navy",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 69,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 13095,
+    "viVsAsciiPx": 11508,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "79b030e8-cd48-4065-8beb-4cd3644ab9fe",
+   "name": "Bullet Points Overlay - Soft Coral",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 70,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 14783,
+    "viVsAsciiPx": 11094,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "fb80f5e4-170e-4cd0-a9da-e59829d9e8d5",
+   "name": "Bullet Points Overlay - Y2K",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 71,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 16936,
+    "viVsAsciiPx": 11565,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "8303fddb-dba0-474b-a1cc-58f40728482b",
+   "name": "Numbered Talking Head Overlay",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 72,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 6152,
+    "viVsAsciiPx": 5885,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "e816057d-bd49-4a82-880c-d4555a9c1dce",
+   "name": "Talking Head Keyword Card",
+   "category": "talking-head-overlays",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 73,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 121668,
+    "viVsAsciiPx": 32157,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 22
+   },
+   "fonts": [
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "b90365b4-68f6-4de6-9d79-96f6bb9f90e4",
+   "name": "Bold Glitch Title",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 74,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "6d5ae7e6-e458-40ef-8633-383bfc0e8279",
+   "name": "Finance Explainer — Chapter Title Card (Light)",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 75,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 102533,
+    "viVsAsciiPx": 34300,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": [
+    "Roboto",
+    "serif"
+   ]
+  },
+  {
+   "id": "935cd0e3-39a1-4b7d-bc0e-90145cc98cd2",
+   "name": "Gradient Layered Text Page",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 76,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 5862,
+    "viVsAsciiPx": 3742,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 6
+   },
+   "fonts": [
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "3554d937-05c5-4ffb-835d-aa8db1a48ace",
+   "name": "Hand-Drawn List Overlay",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 77,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "Caveat has no Vietnamese subset: ứ Ủ Ở ễ drawn in a fallback serif"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 111993,
+    "viVsAsciiPx": 67801,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 16
+   },
+   "fonts": [
+    "Caveat",
+    "cursive"
+   ]
+  },
+  {
+   "id": "ab423e37-dbc8-4e05-944a-8f0a1895332e",
+   "name": "Keyword Roller",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 78,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 124341,
+    "viVsAsciiPx": 73100,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 35
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "435ca688-a7aa-4b5a-ac7b-d6994b2cbe36",
+   "name": "Scrolling Text Ticker",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 79,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "30ff329c-f4cc-49cf-afae-8c98299039f5",
+   "name": "Takeaway lower-third overlay (baked)",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 80,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "f11ec59a-6c28-4b03-8dae-e9e98516547d",
+   "name": "Vibe Effects Title Card",
+   "category": "text-effects",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 81,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "display face lacks Vietnamese: Ứ Ủ Ở Ễ in a different font, gap in \"NGUYỄ N\""
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 485485,
+    "viVsAsciiPx": 318356,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 7
+   },
+   "fonts": []
+  },
+  {
+   "id": "c480c5c8-9812-49ab-a04b-1dfef0405aa8",
+   "name": "Alert Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 82,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 24581,
+    "viVsAsciiPx": 27521,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "1bdbddfd-60bc-4fb3-ab57-c8a6427777ae",
+   "name": "Black Title - Box Title",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 83,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "659cd252-7419-45d5-bbf1-3f6253f12811",
+   "name": "Black Title - Character Cascade",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 84,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "afe39099-fba4-4b59-ad48-31a2bf55bc61",
+   "name": "Black Title - Subtitle Line",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 85,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "2995a5a5-7240-4c9a-8528-c167b8dce239",
+   "name": "Breaking News Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 86,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 55899,
+    "viVsAsciiPx": 31875,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "7c576ae9-ee31-4727-ad3b-b71891bc3e21",
+   "name": "Cinematic Welcome Screen",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 87,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "347681ff-bc76-452c-814b-4e82d4e5d255",
+   "name": "Community Stats Title Transition",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 88,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "9d2bedfe-7840-4bfa-80d4-7e27074071bc",
+   "name": "Community Welcome Screen",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 89,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 5872,
+    "viVsAsciiPx": 3810,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 6
+   },
+   "fonts": [
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "47caa17c-0e24-4447-b549-766163e8efe0",
+   "name": "Countdown Timer Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 90,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 15802,
+    "viVsAsciiPx": 15765,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": []
+  },
+  {
+   "id": "c8675840-2115-4060-be44-0d6be2fc8827",
+   "name": "Dial Chapter Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 91,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references Georgia (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 74313,
+    "viVsAsciiPx": 62909,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Arial",
+    "Georgia",
+    "sans-serif",
+    "serif"
+   ]
+  },
+  {
+   "id": "f59761bb-89af-47ae-a79a-bbe0bf1a365c",
+   "name": "Dual Person Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 92,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 18728,
+    "viVsAsciiPx": 1342,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": []
+  },
+  {
+   "id": "dfda4ffe-ab11-4da3-94e7-963a41d79fb4",
+   "name": "Editorial Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 93,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 126450,
+    "viVsAsciiPx": 57254,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 13
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "8a36f4ee-a5b8-435e-bfad-bd8e91820c9e",
+   "name": "Event Opener Screen",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 94,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 542629,
+    "viVsAsciiPx": 95225,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 43
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "ec6ac23d-85e8-4b16-9135-7665f5a03aa8",
+   "name": "Goal Hierarchy Chapter Page",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 95,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 25905,
+    "viVsAsciiPx": 25097,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 7
+   },
+   "fonts": []
+  },
+  {
+   "id": "cc793049-2b5e-4e06-b952-9834524bb169",
+   "name": "Golden Chapter Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 96,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "1ed40a68-6303-427a-94f9-5197a0af7869",
+   "name": "Location Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 97,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 34569,
+    "viVsAsciiPx": 1944,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "c987c3d3-e85b-40cf-adca-44ca22b6215a",
+   "name": "Minimal Zoom Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 98,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "ea1d0a33-02a9-4d9e-ae44-99a4e133561c",
+   "name": "Modern Welcome Screen",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 99,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "14209866-efb6-4b54-bead-d8927d9bdf75",
+   "name": "Name Tag Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 100,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 363132,
+    "viVsAsciiPx": 4373,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "f00fd95b-31ae-4fda-ae41-cb1bbcb4df02",
+   "name": "Neon Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 101,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "7ec411f4-9c96-49b5-86b1-1685a81b7d82",
+   "name": "News Broadcast Title Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 102,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 76520,
+    "viVsAsciiPx": 39341,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 33
+   },
+   "fonts": []
+  },
+  {
+   "id": "2063446e-f68f-4284-ae99-aefd13bd4824",
+   "name": "Paper Chapter Title",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 103,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 105617,
+    "viVsAsciiPx": 105592,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "4dfa6822-7089-4908-a4e5-3e4d5720f2df",
+   "name": "Question mark animation",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 104,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 182350,
+    "viVsAsciiPx": 72440,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Pangmen Zhengdao Biaoti Ti"
+   ]
+  },
+  {
+   "id": "d466a3cb-a87f-4bf1-9da2-a074d9c4ef6f",
+   "name": "Red Passion Chapter Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 105,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "0280ff3f-b1af-498b-9069-b849929f8df9",
+   "name": "Simple Name Card",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 106,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 8150,
+    "viVsAsciiPx": 921,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 11
+   },
+   "fonts": []
+  },
+  {
+   "id": "62cceb8b-a33f-45b0-a5ff-2a2be3fe2107",
+   "name": "Skewed Chapter Label",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 107,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "5293af51-b9e1-4dab-88b9-d9a49b1dbf3a",
+   "name": "Typewriter Chapter Title",
+   "category": "title-cards",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 108,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "vi_warnings": [
+    "references Georgia (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 105766,
+    "viVsAsciiPx": 105731,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 5
+   },
+   "fonts": [
+    "Georgia",
+    "serif",
+    "Times New Roman"
+   ]
+  },
+  {
+   "id": "73711b77-044d-46c6-944b-007e145e9f81",
+   "name": "1920s Cultural — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 109,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 38698,
+    "viVsAsciiPx": 13637,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 21
+   },
+   "fonts": [
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "442ab610-d550-44e7-901a-aa5d23fef8a9",
+   "name": "AI video script builder",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 110,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 34555,
+    "viVsAsciiPx": 15061,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "33e13fa9-76d1-4483-94dc-e3f1217c0f1f",
+   "name": "Art Deco Newsletter — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 111,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 66791,
+    "viVsAsciiPx": 18042,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "7d205758-dac2-4df5-9735-7ad781d792af",
+   "name": "Bar chart growth animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 112,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 5012,
+    "viVsAsciiPx": 5329,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 6
+   },
+   "fonts": [
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "82876903-b57c-44dd-95cf-e5482749b399",
+   "name": "Bar chart growth animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 113,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 17312,
+    "viVsAsciiPx": 6949,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": []
+  },
+  {
+   "id": "19f4b9ff-8768-4c87-8e94-a5e5a9569cd7",
+   "name": "Black Friday — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 114,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "text_overflow_vi_only",
+     "note": "only the Vietnamese render reaches the frame edge (extra accent height)"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 367827,
+    "viVsAsciiPx": 113832,
+    "viEdge": true,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": [
+    "Anton",
+    "Inter"
+   ]
+  },
+  {
+   "id": "597bbdd4-06bf-4a2e-a064-76a72e303382",
+   "name": "Bold Typography — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 115,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 416614,
+    "viVsAsciiPx": 25762,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Oswald"
+   ]
+  },
+  {
+   "id": "4109203d-775b-4a3c-8f35-7f5a53e1a7b6",
+   "name": "Bold Typography Aesthetic — Style Showcase",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 116,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 430653,
+    "viVsAsciiPx": 101168,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "364c0562-4e3a-4ca6-8f1a-7be3f582d73c",
+   "name": "Bold Typography Impact — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 117,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 233257,
+    "viVsAsciiPx": 52094,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 31
+   },
+   "fonts": []
+  },
+  {
+   "id": "f52a0891-8de8-4fdd-a383-3e62a8793a0f",
+   "name": "Cartoon Style — Style Showcase",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 118,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "Fredoka has no Vietnamese subset: Ủ Ở Ễ in a lighter fallback face"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 166306,
+    "viVsAsciiPx": 129608,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Fredoka",
+    "Montserrat"
+   ]
+  },
+  {
+   "id": "c77f1306-07a0-400c-aa05-303538c87ea0",
+   "name": "Chapter overview page — 4-part grid",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 119,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 100717,
+    "viVsAsciiPx": 52545,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Nunito",
+    "sans-serif",
+    "system-ui"
+   ]
+  },
+  {
+   "id": "d9970c80-3703-4aa6-a4b1-882d7ce0e906",
+   "name": "Chapter page number icon animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 120,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 125611,
+    "viVsAsciiPx": 50524,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 19
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "243aa8dd-9cd9-41ac-8972-05d2e505f036",
+   "name": "Chapter Title Card — Business Overview",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 121,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 183341,
+    "viVsAsciiPx": 22032,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "49e0b581-862b-42fc-bb6b-a17d0c3d1668",
+   "name": "Chapter title card — icon + letter-by-letter reveal with motion blur exit",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 122,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 73561,
+    "viVsAsciiPx": 9292,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 1
+   },
+   "fonts": [
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "388494bf-f1c7-4031-add5-0bb27c2f0b4a",
+   "name": "Colorful Inspiration — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 123,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 268783,
+    "viVsAsciiPx": 55154,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 4
+   },
+   "fonts": []
+  },
+  {
+   "id": "6d784a29-b0d8-4228-8489-b0f75bf34c0e",
+   "name": "Company Introduction — Split Layout",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 124,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 34286,
+    "viVsAsciiPx": 8600,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 19
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "6cb35207-77ab-4538-8b60-9fe32f493460",
+   "name": "Creative Watercolor — Chapter Title Card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 125,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 25052,
+    "viVsAsciiPx": 10635,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 18
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display",
+    "sans-serif",
+    "serif"
+   ]
+  },
+  {
+   "id": "29c9bddc-0e29-4665-bc2a-bf966aeaac6b",
+   "name": "Creative Watercolor — Company Introduction",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 126,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 15651,
+    "viVsAsciiPx": 5813,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 16
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "d8ed2e4b-8b7e-4b4d-8942-7ac0c4b7800a",
+   "name": "Creative Watercolor — Data Chart",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 127,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 21911,
+    "viVsAsciiPx": 6655,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 22
+   },
+   "fonts": [
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "6439d0c9-4297-4d3c-9b07-3132668de166",
+   "name": "Creative Watercolor — Team Members",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 128,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 17025,
+    "viVsAsciiPx": 4809,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 17
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "3cc81aaa-2429-4be0-acc1-5e39dd946836",
+   "name": "Creative Watercolor — Timeline",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 129,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 24868,
+    "viVsAsciiPx": 9746,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 16
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "207da43b-d3e8-4f05-81b9-25fbe97c50f4",
+   "name": "Creative Watercolor — Universal Anchor",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 130,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "a73aa354-9e8c-459a-a94a-78b0547d9a67",
+   "name": "Dark cinematic chapter title card — \"Number 3 / TONE\"",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 131,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 466454,
+    "viVsAsciiPx": 52135,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 6
+   },
+   "fonts": [
+    "Inter",
+    "Montserrat",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "8744f05e-4976-4430-a14e-85a167301c14",
+   "name": "Dark Tech — Callout Tag",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 132,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references Impact (no Vietnamese glyphs); rendered text looked consistent",
+    "font(s) not bundled or Google-loaded, depend on render machine: Impact"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 120524,
+    "viVsAsciiPx": 5534,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": [
+    "Impact",
+    "Oswald",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "200c97a4-3958-4074-ba27-1080eb91a5ce",
+   "name": "Dark Tech — Chapter Title Card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 133,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 354716,
+    "viVsAsciiPx": 124944,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 34
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "9f4d7811-0ee5-4b92-b8cb-35e980edf8ac",
+   "name": "Dark Tech — Comparison Table",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 134,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 50927,
+    "viVsAsciiPx": 30583,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 4
+   },
+   "fonts": []
+  },
+  {
+   "id": "f4ed16bb-209c-4f61-89ea-4eb6a6909163",
+   "name": "Dark Tech — Price Badge Popup",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 135,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 129008,
+    "viVsAsciiPx": 12625,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 63
+   },
+   "fonts": [
+    "Oswald"
+   ]
+  },
+  {
+   "id": "ec40c650-4d7d-476f-a891-fe4d722fdcca",
+   "name": "Dark Tech — Price Tier Panel",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 136,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 39606,
+    "viVsAsciiPx": 42013,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 13
+   },
+   "fonts": []
+  },
+  {
+   "id": "99e8292a-f939-469e-82c8-3ff5334ae41b",
+   "name": "Dark Tech — Spec Sheet",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 137,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 251,
+   "metrics": {
+    "textPx": 173531,
+    "viVsAsciiPx": 50105,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "dd96bb2f-ec3c-466b-84b6-23c5735339b7",
+   "name": "Data Chart — Investment Portfolio Allocation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 138,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 23856,
+    "viVsAsciiPx": 8826,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 15
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "6fba5c4c-4003-41c3-b1ea-3482b1214293",
+   "name": "Data visualization animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 139,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "bbab918f-c597-4b24-a39e-db2641ae84d3",
+   "name": "Digital Revolution — Style Showcase",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 140,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "Special Elite has no Vietnamese subset: Ủ Ở in a clean serif amid typewriter glyphs"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 35401,
+    "viVsAsciiPx": 38515,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 1
+   },
+   "fonts": [
+    "Special Elite"
+   ]
+  },
+  {
+   "id": "3f1510e3-5908-46ac-87f4-1714a57671f0",
+   "name": "eCommerce Business — Style Showcase",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 141,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 197196,
+    "viVsAsciiPx": 29905,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 24
+   },
+   "fonts": [
+    "Anton",
+    "Space Mono"
+   ]
+  },
+  {
+   "id": "b18138db-db81-4e97-8eec-30e69ca071b3",
+   "name": "Finance Explainer — Bar Chart Diverging Animated",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 142,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 21561,
+    "viVsAsciiPx": 20505,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": [
+    "Roboto",
+    "sans-serif",
+    "serif"
+   ]
+  },
+  {
+   "id": "82cf935e-d02a-496b-bad3-12a3876328a9",
+   "name": "Generation Two — chapter title card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 143,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "a9f9348f-eb15-4064-b5d8-f164dd82cb9b",
+   "name": "Glowing Ring MG — bullet list reveal",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 144,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 12936,
+    "viVsAsciiPx": 2386,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 3
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "2c38ab81-0d44-485f-9981-a3e36ef785b6",
+   "name": "Group Project — Chapter Title Card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 145,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 113729,
+    "viVsAsciiPx": 5122,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 6
+   },
+   "fonts": [
+    "Montserrat"
+   ]
+  },
+  {
+   "id": "77c25412-0768-4c6f-a56d-3d78b5481ff0",
+   "name": "Group Project — Company Introduction",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 146,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 52189,
+    "viVsAsciiPx": 7607,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 16
+   },
+   "fonts": [
+    "Inter",
+    "Montserrat",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "1b401c0b-0bd3-47e0-a64f-93f470e2fb6c",
+   "name": "Group Project — Data Chart",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 147,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 43195,
+    "viVsAsciiPx": 15255,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "4a1c2bc0-9798-4ef4-bbf9-0517cc5ca787",
+   "name": "Group Project — Team Members",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 148,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 55801,
+    "viVsAsciiPx": 40806,
+    "viEdge": false,
+    "asciiEdge": true,
+    "extraTopPx": 12
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "4444d0ce-ac02-4831-ad25-dd90b6aea350",
+   "name": "Group Project — Timeline",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 149,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 23241,
+    "viVsAsciiPx": 21486,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "3ce620cb-4199-45cc-984a-6cefe31727c2",
+   "name": "Group Project — Universal Anchor",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 150,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "aa69b6e7-ef97-4baf-8594-c614d4d12117",
+   "name": "Keyword typing animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 151,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 144404,
+    "viVsAsciiPx": 61327,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 19
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "751adbfe-0a1d-4d9d-97d5-21d050c75442",
+   "name": "Letter drop title — HOW DO YOU DIFFERENTIATE",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 152,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 740976,
+    "viVsAsciiPx": 276489,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 49
+   },
+   "fonts": [
+    "Anton"
+   ]
+  },
+  {
+   "id": "b30d07d4-30ba-4db6-8970-093b1cfcecf7",
+   "name": "Lower Third - Ball Swipe Typewriter Reveal",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 153,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 122568,
+    "viVsAsciiPx": 15704,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Roboto",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "ec5bfc1f-7826-40ad-9657-46b33ab730e6",
+   "name": "Lower-third subtitle pop with gradient slide-up and keyword highlight",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 154,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 70916,
+    "viVsAsciiPx": 14667,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 29
+   },
+   "fonts": [
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "9be0ad20-a161-485b-854f-2695a8710123",
+   "name": "Manychat-style card slide-up with text mask reveal",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 155,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "vi_warnings": [
+    "references Georgia (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 5666,
+    "viVsAsciiPx": 2584,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": [
+    "Georgia",
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "5e58a6dd-e2f0-49bd-8377-9dd352bd2aac",
+   "name": "Median Age Bar Chart - Speckled Paper Texture with Growing Bars",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 156,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 24722,
+    "viVsAsciiPx": 21368,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 15
+   },
+   "fonts": [
+    "Roboto",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "9c22e1ef-0735-46a9-9e63-c4f276aa6592",
+   "name": "MindSpace — Chapter Five: Growth",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 157,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 571826,
+    "viVsAsciiPx": 268797,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 157
+   },
+   "fonts": []
+  },
+  {
+   "id": "ce7beafd-29bf-45cd-aa55-4e51346bfef6",
+   "name": "MindSpace — Chapter Four: Healing",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 158,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 571695,
+    "viVsAsciiPx": 260261,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 167
+   },
+   "fonts": []
+  },
+  {
+   "id": "408fe497-5d7c-4301-b0dc-008fa2a0fcf2",
+   "name": "MindSpace — Chapter One: Awareness",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 159,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 866802,
+    "viVsAsciiPx": 356337,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 182
+   },
+   "fonts": []
+  },
+  {
+   "id": "323a20f6-e2d2-4efb-8053-ec3e315fc6ec",
+   "name": "MindSpace — Chapter Three: Boundaries",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 160,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 453319,
+    "viVsAsciiPx": 207034,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 172
+   },
+   "fonts": []
+  },
+  {
+   "id": "366dffd3-b6f4-4e47-a05c-37921e5b2852",
+   "name": "MindSpace — Chapter Two: Acceptance",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 161,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 440762,
+    "viVsAsciiPx": 172690,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 172
+   },
+   "fonts": []
+  },
+  {
+   "id": "3dde3474-65a5-4e46-b8f4-9717bc3fbf21",
+   "name": "MindSpace — Free Challenge CTA",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 162,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 95032,
+    "viVsAsciiPx": 31902,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 21
+   },
+   "fonts": []
+  },
+  {
+   "id": "d490ac7f-2e06-469d-ab59-0584094ac5da",
+   "name": "MindSpace — Kinetic Title Reveal",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 163,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "Impact (Windows) lacks ứ Ủ Ở ễ: round fallback glyphs in condensed word"
+    },
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "vi_warnings": [
+    "font(s) not bundled or Google-loaded, depend on render machine: Impact"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 148750,
+    "viVsAsciiPx": 97348,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 32
+   },
+   "fonts": [
+    "Impact",
+    "sans-serif",
+    "system-ui"
+   ]
+  },
+  {
+   "id": "64a9ecbd-cf02-434f-8a36-f2567d061b18",
+   "name": "MindSpace — Number Counter",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 164,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "DM Sans has no Vietnamese subset: serif Ủ Ở inside sans text"
+    },
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 270462,
+    "viVsAsciiPx": 89913,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 51
+   },
+   "fonts": [
+    "DM Sans"
+   ]
+  },
+  {
+   "id": "61b838f2-a46c-4118-91e4-1c2d61e5b184",
+   "name": "MindSpace — Quote Card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 165,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "DM Sans has no Vietnamese subset: serif Ủ Ở inside sans text"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 3467,
+    "viVsAsciiPx": 3603,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": [
+    "DM Sans",
+    "Georgia"
+   ]
+  },
+  {
+   "id": "630caca9-93c5-459c-bae6-6c0bd0338124",
+   "name": "MindSpace — Ribbon Statement",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 166,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references DM Sans (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 66931,
+    "viVsAsciiPx": 47543,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 20
+   },
+   "fonts": [
+    "DM Sans"
+   ]
+  },
+  {
+   "id": "0d0b9a79-bcc9-4c55-82f3-5a12a2a2a6ce",
+   "name": "MindSpace — Self-Check Questions",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 167,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references DM Sans (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 16180,
+    "viVsAsciiPx": 8370,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": [
+    "DM Sans"
+   ]
+  },
+  {
+   "id": "924f80bf-9391-405e-8307-7a9bd628e208",
+   "name": "MindSpace — Topic Menu",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 168,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "vi_warnings": [
+    "references DM Sans (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 186935,
+    "viVsAsciiPx": 88288,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 27
+   },
+   "fonts": [
+    "DM Sans"
+   ]
+  },
+  {
+   "id": "d2154a1c-35fa-4685-bbe6-e577adab14bb",
+   "name": "MindSpace — Weekly Progress Bar Chart",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 169,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 199052,
+    "viVsAsciiPx": 111422,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": []
+  },
+  {
+   "id": "5a3d3074-e947-454c-be17-61763d195186",
+   "name": "Minimal Gradient — Chapter Title Card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 170,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 99894,
+    "viVsAsciiPx": 28241,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 24
+   },
+   "fonts": [
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "7e255237-89e4-40c7-b7f2-bc9c6acfb934",
+   "name": "Minimal Gradient — Company Introduction",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 171,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 80042,
+    "viVsAsciiPx": 17359,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 30
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "f3fb5e13-4727-45d2-8c1d-fb963b354a1e",
+   "name": "Minimal Gradient — Data Chart",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 172,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 38313,
+    "viVsAsciiPx": 6948,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 30
+   },
+   "fonts": [
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "b5cb1e75-4e94-4f37-b5c6-4c309320b2bd",
+   "name": "Minimal Gradient — Team Members",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 173,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 49050,
+    "viVsAsciiPx": 20042,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 30
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "75dae426-6c04-4ffd-9de5-9a4c5959d87c",
+   "name": "Minimal Gradient — Timeline",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 174,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 21079,
+    "viVsAsciiPx": 7136,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 16
+   },
+   "fonts": [
+    "Inter",
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "f767f837-0255-49c4-8f17-01a168f1f7a3",
+   "name": "Minimal Gradient — Universal Anchor",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 175,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "476fed54-d5de-4a5d-85ce-b9c12dc15abb",
+   "name": "Name card animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 176,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 39228,
+    "viVsAsciiPx": 34109,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 19
+   },
+   "fonts": [
+    "Roboto",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "34151422-9674-4a31-a2a7-ade3932e0aef",
+   "name": "News info card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 177,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 150094,
+    "viVsAsciiPx": 128046,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "serif"
+   ]
+  },
+  {
+   "id": "fc1c2614-8907-4dd4-b0ea-0ef7f272a3e0",
+   "name": "Numbered list card — 4 items with circle stroke animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 178,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 22761,
+    "viVsAsciiPx": 20007,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 21
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "847b9656-7989-42c6-ab6a-87a8efe0a20a",
+   "name": "Numbered pebble-badge list with word reveal",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 179,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references Georgia (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 6374,
+    "viVsAsciiPx": 1470,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 19
+   },
+   "fonts": [
+    "Georgia",
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "c70deeb4-4dbd-4b99-b755-ef391932da88",
+   "name": "Paper texture text pop-up animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 180,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 62322,
+    "viVsAsciiPx": 27237,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 13
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "081855a7-161d-47fe-af5a-cd450e1cd8b5",
+   "name": "Picasso Stages — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 181,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 110708,
+    "viVsAsciiPx": 42799,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "1d52fd05-95dc-4cee-b7ea-4ffff59b6f2d",
+   "name": "Pie chart animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 182,
+   "vi_ok": false,
+   "vi_status": "text_props_ignored",
+   "vi_issues": [
+    {
+     "issue": "text_props_ignored",
+     "note": "declared text props have no effect: default and Vietnamese renders are identical (hard-coded text)"
+    }
+   ]
+  },
+  {
+   "id": "7e9f53fa-3036-47a6-a27f-48acf2e49e48",
+   "name": "Principle card — dot background, text left-slide",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 183,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references Georgia (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 30247,
+    "viVsAsciiPx": 9918,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 23
+   },
+   "fonts": [
+    "Georgia",
+    "Playfair Display",
+    "serif"
+   ]
+  },
+  {
+   "id": "dcdf9f3a-2878-4788-af40-69007b040f8c",
+   "name": "Principle card with diagonal band grow animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 184,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "references Georgia (no Vietnamese glyphs); rendered text looked consistent"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 17672,
+    "viVsAsciiPx": 5588,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Georgia",
+    "Playfair Display",
+    "sans-serif",
+    "serif"
+   ]
+  },
+  {
+   "id": "614fbd3c-90b1-4e2b-b52d-e78876757b4b",
+   "name": "Quote card slide-in with word-by-word reveal",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 185,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 58391,
+    "viVsAsciiPx": 2222,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": [
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "0f42b597-2b83-4e6c-9a7b-19f9b0b0ef98",
+   "name": "Reconstruction Era — Bullet Points List",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 186,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "font(s) not bundled or Google-loaded, depend on render machine: Lora"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 21201,
+    "viVsAsciiPx": 14973,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": [
+    "Lora"
+   ]
+  },
+  {
+   "id": "7e87da3a-f175-4c83-bf8b-e59e4ba24269",
+   "name": "Reconstruction Era — Chapter Title Card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 187,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "font(s) not bundled or Google-loaded, depend on render machine: Lora"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 30430,
+    "viVsAsciiPx": 20306,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Lora"
+   ]
+  },
+  {
+   "id": "264faf42-2010-4812-94c6-b3c389204815",
+   "name": "Reconstruction Era — Data Chart",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 188,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "font(s) not bundled or Google-loaded, depend on render machine: Lora"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 21487,
+    "viVsAsciiPx": 9920,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 15
+   },
+   "fonts": [
+    "Lora"
+   ]
+  },
+  {
+   "id": "9c9d88f8-9123-4a5a-8236-cbeca6925318",
+   "name": "Reconstruction Era — Highlight Quote",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 189,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "font(s) not bundled or Google-loaded, depend on render machine: Lora"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 19954,
+    "viVsAsciiPx": 11503,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 15
+   },
+   "fonts": [
+    "Lora"
+   ]
+  },
+  {
+   "id": "dbbdb754-7b3f-49c9-afd6-c4fea2afeec3",
+   "name": "Reconstruction Era — Lower Third Name Tag",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 190,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "font(s) not bundled or Google-loaded, depend on render machine: Lora"
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 6344,
+    "viVsAsciiPx": 4867,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Lora"
+   ]
+  },
+  {
+   "id": "85d7e708-1806-4f49-9bf2-f6e078f54129",
+   "name": "Reconstruction Era — Universal Anchor",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 191,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "924424d1-3f6d-4693-819c-c0cfae1aaf11",
+   "name": "Retention Graph",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 192,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 14022,
+    "viVsAsciiPx": 6257,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "a6e86e59-c544-4ee5-8c49-e8bfed68712b",
+   "name": "Retro Decode — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 193,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    },
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 186647,
+    "viVsAsciiPx": 115105,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "2b8c54b0-3429-481b-8dcd-dbbe3acd8f03",
+   "name": "Revenue counter stat reveal overlay",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 194,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "numeric counter field: text renders as \"…NaN\" and overflows"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 1775027,
+    "viVsAsciiPx": 124826,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 0
+   },
+   "fonts": [
+    "Montserrat"
+   ]
+  },
+  {
+   "id": "9e649199-8bda-434b-a208-862e88829668",
+   "name": "Steps for Studying — Style Showcase",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 195,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "glyph_fallback",
+     "note": "Caveat has no Vietnamese subset: ứ Ủ Ở ễ drawn in a fallback serif"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 44343,
+    "viVsAsciiPx": 32130,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 4
+   },
+   "fonts": [
+    "Caveat",
+    "Inter"
+   ]
+  },
+  {
+   "id": "e7d1fceb-4526-42bc-b8a7-fec4407e5a51",
+   "name": "Stock Market lower-third banner animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 196,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 763958,
+    "viVsAsciiPx": 172174,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "dde936b2-bdc0-411d-800e-9fbfc34e3827",
+   "name": "Takeaway lower-third overlay",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 197,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 197105,
+    "viVsAsciiPx": 74386,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "76002b44-e277-4db9-80ca-a5c9e0cb15f3",
+   "name": "Team Members — Leadership Grid",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 198,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 29066,
+    "viVsAsciiPx": 32528,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": []
+  },
+  {
+   "id": "1afea496-4002-4a6e-9a22-2e8da948f086",
+   "name": "Tech Trends 2026 — Chapter Title Card",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 199,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    },
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 164332,
+    "viVsAsciiPx": 43841,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 50
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "588b4fb1-6178-4e49-a8f9-42e947c0e4fc",
+   "name": "Tech Trends 2026 — Company Introduction",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 200,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_clipped",
+     "note": "thin caps: hook above and stacked tilde clipped (Ở→Ơ, NGUYỄN→NGUYÊN)"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 13367,
+    "viVsAsciiPx": 10039,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "c1d4287a-a6b4-4710-a1dd-bc6420554923",
+   "name": "Tech Trends 2026 — Data Chart",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 201,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 12995,
+    "viVsAsciiPx": 10356,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "5957f338-1913-4571-8f5d-07304f691bec",
+   "name": "Tech Trends 2026 — Team Members",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 202,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 24672,
+    "viVsAsciiPx": 5768,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 13
+   },
+   "fonts": [
+    "Inter",
+    "sans-serif"
+   ]
+  },
+  {
+   "id": "6ce4db2a-66d0-4c28-b869-6227800d8fa9",
+   "name": "Tech Trends 2026 — Timeline",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 203,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 28079,
+    "viVsAsciiPx": 8577,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": [
+    "Inter",
+    "Space Mono"
+   ]
+  },
+  {
+   "id": "ca1b1b60-d036-4dfb-a02c-1b511a45a27f",
+   "name": "Tech Trends 2026 — Universal Anchor",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 204,
+   "vi_ok": false,
+   "vi_status": "no_text_field",
+   "vi_issues": [
+    {
+     "issue": "no_editable_text_field",
+     "note": "propSchema has no text/string prop; text is baked into template code"
+    }
+   ]
+  },
+  {
+   "id": "32da30ba-83e3-43df-94f6-0f62e996a815",
+   "name": "Timeline — Company Milestones",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 205,
+   "vi_ok": false,
+   "vi_status": "fail_vietnamese",
+   "vi_issues": [
+    {
+     "issue": "accent_collision",
+     "note": "line-height too tight: accents of one line land in the line above (false dots/tildes, e.g. \"GIẠ\", \"ĐỤC\")"
+    },
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 40636,
+    "viVsAsciiPx": 15801,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 19
+   },
+   "fonts": [
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "17a91a44-4a0d-42c3-a0fa-f9a7d0613fe5",
+   "name": "Type emphasis animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 206,
+   "vi_ok": false,
+   "vi_status": "fail_length",
+   "vi_issues": [
+    {
+     "issue": "text_overflow",
+     "note": "test string too long for the field: truncated, ellipsised, clipped, overlapping or off-frame"
+    }
+   ],
+   "frame": 53,
+   "metrics": {
+    "textPx": 228908,
+    "viVsAsciiPx": 165100,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 45
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "874f586e-280e-4ea1-b224-a2213ca3c25e",
+   "name": "Typewriter indicator animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 207,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 52006,
+    "viVsAsciiPx": 48943,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": -2
+   },
+   "fonts": []
+  },
+  {
+   "id": "58b32a8f-8d9e-4521-85d6-277dfb37fd68",
+   "name": "Vertical timeline animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 208,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 14316,
+    "viVsAsciiPx": 13398,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  {
+   "id": "988db173-b9f1-484e-bbed-9e33c238ff4a",
+   "name": "White bold serif text slide-in reveal animation",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 209,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 133604,
+    "viVsAsciiPx": 29298,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 36
+   },
+   "fonts": [
+    "Playfair Display"
+   ]
+  },
+  {
+   "id": "4103210c-e3ee-4589-8626-307036bc61a3",
+   "name": "Work-Life — Style Showcase HQ",
+   "category": "uncategorized",
+   "sourceFile": "openchatcut-templates.json",
+   "index": 210,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 113609,
+    "viVsAsciiPx": 56395,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-keyword-pop",
+   "name": "竖屏·重点词弹出",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 211,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 142969,
+    "viVsAsciiPx": 23194,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 12
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-big-caption",
+   "name": "竖屏·大字幕条",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 212,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 7859,
+    "viVsAsciiPx": 6088,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-quote-card",
+   "name": "竖屏·金句卡片",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 213,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 11761,
+    "viVsAsciiPx": 7129,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 10
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-name-bar",
+   "name": "竖屏·姓名条",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 214,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 80338,
+    "viVsAsciiPx": 7165,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-cta-follow",
+   "name": "竖屏·关注引导",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 215,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 59127,
+    "viVsAsciiPx": 7672,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 8
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-step-list",
+   "name": "竖屏·步骤条",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 216,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 22340,
+    "viVsAsciiPx": 17397,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-big-number",
+   "name": "竖屏·数字大字报",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 217,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 323846,
+    "viVsAsciiPx": 28318,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 21
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-chapter",
+   "name": "竖屏·章节进度",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 218,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 71696,
+    "viVsAsciiPx": 9816,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 2
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-price-tag",
+   "name": "竖屏·价格标签",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 219,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 136961,
+    "viVsAsciiPx": 9401,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-cover-title",
+   "name": "竖屏·封面大字",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 220,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 35906,
+    "viVsAsciiPx": 13502,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 15
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-checklist",
+   "name": "竖屏·清单勾选",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 221,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 21979,
+    "viVsAsciiPx": 17390,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 9
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-before-after",
+   "name": "竖屏·前后对比条",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 222,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 17631,
+    "viVsAsciiPx": 13185,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 5
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-note-sticker",
+   "name": "竖屏·便签贴纸",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 223,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 31052,
+    "viVsAsciiPx": 2264,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-social-actions",
+   "name": "竖屏·互动提示",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 224,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 26510,
+    "viVsAsciiPx": 1467,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "ss-episode-badge",
+   "name": "竖屏·期数角标",
+   "category": "social-shorts",
+   "sourceFile": "social-shorts-templates.json",
+   "index": 225,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 53,
+   "metrics": {
+    "textPx": 47316,
+    "viVsAsciiPx": 5466,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-beige-grid",
+   "name": "口播·米色格纹（横）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 226,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 143,
+   "metrics": {
+    "textPx": 145060,
+    "viVsAsciiPx": 19612,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-latte-lines",
+   "name": "口播·奶咖横线（横）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 227,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 143,
+   "metrics": {
+    "textPx": 143717,
+    "viVsAsciiPx": 18497,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 14
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-chalkboard",
+   "name": "口播·黑板报（横）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 228,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 143,
+   "metrics": {
+    "textPx": 45187,
+    "viVsAsciiPx": 20118,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 20
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-collage-split",
+   "name": "口播·侧栏拼贴（横）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 229,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 143,
+   "metrics": {
+    "textPx": 84750,
+    "viVsAsciiPx": 16725,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 22
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-parchment",
+   "name": "口播·羊皮纸（横）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 230,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 143,
+   "metrics": {
+    "textPx": 41333,
+    "viVsAsciiPx": 37052,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 16
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-split-note",
+   "name": "口播·便签五五分（竖）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 231,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 143,
+   "metrics": {
+    "textPx": 136169,
+    "viVsAsciiPx": 15484,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 20
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-split-dots",
+   "name": "口播·点阵五五分（竖）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 232,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "frame": 143,
+   "metrics": {
+    "textPx": 88846,
+    "viVsAsciiPx": 15022,
+    "viEdge": false,
+    "asciiEdge": false,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-kraft-corner",
+   "name": "口播·牛皮纸圆窗（竖）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 233,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 143,
+   "metrics": {
+    "textPx": 245028,
+    "viVsAsciiPx": 10573,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 0
+   },
+   "fonts": []
+  },
+  {
+   "id": "kb-cream-window",
+   "name": "口播·奶油拍立得（竖）",
+   "category": "koubo-scenes",
+   "sourceFile": "koubo-scenes-templates.json",
+   "index": 234,
+   "vi_ok": true,
+   "vi_status": "ok",
+   "vi_issues": [],
+   "vi_warnings": [
+    "auto edge flag was a false positive (background art touches frame)"
+   ],
+   "frame": 143,
+   "metrics": {
+    "textPx": 93787,
+    "viVsAsciiPx": 13033,
+    "viEdge": true,
+    "asciiEdge": true,
+    "extraTopPx": 12
+   },
+   "fonts": []
+  }
+ ]
+}

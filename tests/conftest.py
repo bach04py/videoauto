@@ -65,6 +65,10 @@ def _hermetic(monkeypatch):
     monkeypatch.setattr(gpu, "DEFAULT_PROBE", NoGpuProbe())
     monkeypatch.setattr(gpu, "_cache", {})
     monkeypatch.setattr(keys, "console_keys", lambda: NoKeys())
+    from videoauto import occ_catalogue
+    # tests bring their own catalogue.json and a fake OpenChatCut: no dump unless a test asks
+    # (fixture real_catalogue)
+    monkeypatch.setattr(occ_catalogue, "ensure", lambda *a, **k: False)
     real = builder.media_duration
     monkeypatch.setattr(builder, "media_duration",
                         lambda p: FAKE_RENDERS.get(str(Path(p).resolve())) or real(p))
@@ -161,3 +165,12 @@ def clean_machine(tmp_path, monkeypatch):
     monkeypatch.chdir(root)
     assert not (root / "videoauto.local.yaml").exists()
     return root
+
+
+@pytest.fixture
+def real_catalogue(monkeypatch):
+    """Undo _hermetic's stub: catalogue.json is generated (or checked) for real."""
+    import importlib
+    from videoauto import occ_catalogue
+    fresh = importlib.reload(occ_catalogue)
+    return fresh

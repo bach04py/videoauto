@@ -2,7 +2,13 @@
 // single JSON file. Read-only: imports the same registries the editor and the
 // headless tools use and writes nothing but the output file.
 //
-//   npx tsx scripts/dump-catalogue.mts [out=catalogue.json]
+//   npx tsx scripts/dump-catalogue.mts [out=catalogue.json] [reviewDir]
+//
+// videoauto copies this file into OpenChatCut's scripts/ and runs it itself (python -m
+// videoauto.occ_catalogue); nobody has to copy it by hand. reviewDir holds the Vietnamese font
+// verdicts vi-font-review.json and vi-stack-review.json; videoauto passes its own bundled copies
+// (videoauto/openchatcut/), so a fresh OpenChatCut clone gets vi_ok without re-running the audit.
+// Without reviewDir they are read from the OpenChatCut repo root.
 //
 // Shape: { generatedAt, sources, counts, items: CatalogueItem[] } where every item
 // has id, assetId (what edit_item / manage_effects / add_motion_graphic accept),
@@ -17,6 +23,7 @@ import type { PropSpec, Tpl } from '../src/types.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = resolve(process.argv[2] ?? join(ROOT, 'catalogue.json'));
+const REVIEW_DIR = resolve(process.argv[3] ?? ROOT);
 
 const TEMPLATE_FILES = [
   'assets/templates/openchatcut-templates.json',
@@ -172,24 +179,53 @@ function templateItems(): CatalogueItem[] {
 // Vietnamese diacritics verdicts (vi-font-review.json, produced from
 // scripts/vi-font-check.mts renders + visual review) are merged onto templates.
 interface ViReview { id: string; vi_ok: boolean; vi_status: string; vi_issues: unknown[]; vi_warnings?: string[] }
-const VI_REVIEW_PATH = join(ROOT, 'vi-font-review.json');
+const VI_REVIEW_PATH = join(REVIEW_DIR, 'vi-font-review.json');
 const viReview = new Map<string, ViReview>();
 try {
   for (const entry of (JSON.parse(readFileSync(VI_REVIEW_PATH, 'utf8')) as { templates: ViReview[] }).templates) {
     viReview.set(entry.id, entry);
   }
 } catch {
-  // No review file yet: templates are emitted without vi_* fields.
+  // No review file: templates are emitted without vi_* fields (none is vi_ok).
+  console.error(`warning: ${VI_REVIEW_PATH} missing or unreadable: no template will be vi_ok`);
+}
+
+// Stacked-diacritic verdicts (vi-stack-review.json, from scripts/vi-stack-check.mts): a
+// template is vi_ok only if it also passes this stricter check. Fails closed: a template with
+// no stacked-check entry (or no review file) is not vi_ok.
+interface StackFailure { stack: string; style: string; letters: string; decorative?: boolean }
+interface StackReview { id: string; status: string; stack_ok: boolean; failed_families?: string[]; failures?: StackFailure[] }
+const VI_STACK_PATH = join(REVIEW_DIR, 'vi-stack-review.json');
+const stackReview = new Map<string, StackReview>();
+try {
+  for (const entry of (JSON.parse(readFileSync(VI_STACK_PATH, 'utf8')) as { templates: StackReview[] }).templates) {
+    stackReview.set(entry.id, entry);
+  }
+} catch {
+  console.error(`warning: ${VI_STACK_PATH} missing or unreadable: no template will be vi_ok`);
 }
 
 function withViReview(item: CatalogueItem): CatalogueItem {
   const review = viReview.get(item.id);
   if (!review) return item;
+  const stack = stackReview.get(item.id);
+  const stackOk = stack?.stack_ok === true;
+  const failed = stack?.failed_families ?? [];
+  const lostToStack = review.vi_ok && !stackOk;
   return {
     ...item,
-    vi_ok: review.vi_ok,
-    vi_status: review.vi_status,
-    vi_issues: review.vi_issues,
+    vi_ok: review.vi_ok && stackOk,
+    vi_status: !lostToStack ? review.vi_status : stack ? 'fail_stacked_marks' : 'stacked_marks_unchecked',
+    vi_issues: [
+      ...review.vi_issues,
+      ...(failed.length ? [{
+        issue: 'stacked_marks_detached',
+        note: `second mark drawn apart from its letter (${failed.join(', ')}) in: `
+          + [...new Set((stack?.failures ?? []).filter((f) => !f.decorative).map((f) => f.stack))].join(' | '),
+      }] : []),
+    ],
+    vi_stack_status: stack?.status ?? 'unchecked',
+    vi_stack_failed: failed,
     ...(review.vi_warnings ? { vi_warnings: review.vi_warnings } : {}),
   };
 }
@@ -226,6 +262,7 @@ const catalogue = {
     duplicateAssetIds: duplicates.map((item) => item.assetId),
     templateViOk: templates.filter((item) => item.vi_ok === true).length,
     templateViReviewed: templates.filter((item) => typeof item.vi_ok === 'boolean').length,
+    templateViStackFailed: templates.filter((item) => (item.vi_stack_failed as string[] | undefined)?.length).length,
   },
   items,
 };

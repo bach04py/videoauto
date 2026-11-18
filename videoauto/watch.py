@@ -349,9 +349,11 @@ class Env:
 
 def check_prerequisites(config: Path | None, vision_config: Path | None, provider=None, occ=None) -> Env:
     """ffmpeg, Node + OpenChatCut repo, catalogue.json, model access: once, before any question."""
-    from . import gpu
+    from . import gpu, occ_catalogue
     from .brief import load_project_config
     from .builder.occ import Occ
+    from .features import check_style, no_template_cause
+    from .planner.planner import overlay_templates
     from .config import load_config
     from .planner.catalogue import Catalogue
     from .tools import check_ffmpeg
@@ -363,7 +365,13 @@ def check_prerequisites(config: Path | None, vision_config: Path | None, provide
         occ = occ or Occ(pcfg.occ)
         occ.check()
         gpu.choose(pcfg.occ.gpu_encode, pcfg.occ.repo)     # gpu_encode=on with no usable GPU stops here
-        Catalogue.load(pcfg.catalogue)
+        occ_catalogue.ensure(pcfg.catalogue, pcfg.occ.repo, pcfg.occ.node, say=print)
+        cat = Catalogue.load(pcfg.catalogue)
+        check_style(pcfg, cat)
+        if not overlay_templates(pcfg, cat):
+            # each script is checked when it arrives; say it once now so nobody is surprised later
+            print(f"Chú ý: kịch bản có dòng TEXT: sẽ bị từ chối (khung {pcfg.brief.aspect} không có template "
+                  f"chữ nào dùng được). {no_template_cause(pcfg, cat)}")
         provider = provider or make_provider(vcfg["vision"])
         provider.check()
     except UserError as e:
@@ -593,6 +601,9 @@ class Watcher:
         try:
             text = self._read_script(script)
             pcfg = self.env.pcfg       # this build keeps this object even if S saves a new config
+            from .features import check_text_overlays
+            from .planner.catalogue import Catalogue
+            check_text_overlays(pcfg, Catalogue.load(pcfg.catalogue), text)   # before indexing, not after render
             pcfg.footage_dir, pcfg.script_file = self.footage, script
             if stem != script.stem:
                 say(f"  {script.stem}.mp4 đã có: video mới đặt tên {video.name} (không ghi đè)")

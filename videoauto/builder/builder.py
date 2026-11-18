@@ -3,8 +3,9 @@
 
 A failed item command is skipped and recorded; the run aborts only when more than
 max_fail_ratio (30 %) of the item commands fail. project/import/render failing is fatal,
-because every later step depends on them. Text overlays are never fatal and never count
-towards that ratio: a failed overlay is removed again, skipped and recorded.
+because every later step depends on them. What the user explicitly asked for is never dropped:
+a text overlay (TEXT: line) or the logo that cannot be placed stops the build before the
+render, so no video goes out without the text or logo it was asked to carry.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from ..brief import ASPECTS, ProjectConfig
 from ..cache import sha256_of
 from .. import gpu
 from ..errors import BuildAborted, UserError
+from ..features import check_plan_text
 from ..planner import overlays as ov
 from ..planner.catalogue import Catalogue
 from ..planner.validate import clip_frames, logo_window, overlay_frames, schema_errors, validate_plan
@@ -96,6 +98,7 @@ class Builder:
         self._check_media(plan, rep, cat)
         if not plan["clips"]:
             raise BuildAborted("Không còn clip hợp lệ nào trong kế hoạch, không dựng.")
+        check_plan_text(plan)          # TEXT lines the validation left without an overlay: no build
         self.occ.check()
 
         # ---- fatal steps: everything later depends on them
@@ -179,9 +182,17 @@ class Builder:
 
         if plan.get("overlays"):                    # before the logo: its track must end up above
             self._place_overlays(rep, pid, plan["overlays"], cat, fps)
+            bad = [r for r in rep.overlays if not r["ok"]]
+            if bad:       # asked-for text that did not make it: never render a video without it
+                raise BuildAborted(f"Không đặt được {len(bad)}/{len(rep.overlays)} overlay chữ vào OpenChatCut "
+                                   f"({bad[0]['error']}); dừng trước khi xuất để không ra video thiếu chữ. "
+                                   "Xem tệp báo cáo .build.json cạnh tệp xuất.")
 
         if cfg.brand.logo is not None:
-            self._place_logo(rep, total, pid, (w, h), fps, cursor)
+            problem = self._place_logo(rep, total, pid, (w, h), fps, cursor)
+            if problem:
+                raise BuildAborted(f"Không đặt được logo ({problem}); dừng trước khi xuất để không ra video "
+                                   "thiếu logo. Kiểm tra brand.logo, hoặc xoá dòng logo nếu không cần logo.")
 
         # ---- render (fatal)
         choice = gpu.choose(cfg.occ.gpu_encode, cfg.occ.repo)     # cached; gpu_encode=on raises here
@@ -208,7 +219,7 @@ class Builder:
 
     # ------------------------------------------------------------------
     def _place_logo(self, rep: BuildReport, total: int, pid: str, canvas: tuple[int, int], fps: int,
-                    timeline_frames: int) -> None:
+                    timeline_frames: int) -> str | None:
         """import_asset (image) -> edit_track create (new video track above V1) -> edit_item add
         image on it -> edit_item update transform. Arguments as probed against occ; see README."""
         brand = self.cfg.brand
@@ -216,14 +227,12 @@ class Builder:
         r = self._item(rep, total, "logo import", _with(call, "import_asset"), {"path": str(brand.logo)})
         asset = ((r.tool_result().get("imported") or [{}])[0]).get("id") if r.ok else None
         if asset is None:
-            rep.warnings.append("bỏ logo: không nhập được ảnh logo vào OpenChatCut")
-            return
+            return "không nhập được ảnh logo vào OpenChatCut"
         r = self._item(rep, total, "logo track", _with(call, "edit_track"),
                        {"action": "create", "json": json.dumps({"trackType": "video"})})
         track = ((r.tool_result().get("created") or [{}])[0]).get("id") if r.ok else None
         if track is None:
-            rep.warnings.append("bỏ logo: không tạo được track phía trên V1")
-            return
+            return "không tạo được track phía trên V1"
         start, end = logo_window(brand, timeline_frames, fps)
         r = self._item(rep, total, "logo place", _with(call, "edit_item"),
                        {"adds": [{"type": "image", "assetId": asset, "track": track,
@@ -233,10 +242,10 @@ class Builder:
         except (KeyError, IndexError, TypeError):
             item = None
         if item is None:
-            rep.warnings.append("bỏ logo: không đặt được ảnh logo lên timeline")
-            return
-        self._item(rep, total, "logo transform", _with(call, "edit_item"),
-                   {"updates": [{"type": "image", "itemId": item, "transform": logo_transform(brand, canvas)}]})
+            return "không đặt được ảnh logo lên timeline"
+        r = self._item(rep, total, "logo transform", _with(call, "edit_item"),
+                       {"updates": [{"type": "image", "itemId": item, "transform": logo_transform(brand, canvas)}]})
+        return None if r.ok else f"không đặt được vị trí/kích thước logo: {r.error}"
 
     def _place_overlays(self, rep: BuildReport, pid: str, overlays: list[dict], cat: Catalogue,
                         fps: int) -> None:

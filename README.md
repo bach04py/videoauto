@@ -26,10 +26,12 @@ thông tin thương hiệu và logo (`brand`) đều đặt sẵn trong `config.
   nguyên văn, màu theo `brand.colors`. Không có dòng TEXT thì không có chữ; công cụ không tự đặt chữ.
   Mỗi trường chữ tối đa 22 ký tự: dài hơn sẽ bị rút gọn theo từ, có cảnh báo
   (ví dụ "HOÀNG GIA GYM & FITNESS" thành "HOÀNG GIA GYM"). Chỉ dùng template đã qua kiểm tra font
-  tiếng Việt, và chữ không bao giờ nằm ở góc có logo.
+  tiếng Việt, và chữ không bao giờ nằm ở góc có logo. Kịch bản có dòng TEXT mà không đặt được chữ
+  (không có template hợp khung hình, model bỏ sót một dòng, OpenChatCut báo lỗi) thì **dừng và
+  báo lý do**, không bao giờ xuất video thiếu chữ. Logo cũng vậy.
 
 Cần cài: Python 3.12, Node 24, ffmpeg, Claude Code CLI (đã đăng nhập), và một bản OpenChatCut đặt
-**cạnh** thư mục videoauto, đã chạy `npm install` và đã tạo `catalogue.json`. Làm theo đúng thứ tự
+**cạnh** thư mục videoauto, đã chạy `npm install` (`catalogue.json` do videoauto tự tạo ở lần chạy đầu). Làm theo đúng thứ tự
 các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ sai nhất). Mọi thông báo lỗi của công cụ
 đều bằng tiếng Việt và nói rõ cần làm gì; xem mục **Troubleshooting**.
 
@@ -158,20 +160,25 @@ fnm use                     # reads .nvmrc (Node 24); answer "y" if fnm offers t
 npm install                 # takes several minutes; must finish without errors
 ```
 
-Now generate `catalogue.json`. **The generator script is not part of upstream OpenChatCut**; it ships
-with videoauto in `openchatcut/dump-catalogue.mts` and has to be copied into OpenChatCut's
-`scripts/` folder, because it imports OpenChatCut's own source files by relative path:
+That is all for OpenChatCut. **You do not create `catalogue.json` yourself**: videoauto needs
+OpenChatCut's catalogue of effects, LUTs, transitions and text templates, and generates it on the
+first run (about a second). It copies its generator (`openchatcut/dump-catalogue.mts`) into
+OpenChatCut's `scripts/`, runs it with OpenChatCut's Node, removes it again and writes
+`videoauto/catalogue.json`. The Vietnamese font verdicts (`vi_ok`: which templates draw Vietnamese
+text correctly) come from audit results bundled with videoauto (`openchatcut/vi-font-review.json`,
+`openchatcut/vi-stack-review.json`), so a fresh machine gets them without re-running the audit.
+The summary line says how many templates can carry Vietnamese text:
 
-```bash
-# still inside OpenChatCut/
-cp ../videoauto/openchatcut/dump-catalogue.mts scripts/          # Windows: copy ..\videoauto\openchatcut\dump-catalogue.mts scripts\
-npx tsx scripts/dump-catalogue.mts ../videoauto/catalogue.json
+```
+catalogue: chưa có catalogue.json → tự tạo lại từ OpenChatCut tại …\OpenChatCut (vài giây)…
+catalogue: đã ghi …\catalogue.json: 33 hiệu ứng, 16 LUT, 16 chuyển cảnh, 235 template; vi_ok (dùng được với chữ tiếng Việt): 131/235 (dọc 20, ngang 111, vuông 0)
 ```
 
-The last line should end with something like
-`{"effect":33,"lut":16,...,"transition":16,"template":235,"total":300,...}` and the file
-`videoauto/catalogue.json` (about 0.8 MB) must now exist. That is where videoauto looks for it
-(`catalogue:` in `config.yaml`). Regenerate it whenever you update OpenChatCut.
+`catalogue.json` carries a fingerprint of the OpenChatCut it came from. When you update
+OpenChatCut, or copy a `catalogue.json` from another machine (a catalogue from a different
+OpenChatCut version made Remotion fail with exit 1 in `readFile`), the fingerprint no longer
+matches and videoauto regenerates the file before doing anything else. To regenerate or check it by
+hand: `python -m videoauto.occ_catalogue` (`--refresh` forces a new one).
 
 Optional check that `occ` runs:
 
@@ -330,8 +337,8 @@ when they are all empty):
 | `style.prefer_luts` | LUT ids from `catalogue.json`; the planner picks one of them unless none suits the footage, and then says why in a warning |
 
 The footage still comes first: style never makes the planner use a shot it would otherwise
-reject. A `prefer_luts` id that is not a LUT in `catalogue.json` is dropped with one warning
-(`style.prefer_luts: bỏ qua id không phải LUT…`). In the watcher these four can be edited without
+reject. A `prefer_luts` id that is not a LUT in `catalogue.json` stops the run at the startup
+check (`style.prefer_luts trong config.yaml có id không phải LUT…`), with a few valid ids to copy. In the watcher these four can be edited without
 opening the file (key **S**, section 6).
 
 ### GPU encoding (`gpu_encode`)
@@ -419,8 +426,18 @@ The planner places one overlay per TEXT line on its beat and records it in `plan
 "text_lines": ["KHÔNG GIAN SỐNG ĐỘNG", "MÔI TRƯỜNG SANG TRỌNG", "..."]
 ```
 
+**Asked-for text is delivered or nothing is.** A video without the text its script asks for is
+worse than no video: nobody notices until they watch it. So:
+
+- a script with TEXT lines when `catalogue.json` offers no usable template for the target (no
+  `vi_ok` template, none in the right orientation, or all in the logo's corner) stops at the
+  startup check, before any indexing, with the cause and the fix;
+- a plan in which any TEXT line has no overlay after validation stops before building;
+- an overlay (or the logo) that OpenChatCut fails to place stops the build before rendering.
+
 The rules are enforced in `videoauto/planner/validate.py`, not only asked for in the prompt. Each
-broken rule drops that overlay with a Vietnamese warning (the plan tier drops to `basic`):
+broken rule drops that overlay with a Vietnamese warning (and the rule above then stops the run if
+a TEXT line is left without its overlay):
 
 - **Vietnamese-safe templates only.** A template needs `"vi_ok": true` in `catalogue.json` (131 of
   235 pass OpenChatCut's two Vietnamese font audits: M2, and M3, which checks that the second mark
@@ -505,9 +522,10 @@ track on top, so the order is V1 < overlays < logo. Then, per overlay:
 4. `update_item_props` `{itemId, props}` with every text field plus the brand colours.
 
 The add copies the template's Chinese sample props into the item. If step 3 or 4 fails, the item is
-removed again (`remove_item`), so sample text never reaches the render. A failed overlay is skipped
-and recorded under `"overlays"` in `final.mp4.build.json` and in the warnings. It is never fatal and
-does not count towards `max_fail_ratio`.
+removed again (`remove_item`), so sample text never reaches the render. A failed overlay is
+recorded under `"overlays"` in `final.mp4.build.json` and in the warnings, does not count towards
+`max_fail_ratio`, and **stops the build before the render** (exit code 6): the script asked for that
+text, so a video without it is not delivered. The same holds for the logo.
 
 **Verified on the real footage** (the 17-clip gym shoot, `scripts/buoi-tap.txt` with five TEXT
 lines). One frame was extracted from the middle of each overlay at 1080x1920:

@@ -250,11 +250,14 @@ def test_builder_places_overlays_below_the_logo_with_text_and_brand_colours(tmp_
     assert [o["ok"] for o in report["overlays"]] == [True, True]
 
 
-def test_failed_overlay_is_removed_skipped_recorded_and_not_fatal(tmp_path, footage):
+def test_failed_overlay_is_removed_recorded_and_stops_before_render(tmp_path, footage):
+    """Text the script asked for that cannot be placed: no render, rather than a video that
+    silently lacks it (nobody notices until they watch it)."""
     code, _, occ, _, report = run_with_colours(tmp_path, footage, fail=("overlay 1 props", "overlay 2 add"))
-    assert code == 0 and report["ok"] and report["item_failures"] == 0     # not counted towards the abort
+    assert code == 6 and not report["ok"] and report["item_failures"] == 0   # BuildAborted
+    assert "thiếu chữ" in report["error"]
     labels = [r.label for r in occ.history]
-    assert "overlay 1 remove" in labels and labels[-1] == "render"
+    assert "overlay 1 remove" in labels and "render" not in labels
     assert not any(i["kind"] == "motion-graphic" for i in occ.timeline)     # no Chinese sample text left
     assert [o["ok"] for o in report["overlays"]] == [False, False]
     assert "điền chữ và màu" in report["overlays"][0]["error"]
@@ -385,3 +388,20 @@ def test_template_of_unknown_size_is_refused():
                   overlays=[over(0.5, tpl=nosize, field="title")])
     w = "\n".join(validate_plan(p, cat, brand=None))
     assert p["overlays"] == [] and "không rõ kích thước" in w and "không hợp khung 9:16" in w
+
+
+def test_plan_without_overlays_for_text_lines_stops_before_build(tmp_path, footage):
+    """The model placed no overlay for the script's TEXT lines: stop after planning; the
+    video would otherwise come out without the text the script asks for."""
+    reply = copy.deepcopy(REPLY) | {"overlays": []}
+    (tmp_path / "kb.txt").write_text(SCRIPT, encoding="utf-8")
+    make_logo(tmp_path / "logo.png")
+    cfg = write_cfg(tmp_path, footage, script="kb.txt", logo="logo.png", **BRAND)
+    from conftest import FakeProvider
+    from test_builder import FakeOcc
+    from videoauto import run as run_cli
+    p, occ = FakeProvider(), FakeOcc(footage)
+    p.reply = reply
+    assert run_cli.main(["--config", str(cfg), "--out", str(tmp_path / "out")], provider=p, occ=occ) == 2
+    assert occ.history == []                                      # nothing sent to OpenChatCut
+    assert (tmp_path / "out" / "plan.json").exists() and not (tmp_path / "out" / "final.mp4").exists()

@@ -226,10 +226,22 @@ def test_script_without_beat_report_is_flagged(tmp_path, footage):
     assert any("không báo cáo" in w for w in plan["warnings"]) and plan["tier"] == "basic"
 
 
-@pytest.mark.parametrize("content", [None, "", "   \n"])
-def test_absent_or_empty_script_means_planner_writes_it(tmp_path, footage, content):
-    if content is not None:
-        (tmp_path / "kb.txt").write_text(content, encoding="utf-8")
+def test_missing_script_file_stops_instead_of_writing_one(tmp_path, footage, capsys):
+    """script_file set but absent: the user asked to follow a script; the model writing one
+    instead would ignore that silently."""
+    write_cfg(tmp_path, footage, script="kb.txt")
+    from videoauto import run as run_cli
+    p, occ = FakeProvider(), FakeOcc(footage)
+    p.reply = GOOD
+    code = run_cli.main(["--config", str(tmp_path / "config.yaml"), "--out", str(tmp_path / "out")],
+                        provider=p, occ=occ)
+    assert code == 2 and p.calls == 0 and occ.history == []
+    assert "Không tìm thấy kịch bản" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("content", ["", "   \n"])
+def test_empty_script_means_planner_writes_it(tmp_path, footage, content):
+    (tmp_path / "kb.txt").write_text(content, encoding="utf-8")
     code, p, _ = go(tmp_path, footage, GOOD, script="kb.txt")
     plan = json.loads((tmp_path / "out" / "plan.json").read_text(encoding="utf-8"))
     assert code == 0 and plan["script_source"] == "planner" and "USER SCRIPT" not in p.prompts[0]
@@ -258,3 +270,16 @@ def test_no_footage_anywhere_is_a_clear_error(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     assert run_cli.main([], provider=FakeProvider(), occ=FakeOcc(tmp_path)) == 2
     assert "footage_dir" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("step", ["logo import", "logo track", "logo place", "logo transform"])
+def test_logo_that_cannot_be_placed_stops_before_render(tmp_path, footage, step):
+    make_logo(tmp_path / "logo.png")
+    cfg = write_cfg(tmp_path, footage, logo="logo.png", **BRAND)
+    p = FakeProvider()
+    p.reply = GOOD
+    occ = FakeOcc(footage, fail=(step,))
+    code = run_cli.main(["--config", str(cfg), "--out", str(tmp_path / "out")], provider=p, occ=occ)
+    assert code == 6 and "render" not in [r.label for r in occ.history]   # BuildAborted
+    report = json.loads((tmp_path / "out" / "final.mp4.build.json").read_text(encoding="utf-8"))
+    assert "thiếu logo" in report["error"]

@@ -44,11 +44,12 @@ def main(argv: list[str] | None = None, provider=None, occ=None) -> int:
 
 
 def _run(args, provider, occ) -> int:
-    from . import gpu
+    from . import gpu, occ_catalogue
     from .brief import load_project_config
     from .builder.occ import Occ
     from .config import load_config
     from .errors import UserError
+    from .features import check_script_file, check_style, check_text_overlays
     from .indexer import collect
     from .planner.catalogue import Catalogue
     from .tools import check_ffmpeg
@@ -75,14 +76,16 @@ def _run(args, provider, occ) -> int:
         if not args.script.is_file():
             raise UserError(f"Không tìm thấy tệp kịch bản '{args.script}' (--script).")
         pcfg.script_file = args.script.resolve()
-    if pcfg.script_file is not None and not pcfg.script_file.is_file():
-        log.warning("script_file '%s' không tồn tại: model sẽ tự viết kịch bản", pcfg.script_file)
+    check_script_file(pcfg)             # a missing script is never replaced by one the model writes
     script = pcfg.script_text()
     vcfg = load_config(args.vision_config)
     check_ffmpeg()
-    Catalogue.load(pcfg.catalogue)
     occ = occ or Occ(pcfg.occ)
     occ.check()
+    occ_catalogue.ensure(pcfg.catalogue, pcfg.occ.repo, pcfg.occ.node)   # missing or stale: regenerate
+    cat = Catalogue.load(pcfg.catalogue)
+    check_style(pcfg, cat)
+    check_text_overlays(pcfg, cat, script)     # TEXT lines with no usable template: stop here, not after 5 min
     enc = gpu.choose(pcfg.occ.gpu_encode, pcfg.occ.repo)           # gpu_encode=on fails here, not after
     provider = provider or make_provider(vcfg["vision"])
     provider.check()
@@ -124,6 +127,7 @@ def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path:
     from .build import finish_build
     from .builder.builder import Builder
     from .errors import PlanRejected, UserError
+    from .features import check_plan_text
     from .indexer import Indexer
     from .plan import log_plan, save_plan
     from .planner.planner import make_plan
@@ -163,6 +167,7 @@ def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path:
     log_plan(plan, plan_path, res.times["plan"])
     if plan["tier"] == "reject":
         raise PlanRejected(f"Kế hoạch bị từ chối, không dựng video: {plan['reason']}")
+    check_plan_text(plan)                  # every TEXT line has its overlay, or no render at all
 
     # ---- 3. build
     stage("build", 3, f"Dựng video bằng OpenChatCut → {video}")

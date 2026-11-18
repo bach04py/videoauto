@@ -115,9 +115,17 @@ Exit code 3. Nothing half-finished is written. Run the same command after the ti
 files are cache hits and cost no calls.
 
 **The video is sideways**
-Some cameras record portrait footage as landscape (e.g. 3840x2160) without a rotation tag, so every
-tool, including OpenChatCut, shows it sideways. Tag copies of the files losslessly and run on the
-copies (`90` = turn counter-clockwise; use `-90` if they come out upside down):
+Two different cases. A clip **with** a rotation tag (phones; `ffprobe` shows `rotation` in the
+stream's side data) is handled: the first indexing re-encodes it once, upright and without the tag,
+into `.index/normalized/<sha256>.mp4`, indexes that and builds from it (the run summary lists these
+clips; about 2.5 s per second of 4K on the development laptop, once). A clip recorded portrait
+**without** a tag is the common cause: some cameras (the Sony DSC-RX10M3 of the test footage, for
+one) store portrait shots as plain 3840x2160 landscape and write no orientation anywhere, not even
+in their XML metadata. Every tool shows them sideways, videoauto counts them as landscape, and the
+crop to fill a 9:16 frame then blows the sideways picture up (3.16x). videoauto cannot know such a
+clip was meant to stand up. Tag copies of those files losslessly and use the copies; videoauto
+then normalises them as above (`90` = turn counter-clockwise; use `-90` if they come out upside
+down):
 ```
 ffmpeg -display_rotation 90 -i C0144.MP4 -map 0:v:0 -map 0:a:0 -c copy upright/C0144.MP4
 ```

@@ -28,6 +28,7 @@ DURATION_TOLERANCE = 0.2      # total length within ±20 % of the brief, else a 
 class Material:
     indexes: dict[str, dict[str, Any]] = field(default_factory=dict)   # file name -> M1 index
     warnings: list[str] = field(default_factory=list)
+    index_dir: Path | None = None
 
     def usable(self) -> list[tuple[str, dict]]:
         return [(f, s) for f, ix in self.indexes.items() for s in ix["shots"]
@@ -42,7 +43,7 @@ def load_material(index_dir: Path, media_dir: Path | None) -> Material:
     if not index_dir.is_dir():
         raise UserError(f"Không tìm thấy thư mục chỉ mục '{index_dir}'. Chạy M1 trước: "
                         f"python -m videoauto.index <thư mục video> --out {index_dir}")
-    m = Material()
+    m = Material(index_dir=index_dir.resolve())
     media: dict[str, list[Path]] = {}
     if media_dir is not None:
         for p in media_dir.rglob("*"):
@@ -97,14 +98,20 @@ def _reject(brief, reason: str, warnings: list[str], material: Material, calls: 
                                                  "warnings": warnings}
 
 
+def _source(ix: dict, index_dir: Path | None) -> dict:
+    out = {"sha256": ix["sha256"], "duration": ix["duration"], "orientation": ix["orientation"]}
+    if ix.get("normalized") and index_dir is not None:      # tagged clip: build from the upright copy
+        out["normalized"] = str(index_dir / ix["normalized"]["file"])
+    return out
+
+
 def _base_plan(brief, material: Material, calls: int) -> dict:
     return {
         "version": 1,
         "target": {"duration": brief.duration, "aspect": brief.aspect, "fps": brief.fps},
         "confidence": 0.0, "tier": "reject", "clips": [], "transitions": [],
         "fades": {"in": 0, "out": 0}, "overlays": [], "script": "", "warnings": [],
-        "sources": {f: {"sha256": ix["sha256"], "duration": ix["duration"],
-                        "orientation": ix["orientation"]} for f, ix in material.indexes.items()},
+        "sources": {f: _source(ix, material.index_dir) for f, ix in material.indexes.items()},
         "model_calls": calls,
     }
 

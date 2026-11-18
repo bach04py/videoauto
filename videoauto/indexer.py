@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from . import audio, frames, keyframes, quality, schema
+from . import audio, frames, keyframes, normalize, quality, schema
 from .cache import Cache, load_hash_memo, save_hash_memo, sha256_of
 from .crop import detect_crop
 from .errors import LimitReached, ProviderUnavailable, UserError
@@ -41,6 +41,7 @@ class RunReport:
     model_calls: int = 0
     shots_per_call: list[int] = field(default_factory=list)
     stopped: LimitReached | None = None
+    normalized: list[str] = field(default_factory=list)   # clips with a rotation tag, used upright
 
 
 def collect(target: Path, out_dir: Path) -> list[Source]:
@@ -130,6 +131,8 @@ class Indexer:
         if cached is not None:
             self.report.cache_hits += 1
             log.info("cache: TRÚNG %s (%s…) — bỏ qua, 0 lượt gọi model", src.path.name, sha[:12])
+            if src.kind == "video":
+                self._keep_normalized(src.path, cached)
             return
         if sha in self.pending:
             log.info("bỏ qua %s: trùng nội dung với tệp đang xử lý", src.path.name)
@@ -150,11 +153,34 @@ class Indexer:
         self.captioner.flush(force=False, on_sheet_done=self._finalize_ready)
 
     # ---------------------------------------------------------------- video
+    def _keep_normalized(self, path: Path, index: dict[str, Any]) -> None:
+        """Cache hit: the upright copy exists for a tagged clip (an index written before
+        normalisation existed gets it now; its analysis was already upright, ffmpeg decoded it)."""
+        sha = index["sha256"]
+        if index.get("normalized"):
+            if not normalize.path_for(self.cache.dir, sha).is_file():
+                normalize.ensure(path, sha, self.cache.dir)
+            self.report.normalized.append(index["file"])
+            return
+        pr = probe(path)
+        if normalize.rotation(pr):
+            normalize.ensure(path, sha, self.cache.dir, pr)
+            index["normalized"] = {"rotation": pr.rotation, "file": f"{normalize.DIR}/{sha}.mp4"}
+            self.cache.put(index)
+            self.report.normalized.append(index["file"])
+
     def _analyse_video(self, path: Path, sha: str) -> tuple[dict[str, Any], list[ShotJob]]:
         c = self.cfg
         pr = probe(path)
         if not pr.has_video:
             raise UserError(f"'{path.name}' không có luồng hình ảnh. Đặt tệp nhạc vào thư mục music/.")
+        name, norm = path.name, None
+        if normalize.rotation(pr):
+            # rotation tag: index (and later build from) an upright copy that needs no tag reading
+            norm = {"rotation": pr.rotation, "file": f"{normalize.DIR}/{sha}.mp4"}
+            path = normalize.ensure(path, sha, self.cache.dir, pr)
+            pr = probe(path)
+            self.report.normalized.append(name)
         # one decode of a large source into a 640 px proxy; cuts, motion, black/freeze/silence and
         # the bars are measured on it (videoauto/proxy.py). Keyframes still come from the source.
         made = make_proxy(path, pr, Path(self._tmp.name), c.get("indexing", {}).get("hwaccel", "auto"))
@@ -217,12 +243,14 @@ class Indexer:
                 s["_blur_note"] = quality.blur_note(s["id"], s["sharpness"], v, q)
 
         index = {
-            "schema_version": SCHEMA_VERSION, "file": path.name, "sha256": sha, "kind": "video",
+            "schema_version": SCHEMA_VERSION, "file": name, "sha256": sha, "kind": "video",
             "duration": round(pr.duration, 3), "fps": pr.fps, "width": pr.width, "height": pr.height,
             "orientation": pr.orientation, "has_speech": bool(segments), "shots": shots,
             "audio": {"has_audio": pr.has_audio, "has_music": None, "bpm": None, "peak_times": peaks},
             "quality": {},
         }
+        if norm:
+            index["normalized"] = norm
         log.info("  %d shot, %d khung hình chờ mô tả, giọng nói: %s", len(shots),
                  sum(len(j.frames) for j in jobs), "có" if segments else "không")
         return index, jobs

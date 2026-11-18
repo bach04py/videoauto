@@ -159,6 +159,9 @@ def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path:
     res.model_calls += rep.model_calls
     log.info("lập chỉ mục: %d tệp mới, %d trúng cache, %d lỗi, %d lượt gọi model, %.1fs",
              len(rep.written), rep.cache_hits, len(rep.failed), rep.model_calls, res.times["index"])
+    if rep.normalized:
+        log.info("lập chỉ mục: %d clip có thẻ xoay đã được chuẩn hoá đứng thẳng (dựng từ bản chuẩn hoá trong "
+                 "%s): %s", len(rep.normalized), index_dir / "normalized", ", ".join(rep.normalized))
     if rep.stopped:
         raise rep.stopped
     for path, msg in rep.failed:

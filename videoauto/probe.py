@@ -19,6 +19,7 @@ class Probe:
     height: int       # display height
     has_video: bool
     has_audio: bool
+    rotation: int = 0  # display rotation tag in degrees (stream side data / rotate tag), 0 = none
 
     @property
     def orientation(self) -> str:
@@ -66,4 +67,4 @@ def probe(path: Path) -> Probe:
         w, h = h, w
     if w <= 0 or h <= 0:
         raise UnreadableFile(f"Không đọc được kích thước khung hình của '{path.name}'.")
-    return Probe(duration, round(fps, 3), w, h, True, audio is not None)
+    return Probe(duration, round(fps, 3), w, h, True, audio is not None, rotation)

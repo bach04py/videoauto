@@ -86,6 +86,9 @@ def main(argv: list[str] | None = None) -> int:
     log.info("─" * 60)
     log.info("tổng kết: %d tệp đã ghi, %d trúng cache, %d lỗi", len(report.written),
              report.cache_hits, len(report.failed))
+    if report.normalized:
+        log.info("chuẩn hoá: %d clip có thẻ xoay, dùng bản đứng thẳng trong %s: %s", len(report.normalized),
+                 args.out / "normalized", ", ".join(report.normalized))
     log.info("model: %d lượt gọi; số shot mỗi lượt: %s%s", report.model_calls, spc or "[]",
              f" (trung bình {sum(spc) / len(spc):.1f})" if spc else "")
     if report.stopped:

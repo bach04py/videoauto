@@ -76,7 +76,9 @@ def prune(target: Path | None, out: Path, ask=input) -> int:
 
     print(f"Sẽ xoá {len(orphans)} chỉ mục không còn tệp nào cùng nội dung trong thư mục video:")
     for p, name, sha in orphans:
-        print(f"  {name:28} {p.name[:16]}…" + ("  (+ ảnh khung hình)" if (out / "frames" / sha).is_dir() else ""))
+        extra = [what for what, there in (("ảnh khung hình", (out / "frames" / sha).is_dir()),
+                                          ("bản chuẩn hoá", (out / "normalized" / f"{sha}.mp4").is_file())) if there]
+        print(f"  {name:28} {p.name[:16]}…" + (f"  (+ {', '.join(extra)})" if extra else ""))
     print("Lập chỉ mục lại một tệp đã xoá sẽ tốn lượt gọi model.")
     try:
         answer = ask(f"Xoá {len(orphans)} chỉ mục này? [y/N] ").strip().lower()
@@ -88,5 +90,6 @@ def prune(target: Path | None, out: Path, ask=input) -> int:
     for p, _, sha in orphans:
         p.unlink(missing_ok=True)
         shutil.rmtree(out / "frames" / sha, ignore_errors=True)
+        (out / "normalized" / f"{sha}.mp4").unlink(missing_ok=True)
     print(f"Đã xoá {len(orphans)} chỉ mục cũ.")
     return 0

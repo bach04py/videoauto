@@ -19,7 +19,7 @@ from pathlib import Path
 
 from ..brief import ASPECTS, ProjectConfig
 from ..cache import sha256_of
-from .. import gpu
+from .. import gpu, normalize
 from ..errors import BuildAborted, UserError
 from ..features import check_plan_text
 from ..planner import overlays as ov
@@ -113,6 +113,17 @@ class Builder:
         assets = {}
         for a in r.tool_result().get("imported") or []:
             assets.setdefault(a["name"], a["id"])
+        for name, path in self._normalized.items():
+            # a clip with a rotation tag: OpenChatCut gets the upright copy, never the tagged file
+            r = self.occ.run(f"normalized import {name}", ["tools", "call", "import_asset", "--project", pid,
+                                                           "--apply"], {"path": str(path)})
+            got = ((r.tool_result().get("imported") or [{}])[0]).get("id") if r.ok else None
+            assets.pop(name, None)
+            if got:
+                assets[name] = got
+            else:
+                rep.warnings.append(f"'{name}' có thẻ xoay nhưng không nhập được bản đã chuẩn hoá ({path}): "
+                                    f"{r.error}; các clip từ tệp này bị bỏ để không dựng hình nằm nghiêng")
 
         # ---- item steps: count, skip failures, abort above the ratio
         clips = plan["clips"]
@@ -340,13 +351,20 @@ class Builder:
     def _check_media(self, plan: dict, rep: BuildReport, cat: Catalogue) -> None:
         ok: dict[str, bool] = {}
         self._media: dict[str, Path] = {}
-        for name in {c["src"] for c in plan["clips"]}:
+        self._normalized: dict[str, Path] = {}
+        for name in sorted({c["src"] for c in plan["clips"]}):
             want = plan["sources"][name]["sha256"]
             hits = [p for p in self.cfg.footage_dir.rglob(name) if p.is_file()]
             match = next((p for p in hits if sha256_of(p) == want), None)
             ok[name] = match is not None
             if match is not None:
                 self._media[name] = match
+                norm = plan["sources"][name].get("normalized")
+                if norm:
+                    norm = Path(norm)
+                    if not norm.is_file():       # cache cleaned: make it again from the original
+                        norm = normalize.ensure(match, want, norm.parent.parent)
+                    self._normalized[name] = self._media[name] = norm
             if not ok[name]:
                 rep.warnings.append(f"bỏ các clip từ '{name}': không có tệp khớp nội dung trong footage_dir")
         if not all(ok.values()):

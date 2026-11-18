@@ -93,7 +93,8 @@
         "properties": {
           "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "duration": { "type": "number", "exclusiveMinimum": 0 },
-          "orientation": { "enum": ["vertical", "horizontal", "square"] }
+          "orientation": { "enum": ["vertical", "horizontal", "square"] },
+          "normalized": { "description": "The clip has a rotation tag: build from this upright copy (videoauto/normalize.py).", "type": "string", "minLength": 1 }
         }
       }
     },

@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 import pytest
-import yaml
+from videoauto import yamlio
 
 from conftest import FakeProvider
 from test_builder import FakeOcc
@@ -84,7 +84,7 @@ def test_first_run_asks_all_three_and_saves_on_yes(ws, monkeypatch, capsys):
     for i, label in enumerate(("Thư mục video nguồn", "Thư mục kịch bản", "Thư mục xuất video"), 1):
         assert f"{i}. {label}: " in out                     # no [default] on a first run
     assert "Lưu lại cho lần sau? [Y/n]" in out
-    saved = yaml.safe_load((ws["root"] / "videoauto.local.yaml").read_text(encoding="utf-8"))
+    saved = yamlio.load((ws["root"] / "videoauto.local.yaml").read_text(encoding="utf-8"))
     assert saved == {"footage_dir": str(ws["footage"]), "scripts_dir": str(ws["scripts"]),
                      "output_dir": str(ws["output"])}
     assert ws["output"].is_dir()                             # created
@@ -98,7 +98,7 @@ def test_first_run_asks_all_three_and_saves_on_yes(ws, monkeypatch, capsys):
     assert f"1. Thư mục video nguồn [{ws['footage']}]: " in out
     assert f"2. Thư mục kịch bản [{ws['scripts']}]: " in out
     assert f"3. Thư mục xuất video [{ws['output']}]: " in out
-    assert yaml.safe_load((ws["root"] / "videoauto.local.yaml").read_text(encoding="utf-8")) == saved
+    assert yamlio.load((ws["root"] / "videoauto.local.yaml").read_text(encoding="utf-8")) == saved
 
     # --paths prints them; --reset forgets them
     assert watch.main(["--paths"]) == 0
@@ -116,7 +116,7 @@ def test_typing_a_new_path_replaces_the_saved_one_and_no_keeps_file(ws, monkeypa
     stdin(monkeypatch, f"\n{other}\n\nn\n")
     assert setup_only() == 0
     assert "Không lưu" in capsys.readouterr().out
-    saved = yaml.safe_load((ws["root"] / "videoauto.local.yaml").read_text(encoding="utf-8"))
+    saved = yamlio.load((ws["root"] / "videoauto.local.yaml").read_text(encoding="utf-8"))
     assert saved["scripts_dir"] == str(ws["scripts"])          # answered no: file unchanged
 
 

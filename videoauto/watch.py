@@ -211,13 +211,13 @@ def local_file() -> Path:
 
 
 def load_saved() -> dict[str, str]:
-    import yaml
+    from . import yamlio
     f = local_file()
     if not f.exists():
         return {}
     try:
-        raw = yaml.safe_load(f.read_text(encoding="utf-8-sig")) or {}
-    except (OSError, yaml.YAMLError):
+        raw = yamlio.load(f.read_text(encoding="utf-8-sig")) or {}
+    except (OSError, yamlio.YAMLError):
         return {}
     if not isinstance(raw, dict):
         return {}
@@ -225,12 +225,12 @@ def load_saved() -> dict[str, str]:
 
 
 def save(paths: dict[str, Path]) -> Path:
-    import yaml
+    from . import yamlio
     f = local_file()
     data = {KEYS[k]: str(paths[k]) for k, _ in QUESTIONS}
     text = ("# Đường dẫn của python -m videoauto.watch trên máy này (không đưa lên git).\n"
             "# Xoá: python -m videoauto.watch --reset\n"
-            + yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+            + yamlio.dump(data))
     tmp = f.with_name(f.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, f)

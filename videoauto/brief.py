@@ -159,17 +159,17 @@ def load_project_config(path: Path | None = None, problems: list[str] | None = N
     """problems: when given, a brand.logo that cannot be used is recorded there (and the logo left
     out) instead of raised, so the startup check can report it together with everything else."""
     try:
-        import yaml
+        from . import yamlio
     except ImportError:
-        raise UserError("Thiếu thư viện PyYAML. Chạy: pip install -e .") from None
+        raise UserError("Thiếu thư viện ruamel.yaml. Chạy: pip install -e .") from None
     if path is None:
         path = Path.cwd() / "config.yaml"
     if not path.exists():
         raise UserError(f"Không tìm thấy '{path}'. Tạo config.yaml (xem README, mục M2) hoặc dùng --config.")
     try:
         # utf-8-sig: Windows Notepad may save config.yaml with a BOM
-        raw = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
-    except yaml.YAMLError as e:
+        raw = yamlio.load(path.read_text(encoding="utf-8-sig")) or {}
+    except yamlio.YAMLError as e:
         raise UserError(f"config.yaml sai cú pháp YAML: {e}") from None
     if not isinstance(raw, dict):
         raise UserError("config.yaml phải là một bảng khoá: giá trị.")

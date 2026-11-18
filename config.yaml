@@ -6,6 +6,8 @@ brief:
   aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
   fps: 30               # 24 | 25 | 30 | 50 | 60
   platform: tiktok      # free text for the planner
+  fit: fill             # fill: footage of another shape fills the frame, centre crop, no black bars
+                        # fit: the whole picture stays visible, black bars where the shapes differ
   notes: ""             # optional extra instructions for the planner
 
 footage_dir: D:/quay/buoi-tap        # CHANGE: folder with the raw clips (override: run <folder> or --footage)

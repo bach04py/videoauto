@@ -92,6 +92,9 @@ def setup(tmp_path, gym, sunset):
     (tmp_path / "catalogue.json").write_text(json.dumps(CATALOGUE), encoding="utf-8")
     (tmp_path / "config.yaml").write_text(
         f"media_dir: {json.dumps(str(media))}\ncatalogue: catalogue.json\n"
+        # these tests pin the command sequence; filling the frame (default) is tested in
+        # test_index_speed_and_fill.py on clips of known shapes
+        "brief:\n  fit: fit\n"
         "openchatcut:\n  repo: nowhere\n  data_dir: occdata\n", encoding="utf-8")
     plan = {
         "version": 1, "target": {"duration": 15, "aspect": "9:16", "fps": 30}, "confidence": 0.8,

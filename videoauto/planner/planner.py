@@ -199,6 +199,7 @@ RULES (keep it simple: this is a first, crude cut)
    Clips 1.5-6 s long. Never reuse the same source seconds twice.
 2. When two options are similar, prefer the SHARPER shot (higher sharpness / better rank).
    Prefer shots whose orientation matches the target ({b.orientation}).
+   {_fit_rule(b)}
    A "blurry" flag means clearly soft footage: use it only if nothing else fits.
 3. One LUT for the whole piece, chosen from the list below; params only from that LUT, inside its ranges.
 4. Fade in at the start and fade out at the end: 0.3-1.0 s each.
@@ -228,6 +229,17 @@ PACE_RULES = {
     "medium": "medium: clips of about 2.5-4.5 s, a steady rhythm",
     "calm": "calm: longer clips (4-6 s), few cuts, let shots breathe",
 }
+
+
+def _fit_rule(b) -> str:
+    """What the builder does with footage of another shape, so the model plans for it (and does
+    not warn that it still has to be cropped: the builder does that)."""
+    if b.fit == "fit":
+        return (f"Footage of another shape is shown whole, with black bars, in the {b.aspect} frame "
+                "(brief.fit = fit).")
+    return (f"Footage of another shape is scaled to FILL the {b.aspect} frame and cropped at the CENTRE "
+            "automatically (no black bars): horizontal footage in a vertical video loses its left and right "
+            "sides, so prefer shots whose subject is near the centre. Do not warn that cropping is needed.")
 
 
 def _style_prompt(cfg: ProjectConfig, cat: Catalogue) -> str:

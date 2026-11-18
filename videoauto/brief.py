@@ -17,6 +17,7 @@ from .errors import UserError
 ASPECTS = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080),
            "4:5": (1080, 1350), "4:3": (1440, 1080), "3:4": (1080, 1440)}
 FPS = (24, 25, 30, 50, 60)
+FITS = ("fill", "fit")
 
 
 @dataclass
@@ -26,6 +27,7 @@ class Brief:
     fps: int
     platform: str
     notes: str
+    fit: str = "fill"          # fill: crop to the frame, no bars | fit: whole picture, bars where shapes differ
 
     @property
     def size(self) -> tuple[int, int]:
@@ -185,6 +187,10 @@ def load_project_config(path: Path | None = None, problems: list[str] | None = N
         raise UserError(f"brief.fps = {brief.fps} không hỗ trợ. Chọn một trong: {', '.join(map(str, FPS))}.")
     if not 1 <= brief.duration <= 600:
         raise UserError("brief.duration phải nằm trong khoảng 1–600 giây.")
+    brief.fit = str(b.get("fit") or "fill").strip().lower()
+    if brief.fit not in FITS:
+        raise UserError(f"brief.fit = {b.get('fit')!r} không hợp lệ. Chọn fill (cắt cho đầy khung, không viền đen; "
+                        "mặc định) hoặc fit (giữ nguyên hình, có viền đen khi khác tỉ lệ).")
 
     o = raw.get("openchatcut") or {}
     repo = _rel(base, o.get("repo")) or Path()

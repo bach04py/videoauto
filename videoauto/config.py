@@ -19,6 +19,9 @@ DEFAULTS: dict[str, Any] = {
         "min_speech_seconds": 0.5,  # VAD gate: below this the file has no speech
     },
     "shots": {"threshold": 27.0, "min_scene_len": 15},
+    # hwaccel: auto = NVDEC (-hwaccel cuda) for the one decode of a large source when an NVIDIA
+    # driver loads and ffmpeg has cuda; off = always CPU (videoauto/proxy.py)
+    "indexing": {"hwaccel": "auto"},
     "keyframes": {"second_frame_after": 8.0, "max_side": 768},
     "quality": {
         # blurry = sharpness < blur_threshold (absolute floor), OR, when the file has at least
@@ -36,6 +39,7 @@ DEFAULTS: dict[str, Any] = {
     "vision": {
         "provider": "claude",
         "max_retries": 2,            # retries for a malformed reply
+        "concurrency": 3,            # contact sheets described at the same time (1 = one after another)
         "claude": {"command": "claude", "model": None, "timeout": 300},
         "openai_compatible": {
             "base_url": None,

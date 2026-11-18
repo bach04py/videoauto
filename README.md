@@ -8,12 +8,20 @@ Claude), lập kế hoạch dựng bằng **một** lượt gọi model, rồi d
 [OpenChatCut](https://github.com/0xsline/OpenChatCut). Đây là bản thử nghiệm sớm: kết quả còn thô.
 
 ```
-python -m videoauto.run
+python -m videoauto.watch
 ```
 
-Lệnh trên **không cần tham số**: thư mục video (`footage_dir`), kịch bản cần theo (`script_file`),
-thông tin thương hiệu và logo (`brand`) đều đặt sẵn trong `config.yaml`. Có thể ghi đè:
-`python -m videoauto.run D:\quay\buoi-khac --script kich-ban.txt`.
+Đây là lệnh chính. Lần đầu nó hỏi ba thư mục (video nguồn, kịch bản, xuất video), lưu vào
+`videoauto.local.yaml` nếu bạn đồng ý, rồi chạy mãi: mỗi tệp kịch bản `.txt` mới thả vào thư mục
+kịch bản thành một video (`tap-nguc.txt` → `tap-nguc.mp4`), lần lượt từng cái một; video cũ không
+bao giờ bị ghi đè (lần sau thành `tap-nguc-2.mp4`). Kịch bản xong chuyển vào `done/`, lỗi chuyển
+vào `failed/` kèm tệp `.loi.txt` ghi lý do và cách xử lý; video của một lần dựng lỗi được giữ lại
+với tên `<tên>.loi.mp4`, không bao giờ bị xoá. Các thư mục này nằm trong thư mục xuất video. Khi
+chạy lúc đăng nhập (Task Scheduler) hoặc dạng dịch vụ (NSSM) phải thêm `--no-prompt`. Xem mục 5.
+
+Dựng **một lần** không cần watcher (cho người dùng quen dòng lệnh; xem mục 6):
+`python -m videoauto.run` dùng thư mục video (`footage_dir`) và kịch bản (`script_file`) đặt trong
+`config.yaml`, hoặc `python -m videoauto.run D:\quay\buoi-khac --script kich-ban.txt`.
 
 - **Thương hiệu**: tên, khẩu hiệu và mô tả giúp model chọn cảnh, nhịp và viết lời dẫn hợp thương hiệu
   (chỉ đưa vào bước lập kế hoạch, không đưa vào bước mô tả cảnh).
@@ -35,14 +43,6 @@ Cần cài: Python 3.12, Node 24, ffmpeg, Claude Code CLI (đã đăng nhập), 
 các bước tiếng Anh bên dưới (bước 2, OpenChatCut, là bước dễ sai nhất). Mọi thông báo lỗi của công cụ
 đều bằng tiếng Việt và nói rõ cần làm gì; xem mục **Troubleshooting**.
 
-**Chạy liên tục**: `python -m videoauto.watch` hỏi ba thư mục (video nguồn, kịch bản, xuất video),
-lưu vào `videoauto.local.yaml` nếu bạn đồng ý, rồi chạy mãi: mỗi tệp kịch bản `.txt` mới thả vào thư
-mục kịch bản thành một video (`tap-nguc.txt` → `tap-nguc.mp4`), lần lượt từng cái một; video cũ
-không bao giờ bị ghi đè (lần sau thành `tap-nguc-2.mp4`). Kịch bản xong chuyển vào `done/`, lỗi
-chuyển vào `failed/` kèm tệp `.loi.txt` ghi lý do và cách xử lý; các thư mục này nằm trong thư mục
-xuất video. Khi chạy lúc
-đăng nhập (Task Scheduler) hoặc dạng dịch vụ (NSSM) phải thêm `--no-prompt`. Xem mục 6.
-
 Khi đang chờ, cửa sổ watcher luôn hiện dòng gợi ý
 `[S] sửa phong cách   [P] xem đường dẫn   [Q] thoát`. Nhấn **S** để tự gõ lại bối cảnh (`context`),
 giọng điệu (`tone`), nhịp (`pace`: fast | medium | calm) và LUT ưu tiên (`prefer_luts`) ngay trong
@@ -55,7 +55,12 @@ thành công, nếu không thì tự dùng CPU và ghi lý do vào log. Bộ mã
 trong `<video>.mp4.build.json`. Cùng bitrate, mã hoá GPU cho chất lượng hơi thấp hơn x264 (CPU):
 khi chất lượng quan trọng hơn tốc độ, đặt `gpu_encode: off`.
 
-Chưa làm được: phụ đề theo lời nói, nhạc nền; phần nhận giọng nói chưa được kiểm thử.
+**Video quay ngang trong khung dọc**: mặc định (`brief.fit: fill`) clip 16:9 được phóng to cho đầy
+khung 9:16 và cắt giữa, không có viền đen; hai bên hình bị cắt, nên chủ thể cần ở giữa khung.
+Muốn giữ nguyên cả hình (có viền đen) thì đặt `brief.fit: fit`.
+
+Chưa làm được: phụ đề theo lời nói, nhạc nền, cắt bám theo chủ thể (hiện cắt chính giữa); phần
+nhận giọng nói (tắt mặc định) chưa được kiểm thử trên clip có lời nói.
 Chỉ mới chạy thử trên Windows 11.
 
 ---
@@ -69,11 +74,13 @@ validates that plan hard, and then drives the [OpenChatCut](https://github.com/0
 `occ` command line to assemble and render the MP4.
 
 ```
-python -m videoauto.run
+python -m videoauto.watch
 ```
 
-With `footage_dir` (and optionally `script_file` and `brand`) set in `config.yaml`, that is the
-whole command. The output is a crude first cut: picked and ordered shots, one LUT, a fade in and
+That is the main command (section 5): it asks for three folders once, then turns every script
+(`.txt`) dropped into the scripts folder into a video. For a single run from the command line,
+`python -m videoauto.run` uses `footage_dir` (and optionally `script_file` and `brand`) from
+`config.yaml` (section 6). The output is a crude first cut: picked and ordered shots, one LUT, a fade in and
 out, an optional logo, text overlays for the lines your script asks for, sometimes a transition.
 It is not a finished edit with subtitles or music (see **What this does not do yet**).
 It has been developed and run on **Windows 11 only**. The macOS/Linux commands below are the
@@ -239,6 +246,8 @@ brief:
   aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
   fps: 30               # 24 | 25 | 30 | 50 | 60
   platform: tiktok      # free text for the planner
+  fit: fill             # fill: footage of another shape fills the frame, centre crop, no black bars
+                        # fit: the whole picture stays visible, black bars where the shapes differ
   notes: ""             # optional extra instructions for the planner
 
 footage_dir: D:/quay/buoi-tap        # CHANGE: folder with the raw clips (override: run <folder> or --footage)
@@ -356,7 +365,7 @@ when they are all empty):
 The footage still comes first: style never makes the planner use a shot it would otherwise
 reject. A `prefer_luts` id that is not a LUT in `catalogue.json` stops the run at the startup
 check (`style.prefer_luts trong config.yaml có id không phải LUT…`), with a few valid ids to copy. In the watcher these four can be edited without
-opening the file (key **S**, section 6).
+opening the file (key **S**, section 5).
 
 ### GPU encoding (`gpu_encode`)
 
@@ -610,64 +619,7 @@ api_key_env = "VIDEOAUTO_API_KEY"   # the key is read from this environment vari
 
 ---
 
-## 5. Run it
-
-From the videoauto folder, with the virtual environment active and `footage_dir` set:
-
-```powershell
-python -m videoauto.run
-```
-
-Everything can be overridden for one run:
-`python -m videoauto.run D:\footage\other-shoot --script my-script.txt --out output\other`
-(`--footage <folder>` works the same as the positional folder; `--out` defaults to `output/`).
-
-Progress is printed in Vietnamese, one block per stage:
-
-```
-kiểm tra môi trường…                       # checks ffmpeg, Node, OpenChatCut, catalogue, claude first
-━━ [1/3] Lập chỉ mục …                     # index every clip; captions batched 9 keyframes per call
-━━ [2/3] Lập kế hoạch dựng …               # ONE model call -> plan.json
-━━ [3/3] Dựng video bằng OpenChatCut …     # occ: project, import, clips, LUT, transitions, fades, render
-━━ XONG trong 532s (lập chỉ mục 358s, kế hoạch 12s, dựng 162s); 8 lượt gọi model
-```
-
-What appears in `output/`:
-
-| Path | What it is |
-|---|---|
-| `final.mp4` | the video (1080x1920 H.264 for 9:16) |
-| `final.mp4.build.json` | every `occ` command with its arguments, result and time; warnings |
-| `plan.json` | the EditPlan: clips (source in/out), LUT, transitions, fades, text overlays, the planner's script and warnings |
-| `index/<sha256>.json` | one index per source file (shots, captions, sharpness, motion, flags) |
-| `index/frames/` | the keyframes the captions were made from |
-
-Measured on one Windows 11 laptop (no GPU) with 17 clips (15 of them 4K, 2.3 GB in total):
-indexing 358 s with 7 caption calls; planning 12 s with 1 call; building 162 s, of which importing
-2.3 GB into OpenChatCut and the render take most (each other `occ` command costs about 2–3 s of
-start-up). Total 532 s and 8 model calls for a 15 s, 20 MB video.
-
-Running again on the same folder reuses the cached indexes (`cache: TRÚNG …`, zero caption calls),
-then makes one new plan call and a new build.
-
-Exit codes: `0` done; `2` setup or input problem; `3` usage limit reached (safe to re-run later);
-`5` the planner refused (not enough usable footage); `6` the build was aborted.
-
-### Debugging one stage at a time
-
-```
-python -m videoauto.index <folder> --out output/index
-python -m videoauto.plan  output/index --out output/plan.json        # footage_dir/script_file from config.yaml
-python -m videoauto.build output/plan.json --out output/final.mp4    # both accept --footage; plan accepts --script
-python -m videoauto.index <folder> --out output/index --calibrate-blur  # local blur report, no model calls
-python -m videoauto.index [<folder>] --prune --out output/index        # list, confirm, remove old indexes
-```
-
-Add `--debug` to any command for a full Python traceback.
-
----
-
-## 6. Chạy liên tục (folder watcher)
+## 5. Run it: the folder watcher (`python -m videoauto.watch`)
 
 ```powershell
 python -m videoauto.watch
@@ -877,6 +829,63 @@ live in your profile. Neither setup has been tested yet.
 
 ---
 
+## 6. One build from the command line (`python -m videoauto.run`)
+
+From the videoauto folder, with the virtual environment active and `footage_dir` set:
+
+```powershell
+python -m videoauto.run
+```
+
+Everything can be overridden for one run:
+`python -m videoauto.run D:\footage\other-shoot --script my-script.txt --out output\other`
+(`--footage <folder>` works the same as the positional folder; `--out` defaults to `output/`).
+
+Progress is printed in Vietnamese, one block per stage:
+
+```
+kiểm tra môi trường…                       # checks ffmpeg, Node, OpenChatCut, catalogue, claude first
+━━ [1/3] Lập chỉ mục …                     # index every clip; captions batched 9 keyframes per call
+━━ [2/3] Lập kế hoạch dựng …               # ONE model call -> plan.json
+━━ [3/3] Dựng video bằng OpenChatCut …     # occ: project, import, clips, LUT, transitions, fades, render
+━━ XONG trong 532s (lập chỉ mục 358s, kế hoạch 12s, dựng 162s); 8 lượt gọi model
+```
+
+What appears in `output/`:
+
+| Path | What it is |
+|---|---|
+| `final.mp4` | the video (1080x1920 H.264 for 9:16) |
+| `final.mp4.build.json` | every `occ` command with its arguments, result and time; warnings |
+| `plan.json` | the EditPlan: clips (source in/out), LUT, transitions, fades, text overlays, the planner's script and warnings |
+| `index/<sha256>.json` | one index per source file (shots, captions, sharpness, motion, flags) |
+| `index/frames/` | the keyframes the captions were made from |
+
+Measured on one Windows 11 laptop (no GPU) with 17 clips (15 of them 4K, 2.3 GB in total):
+indexing 358 s with 7 caption calls; planning 12 s with 1 call; building 162 s, of which importing
+2.3 GB into OpenChatCut and the render take most (each other `occ` command costs about 2–3 s of
+start-up). Total 532 s and 8 model calls for a 15 s, 20 MB video.
+
+Running again on the same folder reuses the cached indexes (`cache: TRÚNG …`, zero caption calls),
+then makes one new plan call and a new build.
+
+Exit codes: `0` done; `2` setup or input problem; `3` usage limit reached (safe to re-run later);
+`5` the planner refused (not enough usable footage); `6` the build was aborted.
+
+### Debugging one stage at a time
+
+```
+python -m videoauto.index <folder> --out output/index
+python -m videoauto.plan  output/index --out output/plan.json        # footage_dir/script_file from config.yaml
+python -m videoauto.build output/plan.json --out output/final.mp4    # both accept --footage; plan accepts --script
+python -m videoauto.index <folder> --out output/index --calibrate-blur  # local blur report, no model calls
+python -m videoauto.index [<folder>] --prune --out output/index        # list, confirm, remove old indexes
+```
+
+Add `--debug` to any command for a full Python traceback.
+
+---
+
 ## Troubleshooting
 
 All messages are printed as `Lỗi: …` with the fix in the message.
@@ -990,7 +999,14 @@ plays in a normal video player.
 
 - **M1 index** (`videoauto/index.py`): ffprobe metadata; PySceneDetect shot boundaries; keyframes;
   OpenCV motion, camera movement and per-shot `sharpness`; ffmpeg black/frozen/silent detection;
-  Vietnamese captions from 3x3 contact sheets, one model call per sheet, sequential. One JSON per
+  Vietnamese captions from 3x3 contact sheets, one model call per sheet. A source larger than
+  1280 px is decoded **once** into a 640 px proxy (`videoauto/proxy.py`, on the GPU with NVDEC when
+  an NVIDIA driver and an ffmpeg with cuda are present) and cuts, motion, bars, black, freeze and
+  silence are measured on it; before, each 4K file was decoded in full three times. On 21–30 s 4K
+  clips this halved the local analysis (8.5 s → 4.2 s per clip, same results). Keyframes for the
+  captions still come from the source. Up to `vision.concurrency` (default 3, `videoauto.toml`)
+  sheets are described at the same time, while the next files are analysed. Only a clip's first
+  indexing pays this; a cached clip costs nothing. One JSON per
   source at `<out>/<sha256>.json`, validated against `videoauto/schemas/index.schema.json`. A
   `blurry` flag marks only extreme blur (sharpness < 35, or < 25% of the median of the same file's
   other shots) and never removes a shot from `usable_shots`.
@@ -1003,8 +1019,12 @@ plays in a normal video player.
   → `manage_effects` (LUT) → `edit_item` transitions → fades → text overlays (`edit_track`, then per
   overlay `edit_item` motion-graphic, `read_timeline`, `edit_item` duration, `update_item_props`)
   → logo (`import_asset`, `edit_track`, `edit_item` image + transform) → `occ render`, all with one
-  `OPENCHATCUT_DATA_DIR`. A failed item is skipped and recorded; the build aborts above 30% failures
-  (overlays are skipped and recorded but never abort).
+  `OPENCHATCUT_DATA_DIR`. A clip of another shape than the target gets an `edit_item` transform
+  scale that fills the frame (`brief.fit`). A failed item is skipped and recorded; the build aborts
+  above 30% failures, and always when a text overlay or the logo could not be placed. The render
+  counts as done only when the file exists, is not empty and is as long as the timeline; a failed
+  build keeps its video as `<name>.loi.mp4`. Render time is OpenChatCut's (Remotion draws every
+  frame); videoauto does not change it.
 
 ## License
 

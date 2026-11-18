@@ -116,7 +116,9 @@ class Builder:
 
         # ---- item steps: count, skip failures, abort above the ratio
         clips = plan["clips"]
+        fills = self._fill_scales(clips, (w, h))
         total = (len(clips) + sum(len(c["effects"]) for c in clips) + len(plan["transitions"])
+                 + sum(1 for c in clips if fills.get(c["src"], 1.0) > FILL_MIN)
                  + (plan["fades"]["in"] > 0) + (plan["fades"]["out"] > 0)
                  + (LOGO_COMMANDS if cfg.brand.logo is not None else 0))
         placed: list[str | None] = []
@@ -143,6 +145,12 @@ class Builder:
             placed.append(item)
             if item:
                 cursor += frames                     # failed clips leave no gap: later ones pack left
+            scale = fills.get(c["src"], 1.0)
+            if item and scale > FILL_MIN:
+                # fill the frame, centre crop (occ fits 'contain' by default: black bars)
+                self._item(rep, total, f"fill clip {n}", ["tools", "call", "edit_item", "--project", pid,
+                           "--apply"], {"updates": [{"type": "video", "itemId": item,
+                                                     "transform": {"scale": round(scale, 5), "x": 0, "y": 0}}]})
 
         for n, (c, item) in enumerate(zip(clips, placed), 1):
             for e in c["effects"]:
@@ -311,12 +319,34 @@ class Builder:
         """An occ command whose failure is recorded by the caller but never aborts the build."""
         return self.occ.run(label, args, tool_args, read=read)
 
+    def _fill_scales(self, clips: list[dict], canvas: tuple[int, int]) -> dict[str, float]:
+        """Source name -> transform.scale that fills the frame (brief.fit = fill); {} for fit."""
+        if self.cfg.brief.fit != "fill":
+            return {}
+        from ..crop import fill_scale
+        from ..probe import probe
+        out = {}
+        for name in {c["src"] for c in clips}:
+            path = self._media.get(name)
+            if path is None:
+                continue
+            try:
+                pr = probe(path)
+            except UserError:
+                continue
+            out[name] = fill_scale(pr.width, pr.height, *canvas)
+        return out
+
     def _check_media(self, plan: dict, rep: BuildReport, cat: Catalogue) -> None:
         ok: dict[str, bool] = {}
+        self._media: dict[str, Path] = {}
         for name in {c["src"] for c in plan["clips"]}:
             want = plan["sources"][name]["sha256"]
             hits = [p for p in self.cfg.footage_dir.rglob(name) if p.is_file()]
-            ok[name] = any(sha256_of(p) == want for p in hits)
+            match = next((p for p in hits if sha256_of(p) == want), None)
+            ok[name] = match is not None
+            if match is not None:
+                self._media[name] = match
             if not ok[name]:
                 rep.warnings.append(f"bỏ các clip từ '{name}': không có tệp khớp nội dung trong footage_dir")
         if not all(ok.values()):
@@ -346,6 +376,7 @@ class Builder:
 
 
 LOGO_COMMANDS = 4      # import_asset, edit_track, edit_item add, edit_item transform
+FILL_MIN = 1.01        # below this the shapes match: no fill command
 
 
 def media_duration(path: Path) -> float | None:

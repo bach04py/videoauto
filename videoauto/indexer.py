@@ -13,6 +13,7 @@ from .cache import Cache, load_hash_memo, save_hash_memo, sha256_of
 from .crop import detect_crop
 from .errors import LimitReached, ProviderUnavailable, UserError
 from .probe import probe
+from .proxy import make_proxy, to_source
 from .schema import SCHEMA_VERSION
 from .speech import SR as SPEECH_SR, Transcriber
 from .vision import make_provider
@@ -85,7 +86,8 @@ class Indexer:
         self._tmp = tempfile.TemporaryDirectory(prefix="videoauto_")
         kw = {"cells_per_sheet": cells_per_sheet} if cells_per_sheet else {}
         self.captioner = Captioner(self.provider, Path(self._tmp.name),
-                                   max_retries=cfg["vision"]["max_retries"], **kw)
+                                   max_retries=cfg["vision"]["max_retries"],
+                                   concurrency=cfg["vision"].get("concurrency", 1), **kw)
         self.pending: dict[str, dict[str, Any]] = {}   # sha -> index awaiting captions
         self.report = RunReport()
 
@@ -107,6 +109,7 @@ class Indexer:
                 log.warning("dừng: %d tệp đang dở không được ghi (%s)", len(self.pending),
                             ", ".join(ix["file"] for ix in self.pending.values()))
         finally:
+            self.captioner.close()
             self.report.model_calls = self.captioner.stats.calls
             self.report.shots_per_call = list(self.captioner.stats.shots_per_call)
             self._tmp.cleanup()
@@ -152,13 +155,20 @@ class Indexer:
         pr = probe(path)
         if not pr.has_video:
             raise UserError(f"'{path.name}' không có luồng hình ảnh. Đặt tệp nhạc vào thư mục music/.")
-        crop = detect_crop(path, pr.width, pr.height)
+        # one decode of a large source into a 640 px proxy; cuts, motion, black/freeze/silence and
+        # the bars are measured on it (videoauto/proxy.py). Keyframes still come from the source.
+        made = make_proxy(path, pr, Path(self._tmp.name), c.get("indexing", {}).get("hwaccel", "auto"))
+        apath, apr = made if made else (path, pr)
+        acrop = detect_crop(apath, apr.width, apr.height)
+        crop = to_source(acrop, apr, pr) if made else acrop
         if crop:
             log.info("  phát hiện viền đen: phân tích vùng hình %dx%d", crop.w, crop.h)
-        fa = frames.analyse(path, pr, crop, c["shots"]["threshold"], c["shots"]["min_scene_len"])
-        det = quality.detect(path, pr.duration, pr.has_audio, c["quality"]["silence_db"], crop)
+        fa = frames.analyse(apath, apr, acrop, c["shots"]["threshold"], c["shots"]["min_scene_len"])
+        det = quality.detect(apath, pr.duration, pr.has_audio, c["quality"]["silence_db"], acrop)
 
-        pcm = audio.load_audio(path, SPEECH_SR) if pr.has_audio else None
+        pcm = audio.load_audio(apath, SPEECH_SR) if pr.has_audio else None
+        if made:
+            apath.unlink(missing_ok=True)
         # None: speech recognition off or failed (never fatal) -> transcript null on every shot
         segments = self.transcriber.transcribe(pcm) if pcm is not None else []
         peaks = audio.peak_times(pcm, SPEECH_SR) if pcm is not None else []

@@ -185,8 +185,9 @@ def load_project_config(path: Path | None = None, problems: list[str] | None = N
         raise UserError(f"brief.aspect = '{brief.aspect}' không hỗ trợ. Chọn một trong: {', '.join(ASPECTS)}.")
     if brief.fps not in FPS:
         raise UserError(f"brief.fps = {brief.fps} không hỗ trợ. Chọn một trong: {', '.join(map(str, FPS))}.")
-    if not 1 <= brief.duration <= 600:
-        raise UserError("brief.duration phải nằm trong khoảng 1–600 giây.")
+    if not 5 <= brief.duration <= 180:
+        raise UserError("brief.duration phải nằm trong khoảng 5–180 giây (độ dài video khi kịch bản không có "
+                        "mốc thời gian).")
     brief.fit = str(b.get("fit") or "fill").strip().lower()
     if brief.fit not in FITS:
         raise UserError(f"brief.fit = {b.get('fit')!r} không hợp lệ. Chọn fill (cắt cho đầy khung, không viền đen; "

@@ -69,9 +69,11 @@ def load_plan(path: Path) -> dict:
 
 
 class Builder:
-    def __init__(self, cfg: ProjectConfig, occ: Occ | None = None):
+    def __init__(self, cfg: ProjectConfig, occ: Occ | None = None, note=None):
+        """note: where the render-time estimate goes besides the log (the watcher's console)."""
         self.cfg = cfg
         self.occ = occ or Occ(cfg.occ)
+        self.note = note
 
     def build(self, plan: dict, out: Path) -> BuildReport:
         """Never raises a UserError: it lands in rep.error, so the caller can still write
@@ -217,11 +219,17 @@ class Builder:
         choice = gpu.choose(cfg.occ.gpu_encode, cfg.occ.repo)     # cached; gpu_encode=on raises here
         log.info("mã hoá: %s (gpu_encode=%s)", choice.label(), choice.mode)
         rep.output.parent.mkdir(parents=True, exist_ok=True)
+        from ..duration import record_render, render_estimate
+        est = render_estimate(cursor / fps, cfg.occ.data_dir)
+        log.info(est)
+        if self.note:
+            self.note(est)
         r = self.occ.run("render", ["render", pid, "--out", str(rep.output),
                                     "--resolution", cfg.occ.resolution, "--fps", str(fps),
                                     "--bitrate", str(round(cfg.occ.video_bitrate_mbps * 1_000_000))],
                          timeout=cfg.occ.timeout, env=choice.env(), json_required=False)
         self._fatal(r, "xuất video (render)")
+        record_render(cfg.occ.data_dir, cursor / fps, r.seconds)
         # success = exit 0 + the file exists + it is not empty + its length is the timeline's;
         # what occ printed on stdout plays no part (it prints progress lines before its JSON)
         problem = render_problem(rep.output, cursor / fps, fps)

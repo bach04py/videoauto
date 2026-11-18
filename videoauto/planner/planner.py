@@ -12,6 +12,7 @@ from typing import Any
 from .. import schema as index_schema
 from ..brief import ProjectConfig
 from ..cache import sha256_of
+from ..duration import cut_rules, monotony, shortage
 from ..errors import PlanValidationError, UserError
 from ..vision.base import ProviderTransient, VisionProvider
 from . import overlays as ov
@@ -166,7 +167,9 @@ def build_prompt(cfg: ProjectConfig, material: Material, cat: Catalogue) -> str:
 <<<
 {script}
 >>>
-- Split it into beats in its own order (timecodes, if present, are the intended timing).
+- Split it into beats in its own order (timecodes, if present, are the intended timing: the clips
+  of a beat together fill its time span; a short beat may be one clip, a long one several of
+  different lengths).
 - For each beat pick the closest matching usable footage. If the footage has nothing for a beat,
   say so in "beats" (empty "clips" and a Vietnamese "note" naming what is missing) and use the
   closest match only if one is reasonable. Never pretend footage shows something it does not,
@@ -203,7 +206,8 @@ MATERIAL (times are source seconds; shots marked UNUSABLE must never be used)
 
 RULES (keep it simple: this is a first, crude cut)
 1. Pick shots and order them. Each clip lies inside ONE usable shot: shot.start <= in < out <= shot.end.
-   Clips 1.5-6 s long. Never reuse the same source seconds twice.
+   Never reuse the same source seconds twice.
+   {cut_rules(b.duration)}
 2. When two options are similar, prefer the SHARPER shot (higher sharpness / better rank).
    Prefer shots whose orientation matches the target ({b.orientation}).
    {_fit_rule(b)}
@@ -416,6 +420,9 @@ def assemble(reply: dict, cfg: ProjectConfig, material: Material, cat: Catalogue
     validate_plan(plan, cat, shots, cfg.brand)
 
     total = sum(c["out"] - c["in"] for c in plan["clips"])
+    same = monotony([c["out"] - c["in"] for c in plan["clips"]])
+    if same:
+        warn.append(same)
     if abs(total - b.duration) > DURATION_TOLERANCE * b.duration:
         warn.append(f"tổng thời lượng {total:.1f}s lệch so với mục tiêu {b.duration:g}s")
     # anything our checks had to drop or fix (the model's own advisory warnings don't count)
@@ -470,12 +477,10 @@ def make_plan(cfg: ProjectConfig, index_dir: Path, provider: VisionProvider) -> 
     if not material.indexes:
         return _finish(_reject(b, "Không có chỉ mục video hợp lệ nào. Chạy M1 trên thư mục video trước "
                                "(và kiểm tra footage_dir trong config.yaml).", material.warnings, material, 0))
-    have, need = material.usable_seconds, cfg.min_material_ratio * b.duration
-    if have < need:
-        return _finish(_reject(
-            b, f"Không đủ hình dùng được: chỉ có {have:.1f}s (sau khi loại shot đen/đứng hình), "
-               f"cần ít nhất {need:.1f}s cho video {b.duration:g}s. Thêm cảnh quay hoặc giảm brief.duration.",
-            material.warnings, material, 0))
+    short = shortage(b.duration, cfg.min_material_ratio, material.usable_seconds,
+                     "sau khi loại shot đen, đứng hình")
+    if short:                     # before the model call: a plan that cannot be filled costs nothing
+        return _finish(_reject(b, short, material.warnings, material, 0))
 
     unknown = [i for i in cfg.style.prefer_luts if cat.kind(i) != "lut"]
     if unknown:

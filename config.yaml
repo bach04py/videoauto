@@ -2,7 +2,8 @@
 # Lines marked CHANGE are the ones you must edit for your machine.
 
 brief:
-  duration: 15          # target length in seconds
+  duration: 15          # seconds (5-180), used only when the script has no timestamps:
+                        # a script's last timed beat ("12-15s | ...") sets the length
   aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
   fps: 30               # 24 | 25 | 30 | 50 | 60
   platform: tiktok      # free text for the planner
@@ -44,7 +45,7 @@ whisper:                      # speech recognition in the clips (optional; READM
                               # small 485 MB, medium 1.5 GB, large-v3 3.1 GB (auto: large-v3 with a
                               # working NVIDIA GPU, else medium). off = no download, no transcripts
   # language: vi              # optional; empty = detect per clip
-min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
+min_material_ratio: 0.6       # stop (before any model call) when footage < 0.6 x the video length
 
 openchatcut:
   repo: ../OpenChatCut        # CHANGE if OpenChatCut is not next to the videoauto folder

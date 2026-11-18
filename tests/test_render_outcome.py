@@ -172,7 +172,7 @@ def test_watcher_keeps_the_video_of_a_failed_build(tmp_path, monkeypatch, synth_
     from videoauto.brief import load_project_config
     env = watch.Env(load_project_config(tmp_path / "config.yaml"), {}, FakeProvider(), FakeOcc(synth_media))
 
-    def pipeline(pcfg, vcfg, provider, occ, sources, index_dir, plan_path, video, result, on_stage):
+    def pipeline(pcfg, vcfg, provider, occ, sources, index_dir, plan_path, video, result, on_stage, on_note=None):
         result.stage = "build"
         video.write_bytes(b"\0" * 21_600)          # a whole render...
         raise BuildAborted("occ render: kết quả không đọc được")   # ...then refused

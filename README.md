@@ -378,7 +378,8 @@ lines marked **CHANGE** are the ones you must edit:
 
 ```yaml
 brief:
-  duration: 15          # target length in seconds
+  duration: 15          # seconds (5-180), used only when the script has no timestamps:
+                        # a script's last timed beat ("12-15s | ...") sets the length
   aspect: "9:16"        # 9:16 | 16:9 | 1:1 | 4:5 | 4:3 | 3:4
   fps: 30               # 24 | 25 | 30 | 50 | 60
   platform: tiktok      # free text for the planner
@@ -420,7 +421,7 @@ whisper:                      # speech recognition in the clips (optional; READM
                               # small 485 MB, medium 1.5 GB, large-v3 3.1 GB (auto: large-v3 with a
                               # working NVIDIA GPU, else medium). off = no download, no transcripts
   # language: vi              # optional; empty = detect per clip
-min_material_ratio: 0.6       # refuse to plan when usable footage < 0.6 x duration
+min_material_ratio: 0.6       # stop (before any model call) when footage < 0.6 x the video length
 
 openchatcut:
   repo: ../OpenChatCut        # CHANGE if OpenChatCut is not next to the videoauto folder
@@ -566,6 +567,24 @@ the closest match is used only where it is reasonable; nothing is fabricated and
 dropped silently (a reply without that report is itself flagged). Any such warning lowers the plan to
 tier `basic`. `plan.json` records `"script_source": "user"`. When the file is absent or empty, the
 planner writes the script as before (`"script_source": "planner"`).
+
+**Video length: 5 seconds to 3 minutes, set by the script.** The end of the last timed beat is the
+length (`12-15s` → 15 s, `2:45-3:00` → 180 s; ranges count as beats at the start of a line, as
+`m:ss`, with `s`/`giây`, or followed by `|`, `]` or `:`). `brief.duration` is used only when the
+script has no timestamps or the model writes the script. Outside 5-180 s the run stops before
+anything else. Footage is checked twice before the model is asked anything, each time with the
+numbers: before indexing, the total length of the clips (`Không đủ footage: cần ít nhất 108 giây
+footage dùng được cho video 180 giây, hiện có 42 giây (...)`, at `min_material_ratio: 0.6`), and
+before the plan call, the usable seconds after black and frozen shots are removed. The planner is
+told how many clips and what lengths suit the video (15 s: about 4-8 clips of 1.2-5 s; 180 s:
+about 34-58 clips of 1.5-10 s) and that clip lengths must follow the content; a plan whose clips
+are all (nearly) the same length gets a warning and tier `basic`.
+
+**Render time** is printed before `occ render` starts: about 21x the video length by default
+(measured: 314 s for a 15 s video with NVENC), then the median of the renders measured on this
+machine (`.occ-data/render-times.json`; the 1-second setup check does not count). Besides the
+render, each clip, effect and overlay is one `occ` command of about 2 s, so a 3-minute video with
+~45 clips spends a few more minutes before the render starts.
 
 #### Text overlays (`TEXT:` lines and `brand.colors`)
 

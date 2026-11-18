@@ -85,6 +85,8 @@ def _run(args, provider, occ) -> int:
     # a missing script_file is never replaced by one the model writes
     if script_ok and problems.attempt(check_script_file, pcfg)[0]:
         script = problems.attempt(pcfg.script_text)[1] or ""
+    from .duration import effective
+    problems.attempt(effective, script, pcfg.brief.duration)
     env = check_tools(pcfg, problems, occ=occ, provider=provider, vision_config=args.vision_config,
                       script=script)
     problems.raise_if_any()
@@ -128,9 +130,14 @@ class PipelineResult:
 
 def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path: Path, video: Path,
                  result: PipelineResult | None = None, on_stage: Callable[[str], None] | None = None,
-                 log_stage: bool = False) -> PipelineResult:
+                 log_stage: bool = False, on_note: Callable[[str], None] | None = None) -> PipelineResult:
     """index -> plan -> build for already-checked config, provider and occ. Raises on failure;
-    `result` (if passed) keeps the stage reached and the model calls spent so far."""
+    `result` (if passed) keeps the stage reached and the model calls spent so far.
+    The video's length is the script's (its last timed beat), brief.duration only without one;
+    `pcfg` itself is never changed (the watcher shares it between scripts). on_note: messages
+    the user should see before they happen (the render-time estimate)."""
+    import dataclasses
+    from . import duration as du
     from .build import finish_build
     from .builder.builder import Builder
     from .errors import PlanRejected, UserError
@@ -142,6 +149,15 @@ def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path:
     from .speech import merge_whisper
     res = result or PipelineResult()
     folder = pcfg.footage_dir
+    secs, why = du.effective(pcfg.script_text(), pcfg.brief.duration)
+    pcfg = dataclasses.replace(pcfg, brief=dataclasses.replace(pcfg.brief, duration=secs))
+    log.info("độ dài video: %gs (%s)", secs, why)
+    # footage too short for this length: say so with numbers before captioning spends any model call
+    need = du.need_seconds(secs, pcfg.min_material_ratio)
+    raw = du.raw_footage_seconds([s.path for s in sources if s.kind == "video"], need)
+    short = du.shortage(secs, pcfg.min_material_ratio, raw, f"tổng độ dài các clip trong {folder}")
+    if short:
+        raise UserError(short)
     vcfg = merge_whisper(vcfg, getattr(pcfg, "whisper", None))     # config.yaml wins over videoauto.toml
 
     def stage(key: str, n: int, title: str) -> None:
@@ -184,7 +200,7 @@ def run_pipeline(pcfg, vcfg, provider, occ, sources, index_dir: Path, plan_path:
     # ---- 3. build
     stage("build", 3, f"Dựng video bằng OpenChatCut → {video}")
     t = time.monotonic()
-    brep = Builder(pcfg, occ).build(plan, video)
+    brep = Builder(pcfg, occ, note=on_note).build(plan, video)
     res.times["build"] = time.monotonic() - t
     res.encoder = brep.encoder
     res.report = finish_build(brep, video)

@@ -637,7 +637,8 @@ class Watcher:
             log.info("kịch bản %s (%d ký tự), %d tệp nguồn", script.name, len(text), len(sources))
             run_pipeline(pcfg, self.env.vcfg, self.env.provider, self.env.occ, sources, self.index_dir,
                          plan_path, video, result=res,
-                         on_stage=lambda k: say(f"  {STAGE_VI[k][:1].upper() + STAGE_VI[k][1:]}…"))
+                         on_stage=lambda k: say(f"  {STAGE_VI[k][:1].upper() + STAGE_VI[k][1:]}…"),
+                         on_note=lambda m: say(f"  {m[:1].upper() + m[1:]}"))
         except KeyboardInterrupt:
             self.abandon()
             raise
